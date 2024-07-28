@@ -29,12 +29,6 @@ struct OnCameraRotationRequested {
     delta_rotation: Quat,
 }
 
-impl OnCameraRotationRequested {
-    fn new(delta_rotation: Quat) -> Self {
-        Self { delta_rotation }
-    }
-}
-
 fn listen_to_rotation_input(
     mouse_input: Res<ButtonInput<MouseButton>>,
     mut mouse_motion: EventReader<MouseMotion>,
@@ -47,7 +41,7 @@ fn listen_to_rotation_input(
     let mouse_delta = sum_mouse_delta(mouse_motion.read());
     let delta_rotation = rotation_from_mouse_delta(mouse_delta, ROTATION_MULTIPLIER);
 
-    rotation_request.send(OnCameraRotationRequested::new(delta_rotation));
+    rotation_request.send(OnCameraRotationRequested { delta_rotation });
 }
 
 fn handle_rotation_requests(

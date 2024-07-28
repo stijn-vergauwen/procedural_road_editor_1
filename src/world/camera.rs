@@ -1,13 +1,15 @@
 mod rotation;
+mod zoom;
 
 use bevy::prelude::*;
 use rotation::CameraRotationPlugin;
+use zoom::CameraZoomPlugin;
 
 pub struct EditorCameraPlugin;
 
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(CameraRotationPlugin)
+        app.add_plugins((CameraRotationPlugin, CameraZoomPlugin))
             .add_systems(Startup, spawn_camera);
     }
 }

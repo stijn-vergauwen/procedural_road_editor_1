@@ -47,8 +47,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Setup camera
-            - Zoom
         - Setup road datastructure
         - Generate preview road
             - Mesh builder & helpers
