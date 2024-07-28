@@ -20,33 +20,17 @@ fn spawn_objects(
 ) {
     // Ground
     commands.spawn((
-        Collider::cuboid(100.0, 0.1, 100.0),
+        Collider::cuboid(100.0, 0.01, 100.0),
         PbrBundle {
-            mesh: meshes.add(Cuboid::new(200.0, 0.2, 200.0)),
+            mesh: meshes.add(Cuboid::new(200.0, 0.02, 200.0)),
             material: materials.add(StandardMaterial {
                 base_color: LIME_600.into(),
-                perceptual_roughness: 0.0,
+                perceptual_roughness: 1.0,
                 ..default()
             }),
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
             ..default()
         },
-    ));
-
-    // Cube
-    commands.spawn((
-        PbrBundle {
-            mesh: meshes.add(Cuboid::from_size(Vec3::splat(2.0))),
-            material: materials.add(StandardMaterial {
-                base_color: AMBER_500.into(),
-                perceptual_roughness: 1.0,
-                ..default()
-            }),
-            transform: Transform::from_xyz(0.0, 1.5, 0.0),
-            ..default()
-        },
-        RigidBody::Dynamic,
-        Collider::cuboid(1.0, 1.0, 1.0),
     ));
 
     // Light
@@ -58,7 +42,12 @@ fn spawn_objects(
         },
         transform: Transform {
             translation: Vec3::new(0.0, 20.0, 0.0),
-            rotation: Quat::from_rotation_x((-45.0 as f32).to_radians()),
+            rotation: Quat::from_euler(
+                EulerRot::YXZ,
+                (20.0 as f32).to_radians(),
+                (-45.0 as f32).to_radians(),
+                0.0,
+            ),
             ..default()
         },
         ..default()

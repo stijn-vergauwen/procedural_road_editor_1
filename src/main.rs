@@ -1,10 +1,12 @@
 mod schedule;
 mod utility;
 mod world;
+mod road;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+use road::RoadPlugin;
 pub use schedule::GameRunningSet;
 use schedule::SchedulePlugin;
 use utility::UtilityPlugin;
@@ -47,9 +49,8 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Setup road datastructure
         - Generate preview road
-            - Mesh builder & helpers
+            - Mesh builder & helpers <- doing
         - Make & show default road design
         - Refresh road preview on change
         - Setup road design toolbar
@@ -81,6 +82,7 @@ fn main() {
             UtilityPlugin,
             SchedulePlugin,
             WorldPlugin,
+            RoadPlugin,
         ))
         .run();
 }

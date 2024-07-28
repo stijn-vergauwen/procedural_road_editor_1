@@ -1,3 +1,5 @@
+pub mod mesh_builder;
+
 use bevy::{
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow, WindowFocused},
