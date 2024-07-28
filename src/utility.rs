@@ -11,6 +11,8 @@ impl Plugin for UtilityPlugin {
     }
 }
 
+// Helper systems
+
 fn shutdown_on_esc(
     input: Res<ButtonInput<KeyCode>>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
@@ -45,4 +47,18 @@ fn toggle_cursor_on_focus(
         window.cursor.visible = !event.focused;
         window.cursor.grab_mode = cursor_grab_mode;
     }
+}
+
+// Helper functions
+
+pub fn add_rotations_as_eulers(rotation_a: Quat, rotation_b: Quat, euler: EulerRot) -> Quat {
+    let euler_a = rotation_a.to_euler(euler);
+    let euler_b = rotation_b.to_euler(euler);
+
+    Quat::from_euler(
+        euler,
+        euler_a.0 + euler_b.0,
+        euler_a.1 + euler_b.1,
+        euler_a.2 + euler_b.2,
+    )
 }

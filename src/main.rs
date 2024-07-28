@@ -48,7 +48,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Setup camera
-            - Rotate around center point
             - Zoom
         - Setup road datastructure
         - Generate preview road

@@ -1,19 +1,16 @@
+mod camera;
+
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use bevy_rapier3d::prelude::*;
+use camera::EditorCameraPlugin;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, (spawn_objects, spawn_camera));
+        app.add_plugins(EditorCameraPlugin)
+            .add_systems(Startup, spawn_objects);
     }
-}
-
-fn spawn_camera(mut commands: Commands) {
-    commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(-6.0, 6.0, 12.0).looking_at(Vec3::ZERO, Vec3::Y),
-        ..Default::default()
-    });
 }
 
 fn spawn_objects(
@@ -28,6 +25,7 @@ fn spawn_objects(
             mesh: meshes.add(Cuboid::new(200.0, 0.2, 200.0)),
             material: materials.add(StandardMaterial {
                 base_color: LIME_600.into(),
+                perceptual_roughness: 0.0,
                 ..default()
             }),
             transform: Transform::from_xyz(0.0, 0.0, 0.0),
