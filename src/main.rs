@@ -49,11 +49,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Generate preview road
-            - Mesh builder & helpers <- doing
-        - Make & show default road design
-        - Refresh road preview on change
-        - Setup road design toolbar
+        - Setup road design toolbar <- doing
             - Bottom of screen
             - Displays each component of the road
         - Ability to change order of road components with buttons
