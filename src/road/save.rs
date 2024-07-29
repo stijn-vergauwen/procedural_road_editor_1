@@ -1,19 +1,17 @@
 use std::{fs, io::Error};
 
 use bevy::prelude::*;
+use ron::ser::PrettyConfig;
 
 use crate::GameRunningSet;
 
 use super::{RoadData, RoadEditor};
 
-// TODO: add save button
-// TODO: save road on save button click
-
 pub struct SaveRoadPlugin;
 
 impl Plugin for SaveRoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnActiveRoadSaveRequested>().add_systems(
+        app.add_event::<OnSaveActiveRoadRequested>().add_systems(
             Update,
             handle_save_requests.in_set(GameRunningSet::HandleCommands),
         );
@@ -21,10 +19,10 @@ impl Plugin for SaveRoadPlugin {
 }
 
 #[derive(Event)]
-pub struct OnActiveRoadSaveRequested;
+pub struct OnSaveActiveRoadRequested;
 
 fn handle_save_requests(
-    mut requests: EventReader<OnActiveRoadSaveRequested>,
+    mut requests: EventReader<OnSaveActiveRoadRequested>,
     road_editor: Res<RoadEditor>,
 ) {
     for _ in requests.read() {
@@ -41,13 +39,14 @@ fn handle_save_requests(
 }
 
 fn serialize_road_data(road_data: &RoadData) -> Result<String, ron::Error> {
-    ron::to_string(road_data)
+    ron::ser::to_string_pretty(road_data, PrettyConfig::new().struct_names(true))
 }
 
 fn save_data_to_asset_folder(data: String, file_name: &str) -> Result<(), Error> {
-    fs::write(format!("assets/roads/{file_name}"), data)
+    fs::write(format!("assets/roads/{file_name}.ron"), data)
 }
 
+// TODO: make deserializer
 // fn deserialize_road_data(serialized_data: &str) -> Result<RoadData, ron::Error> {
 //     Ok(ron::from_str::<RoadData>(serialized_data)?)
 // }

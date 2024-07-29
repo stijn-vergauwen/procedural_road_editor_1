@@ -4,7 +4,7 @@ use crate::{
     road::reorder_components::OnReorderRoadComponentRequested,
     ui::{
         buttons::{OnReorderButtonPressed, ReorderDirection},
-        toolbar::ToolBar,
+        toolbar::RoadComponentsList,
         ListItem,
     },
     GameRunningSet,
@@ -24,12 +24,12 @@ impl Plugin for ReorderPlugin {
 fn send_reorder_requests(
     mut events: EventReader<OnReorderButtonPressed>,
     mut requests: EventWriter<OnReorderRoadComponentRequested>,
-    toolbar_query: Query<&ToolBar>,
+    road_component_list_query: Query<&RoadComponentsList>,
     list_item_query: Query<&ListItem>,
 ) {
     for event in events
         .read()
-        .filter(|event| toolbar_query.contains(event.list_entity()))
+        .filter(|event| road_component_list_query.contains(event.list_entity()))
     {
         let list_item = list_item_query.get(event.list_item_entity()).unwrap();
 

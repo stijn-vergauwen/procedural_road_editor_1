@@ -1,8 +1,8 @@
+mod road;
 mod schedule;
+mod ui;
 mod utility;
 mod world;
-mod road;
-mod ui;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -47,7 +47,6 @@ use world::WorldPlugin;
 
     Code standards:
         - Events EVERYWHERE, everything that doesn't happen every frame or across frames
-        - TDD? not yet sure of how much test coverage
 
 
     Backlog:
@@ -64,7 +63,7 @@ use world::WorldPlugin;
         - Spaced elements support
         - Support for assets in spaced elements
         - Goal: Have a road design that includes trees
-        
+
 */
 
 fn main() {

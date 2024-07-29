@@ -12,7 +12,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::ToolBar;
+use super::RoadComponentsList;
 
 pub struct ToolbarComponentsPlugin;
 
@@ -27,20 +27,20 @@ impl Plugin for ToolbarComponentsPlugin {
 
 pub fn generate_road_components(
     mut on_road_modified: EventReader<OnActiveRoadModified>,
-    toolbar_query: Query<Entity, With<ToolBar>>,
+    components_list_query: Query<Entity, With<RoadComponentsList>>,
     mut commands: Commands,
 ) {
     for event in on_road_modified.read() {
-        let toolbar_entity = toolbar_query.single();
+        let components_list_entity = components_list_query.single();
 
         commands
-            .entity(toolbar_entity)
+            .entity(components_list_entity)
             .despawn_descendants()
-            .with_children(|toolbar| {
+            .with_children(|components_list| {
                 let road_components = event.road().components();
                 for (index, road_component) in road_components.iter().enumerate() {
                     let container_node = (
-                        ListItem::new(toolbar_entity, index as u8),
+                        ListItem::new(components_list_entity, index as u8),
                         NodeBundle {
                             style: Style {
                                 flex_direction: FlexDirection::Column,
@@ -86,7 +86,7 @@ pub fn generate_road_components(
                         ..default()
                     };
 
-                    let mut container = toolbar.spawn(container_node);
+                    let mut container = components_list.spawn(container_node);
                     let container_entity = container.id();
 
                     container.with_children(|container| {

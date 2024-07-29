@@ -8,6 +8,8 @@ use road_builder::RoadBuilderPlugin;
 use save::SaveRoadPlugin;
 use serde::{Deserialize, Serialize};
 
+// TODO: make load module, with deserializer & file loader (just use example road for now)
+
 pub struct RoadPlugin;
 
 impl Plugin for RoadPlugin {

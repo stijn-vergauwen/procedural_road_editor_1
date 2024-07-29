@@ -8,10 +8,16 @@ pub struct ButtonsPlugin;
 
 impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnReorderButtonPressed>().add_systems(
-            Update,
-            send_button_pressed_events.in_set(GameRunningSet::SendEvents),
-        );
+        app.add_event::<OnReorderButtonPressed>()
+            .add_event::<OnSaveButtonPressed>()
+            .add_systems(
+                Update,
+                (
+                    send_reorder_button_pressed_events,
+                    send_save_button_pressed_events,
+                )
+                    .in_set(GameRunningSet::SendEvents),
+            );
     }
 }
 
@@ -44,6 +50,9 @@ impl OnReorderButtonPressed {
     }
 }
 
+#[derive(Event)]
+pub struct OnSaveButtonPressed;
+
 #[derive(Component)]
 pub struct ReorderButton {
     direction: ReorderDirection,
@@ -56,7 +65,10 @@ pub enum ReorderDirection {
     Previous,
 }
 
-fn send_button_pressed_events(
+#[derive(Component)]
+pub struct SaveButton;
+
+fn send_reorder_button_pressed_events(
     mut on_pressed: EventWriter<OnReorderButtonPressed>,
     button_query: Query<(&ReorderButton, &Interaction), Changed<Interaction>>,
     list_item_query: Query<&ListItem>,
@@ -74,12 +86,23 @@ fn send_button_pressed_events(
     }
 }
 
+fn send_save_button_pressed_events(
+    mut on_pressed: EventWriter<OnSaveButtonPressed>,
+    button_query: Query<&Interaction, (With<SaveButton>, Changed<Interaction>)>,
+) {
+    for interaction in button_query.iter() {
+        if *interaction == Interaction::Pressed {
+            on_pressed.send(OnSaveButtonPressed);
+        }
+    }
+}
+
 pub fn build_reorder_button(
     builder: &mut ChildBuilder,
     button_direction: ReorderDirection,
     list_item_entity: Entity,
     size: f32,
-) -> impl Bundle {
+) {
     let button_text = match button_direction {
         ReorderDirection::Next => String::from(">"),
         ReorderDirection::Previous => String::from("<"),
@@ -115,6 +138,47 @@ pub fn build_reorder_button(
                 },
             }],
             justify: JustifyText::Center,
+            ..default()
+        },
+        ..default()
+    };
+
+    builder.spawn(button_node).with_children(|button| {
+        button.spawn(text_node);
+    });
+}
+
+pub fn build_button_node(
+    builder: &mut ChildBuilder,
+    button_components: impl Bundle,
+    text: &str,
+    font_size: f32,
+) {
+    let button_node = (
+        button_components,
+        ButtonBundle {
+            style: Style {
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                padding: UiRect::axes(Val::Px(4.0), Val::Px(2.0)),
+                border: UiRect::all(Val::Px(2.0)),
+                ..default()
+            },
+            border_color: BorderColor(NEUTRAL_900.into()),
+            ..default()
+        },
+    );
+
+    let text_node = TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: String::from(text),
+                style: TextStyle {
+                    color: NEUTRAL_900.into(),
+                    font_size,
+                    ..default()
+                },
+            }],
             ..default()
         },
         ..default()
