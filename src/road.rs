@@ -1,17 +1,24 @@
 pub mod reorder_components;
 mod road_builder;
+pub mod save;
 
 use bevy::prelude::*;
 use reorder_components::ReorderRoadComponentsPlugin;
 use road_builder::RoadBuilderPlugin;
+use save::SaveRoadPlugin;
+use serde::{Deserialize, Serialize};
 
 pub struct RoadPlugin;
 
 impl Plugin for RoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((RoadBuilderPlugin, ReorderRoadComponentsPlugin))
-            .add_event::<OnActiveRoadModified>()
-            .add_systems(Startup, setup_example_road);
+        app.add_plugins((
+            RoadBuilderPlugin,
+            ReorderRoadComponentsPlugin,
+            SaveRoadPlugin,
+        ))
+        .add_event::<OnActiveRoadModified>()
+        .add_systems(Startup, setup_example_road);
     }
 }
 
@@ -60,7 +67,13 @@ pub struct RoadEditor {
     road: RoadData,
 }
 
-#[derive(Clone)]
+impl RoadEditor {
+    pub fn road(&self) -> &RoadData {
+        &self.road
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RoadData {
     #[allow(unused)]
     name: String,
@@ -91,7 +104,7 @@ impl RoadData {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct RoadComponent {
     #[allow(unused)]
     name: String,

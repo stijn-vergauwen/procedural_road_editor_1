@@ -51,8 +51,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Ability to change order of road components with buttons
-        - Serialized & deserializer for road data
+        - Serializer & deserializer for road data <- doing
         - File manager for saving & loading roads
         - Setup road component config
             - In sidebar
