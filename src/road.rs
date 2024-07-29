@@ -28,18 +28,30 @@ fn setup_example_road(
         ],
     };
 
-    let active_road = RoadEditor { road };
+    let active_road = RoadEditor { road: road.clone() };
 
     commands.insert_resource(active_road);
 
-    on_road_modified.send(OnActiveRoadModified);
+    on_road_modified.send(OnActiveRoadModified::new(road));
 }
 
 #[derive(Component)]
 pub struct ActiveRoad;
 
 #[derive(Event)]
-pub struct OnActiveRoadModified;
+pub struct OnActiveRoadModified {
+    road: RoadData,
+}
+
+impl OnActiveRoadModified {
+    pub fn new(road: RoadData) -> Self {
+        Self { road }
+    }
+
+    pub fn road(&self) -> &RoadData {
+        &self.road
+    }
+}
 
 #[derive(Resource)]
 pub struct RoadEditor {
@@ -48,11 +60,17 @@ pub struct RoadEditor {
 
 #[derive(Clone)]
 pub struct RoadData {
+    #[allow(unused)]
     name: String,
     components: Vec<RoadComponent>,
 }
 
 impl RoadData {
+    pub fn components(&self) -> &[RoadComponent] {
+        &self.components
+    }
+
+    #[allow(unused)]
     fn total_size(&self) -> Vec2 {
         Vec2::new(self.total_width(), self.total_height())
     }
@@ -63,6 +81,7 @@ impl RoadData {
             .fold(0.0, |sum, component| sum + component.size.x)
     }
 
+    #[allow(unused)]
     fn total_height(&self) -> f32 {
         self.components
             .iter()
@@ -72,6 +91,7 @@ impl RoadData {
 
 #[derive(Clone)]
 pub struct RoadComponent {
+    #[allow(unused)]
     name: String,
     size: Vec2,
 }
@@ -82,5 +102,13 @@ impl RoadComponent {
             name: name.into(),
             size,
         }
+    }
+
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    pub fn size(&self) -> Vec2 {
+        self.size
     }
 }

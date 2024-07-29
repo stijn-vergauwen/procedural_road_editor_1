@@ -2,6 +2,7 @@ mod schedule;
 mod utility;
 mod world;
 mod road;
+mod ui;
 
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
@@ -9,6 +10,7 @@ use bevy_rapier3d::prelude::*;
 use road::RoadPlugin;
 pub use schedule::GameRunningSet;
 use schedule::SchedulePlugin;
+use ui::UiPlugin;
 use utility::UtilityPlugin;
 use world::WorldPlugin;
 
@@ -49,9 +51,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Setup road design toolbar <- doing
-            - Bottom of screen
-            - Displays each component of the road
         - Ability to change order of road components with buttons
         - Serialized & deserializer for road data
         - File manager for saving & loading roads
@@ -79,6 +78,7 @@ fn main() {
             SchedulePlugin,
             WorldPlugin,
             RoadPlugin,
+            UiPlugin,
         ))
         .run();
 }
