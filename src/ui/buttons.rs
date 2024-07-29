@@ -30,6 +30,18 @@ impl OnReorderButtonPressed {
             direction,
         }
     }
+
+    pub fn list_entity(&self) -> Entity {
+        self.list_entity
+    }
+
+    pub fn list_item_entity(&self) -> Entity {
+        self.list_item_entity
+    }
+
+    pub fn direction(&self) -> ReorderDirection {
+        self.direction
+    }
 }
 
 #[derive(Component)]

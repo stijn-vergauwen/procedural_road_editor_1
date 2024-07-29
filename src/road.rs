@@ -1,13 +1,15 @@
+pub mod reorder_components;
 mod road_builder;
 
 use bevy::prelude::*;
+use reorder_components::ReorderRoadComponentsPlugin;
 use road_builder::RoadBuilderPlugin;
 
 pub struct RoadPlugin;
 
 impl Plugin for RoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RoadBuilderPlugin)
+        app.add_plugins((RoadBuilderPlugin, ReorderRoadComponentsPlugin))
             .add_event::<OnActiveRoadModified>()
             .add_systems(Startup, setup_example_road);
     }
@@ -28,9 +30,9 @@ fn setup_example_road(
         ],
     };
 
-    let active_road = RoadEditor { road: road.clone() };
+    let road_editor = RoadEditor { road: road.clone() };
 
-    commands.insert_resource(active_road);
+    commands.insert_resource(road_editor);
 
     on_road_modified.send(OnActiveRoadModified::new(road));
 }

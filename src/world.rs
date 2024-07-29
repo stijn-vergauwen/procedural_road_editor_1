@@ -20,15 +20,15 @@ fn spawn_objects(
 ) {
     // Ground
     commands.spawn((
-        Collider::cuboid(100.0, 0.01, 100.0),
+        Collider::cuboid(100.0, 0.1, 100.0),
         PbrBundle {
-            mesh: meshes.add(Cuboid::new(200.0, 0.02, 200.0)),
+            mesh: meshes.add(Cuboid::new(200.0, 0.2, 200.0)),
             material: materials.add(StandardMaterial {
                 base_color: LIME_600.into(),
                 perceptual_roughness: 1.0,
                 ..default()
             }),
-            transform: Transform::from_xyz(0.0, 0.0, 0.0),
+            transform: Transform::from_xyz(0.0, -0.1, 0.0),
             ..default()
         },
     ));
