@@ -1,6 +1,10 @@
 use std::ops::Range;
 
-use bevy::{input::mouse::MouseMotion, prelude::*};
+use bevy::{
+    input::mouse::MouseMotion,
+    prelude::*,
+    window::{CursorGrabMode, PrimaryWindow},
+};
 
 use crate::{utility::add_rotations_as_eulers, GameRunningSet};
 
@@ -19,6 +23,7 @@ impl Plugin for CameraRotationPlugin {
             (
                 listen_to_rotation_input.in_set(GameRunningSet::GetUserInput),
                 handle_rotation_requests.in_set(GameRunningSet::HandleCommands),
+                grab_cursor_on_rotation_input.in_set(GameRunningSet::UpdateEntities),
             ),
         );
     }
@@ -27,6 +32,25 @@ impl Plugin for CameraRotationPlugin {
 #[derive(Event)]
 struct OnCameraRotationRequested {
     delta_rotation: Quat,
+}
+
+fn grab_cursor_on_rotation_input(
+    mouse_input: Res<ButtonInput<MouseButton>>,
+    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+) {
+    if mouse_input.just_pressed(ACTIVATE_ROTATION_INPUT_BUTTON) {
+        let mut window = window_query.single_mut();
+
+        window.cursor.visible = false;
+        window.cursor.grab_mode = CursorGrabMode::Locked;
+    }
+
+    if mouse_input.just_released(ACTIVATE_ROTATION_INPUT_BUTTON) {
+        let mut window = window_query.single_mut();
+
+        window.cursor.visible = true;
+        window.cursor.grab_mode = CursorGrabMode::None;
+    }
 }
 
 fn listen_to_rotation_input(

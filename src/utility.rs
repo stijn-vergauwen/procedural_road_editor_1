@@ -2,14 +2,14 @@ pub mod mesh_builder;
 
 use bevy::{
     prelude::*,
-    window::{CursorGrabMode, PrimaryWindow, WindowFocused},
+    window::{CursorGrabMode, PrimaryWindow},
 };
 
 pub struct UtilityPlugin;
 
 impl Plugin for UtilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (shutdown_on_esc, toggle_cursor_on_focus));
+        app.add_systems(Update, shutdown_on_esc);
     }
 }
 
@@ -29,25 +29,6 @@ fn shutdown_on_esc(
         window.cursor.grab_mode = CursorGrabMode::None;
 
         on_exit.send(AppExit::Success);
-    }
-}
-
-fn toggle_cursor_on_focus(
-    mut window_query: Query<&mut Window, With<PrimaryWindow>>,
-    mut on_focused: EventReader<WindowFocused>,
-) {
-    for event in on_focused.read() {
-        let Ok(mut window) = window_query.get_mut(event.window) else {
-            return;
-        };
-
-        let cursor_grab_mode = match event.focused {
-            true => CursorGrabMode::Confined,
-            false => CursorGrabMode::None,
-        };
-
-        window.cursor.visible = !event.focused;
-        window.cursor.grab_mode = cursor_grab_mode;
     }
 }
 
