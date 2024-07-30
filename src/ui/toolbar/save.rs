@@ -4,6 +4,8 @@ use crate::{
     road::save::OnSaveActiveRoadRequested, ui::buttons::OnSaveButtonPressed, GameRunningSet,
 };
 
+// TODO: replace plugin with generic system that can be called for each button press & request event combination (or refactor to ButtonAction)
+
 pub struct SavePlugin;
 
 impl Plugin for SavePlugin {

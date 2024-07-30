@@ -49,6 +49,8 @@ fn setup_example_road(
     on_road_modified.send(OnActiveRoadModified::new(road));
 }
 
+// TODO: move to module
+
 #[derive(Component)]
 pub struct ActiveRoad;
 
@@ -66,6 +68,8 @@ impl OnActiveRoadModified {
         &self.road
     }
 }
+
+// TODO: move to module
 
 #[derive(Resource)]
 pub struct RoadEditor {
@@ -101,6 +105,8 @@ impl RoadEditor {
     }
 }
 
+// TODO: move to module
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RoadData {
     #[allow(unused)]
@@ -131,6 +137,8 @@ impl RoadData {
             .fold(0.0, |sum, component| sum.max(component.size.y))
     }
 }
+
+// TODO: move to module
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RoadComponent {

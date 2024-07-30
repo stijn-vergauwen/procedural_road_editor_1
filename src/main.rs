@@ -50,15 +50,20 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Serializer & deserializer for road data <- doing
         - File manager for saving & loading roads
+            - Can save given road to file (filename is road name)
+            - Can get road with given name
+            - Can get road names
         - Setup road component config
             - In sidebar
             - Displays width and height of component
             - Able to edit config
+        - Goal: Have a basic footpath road design
         - Color config for road components
         - Generate road texture
+        - Goal: Have a simple "erftoegangsweg" road design
         - Lane lines support
+        - Goal: Have a multilane highway road design with grass median
         - General road markings support
         - Spaced elements support
         - Support for assets in spaced elements

@@ -11,6 +11,9 @@ use crate::GameRunningSet;
 
 use super::ListItem;
 
+// TODO: add ButtonAction enum in module (variants: "SaveRoad", "LoadRoad")
+// TODO: generalize button pressed events to 1 event with ButtonAction
+
 pub struct ButtonsPlugin;
 
 impl Plugin for ButtonsPlugin {
@@ -139,6 +142,8 @@ pub fn build_reorder_button(
         button.spawn(text_node);
     });
 }
+
+// TODO: add "ButtonAction" param that specifies what action / purpose the button is for (new Enum)
 
 pub fn build_button_node(
     builder: &mut ChildBuilder,
