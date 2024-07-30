@@ -1,4 +1,11 @@
+mod load_button;
+mod save_button;
+
 use bevy::{color::palettes::tailwind::*, prelude::*};
+use load_button::send_load_button_pressed_events;
+pub use load_button::{LoadButton, OnLoadButtonPressed};
+use save_button::send_save_button_pressed_events;
+pub use save_button::{OnSaveButtonPressed, SaveButton};
 
 use crate::GameRunningSet;
 
@@ -10,11 +17,13 @@ impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnReorderButtonPressed>()
             .add_event::<OnSaveButtonPressed>()
+            .add_event::<OnLoadButtonPressed>()
             .add_systems(
                 Update,
                 (
                     send_reorder_button_pressed_events,
                     send_save_button_pressed_events,
+                    send_load_button_pressed_events,
                 )
                     .in_set(GameRunningSet::SendEvents),
             );
@@ -50,9 +59,6 @@ impl OnReorderButtonPressed {
     }
 }
 
-#[derive(Event)]
-pub struct OnSaveButtonPressed;
-
 #[derive(Component)]
 pub struct ReorderButton {
     direction: ReorderDirection,
@@ -64,9 +70,6 @@ pub enum ReorderDirection {
     Next,
     Previous,
 }
-
-#[derive(Component)]
-pub struct SaveButton;
 
 fn send_reorder_button_pressed_events(
     mut on_pressed: EventWriter<OnReorderButtonPressed>,
@@ -82,17 +85,6 @@ fn send_reorder_button_pressed_events(
                 button.list_item_entity,
                 button.direction,
             ));
-        }
-    }
-}
-
-fn send_save_button_pressed_events(
-    mut on_pressed: EventWriter<OnSaveButtonPressed>,
-    button_query: Query<&Interaction, (With<SaveButton>, Changed<Interaction>)>,
-) {
-    for interaction in button_query.iter() {
-        if *interaction == Interaction::Pressed {
-            on_pressed.send(OnSaveButtonPressed);
         }
     }
 }

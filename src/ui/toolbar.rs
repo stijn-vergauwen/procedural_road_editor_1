@@ -1,12 +1,14 @@
 mod components;
+mod load;
 mod save;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use components::ToolbarComponentsPlugin;
+use load::LoadPlugin;
 use save::SavePlugin;
 
 use super::{
-    buttons::{build_button_node, SaveButton},
+    buttons::{build_button_node, LoadButton, SaveButton},
     List,
 };
 
@@ -14,7 +16,7 @@ pub struct ToolbarPlugin;
 
 impl Plugin for ToolbarPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((ToolbarComponentsPlugin, SavePlugin))
+        app.add_plugins((ToolbarComponentsPlugin, SavePlugin, LoadPlugin))
             .add_systems(Startup, spawn_toolbar);
     }
 }
@@ -90,5 +92,6 @@ fn spawn_action_buttons(builder: &mut ChildBuilder) {
         .spawn(action_buttons_container_node)
         .with_children(|container| {
             build_button_node(container, SaveButton, "Save", 24.0);
+            build_button_node(container, LoadButton, "Load", 24.0);
         });
 }
