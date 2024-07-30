@@ -37,11 +37,10 @@ fn handle_reorder_requests(
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
-        road_editor.road.components.swap(
+        road_editor.reorder_road_components(
             request.item_index as usize,
             request.requested_index as usize,
+            &mut on_road_modified,
         );
-
-        on_road_modified.send(OnActiveRoadModified::new(road_editor.road.clone()));
     }
 }

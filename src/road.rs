@@ -1,8 +1,10 @@
+pub mod load;
 pub mod reorder_components;
 mod road_builder;
 pub mod save;
 
 use bevy::prelude::*;
+use load::LoadRoadPlugin;
 use reorder_components::ReorderRoadComponentsPlugin;
 use road_builder::RoadBuilderPlugin;
 use save::SaveRoadPlugin;
@@ -18,6 +20,7 @@ impl Plugin for RoadPlugin {
             RoadBuilderPlugin,
             ReorderRoadComponentsPlugin,
             SaveRoadPlugin,
+            LoadRoadPlugin,
         ))
         .add_event::<OnActiveRoadModified>()
         .add_systems(Startup, setup_example_road);
@@ -72,6 +75,29 @@ pub struct RoadEditor {
 impl RoadEditor {
     pub fn road(&self) -> &RoadData {
         &self.road
+    }
+
+    pub fn set_road(
+        &mut self,
+        road: RoadData,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
+        self.road = road.clone();
+
+        on_road_modified.send(OnActiveRoadModified::new(road));
+    }
+
+    pub fn reorder_road_components(
+        &mut self,
+        component_index: usize,
+        requested_component_index: usize,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
+        self.road
+            .components
+            .swap(component_index, requested_component_index);
+
+        on_road_modified.send(OnActiveRoadModified::new(self.road.clone()));
     }
 }
 

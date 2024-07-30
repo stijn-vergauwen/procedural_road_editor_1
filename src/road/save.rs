@@ -7,6 +7,8 @@ use crate::GameRunningSet;
 
 use super::{RoadData, RoadEditor};
 
+// TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
+
 pub struct SaveRoadPlugin;
 
 impl Plugin for SaveRoadPlugin {
@@ -45,8 +47,3 @@ fn serialize_road_data(road_data: &RoadData) -> Result<String, ron::Error> {
 fn save_data_to_asset_folder(data: String, file_name: &str) -> Result<(), Error> {
     fs::write(format!("assets/roads/{file_name}.ron"), data)
 }
-
-// TODO: make deserializer
-// fn deserialize_road_data(serialized_data: &str) -> Result<RoadData, ron::Error> {
-//     Ok(ron::from_str::<RoadData>(serialized_data)?)
-// }
