@@ -6,9 +6,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use load_button::send_load_button_pressed_events;
 pub use load_button::{LoadButton, OnLoadButtonPressed};
 use reorder_button::send_reorder_button_pressed_events;
-pub use reorder_button::{
-    build_reorder_button, OnReorderButtonPressed, ReorderDirection,
-};
+pub use reorder_button::{spawn_reorder_button, OnReorderButtonPressed, ReorderDirection};
 use save_button::send_save_button_pressed_events;
 pub use save_button::{OnSaveButtonPressed, SaveButton};
 
@@ -33,13 +31,21 @@ impl Plugin for ButtonsPlugin {
     }
 }
 
-pub fn build_button_node(
+pub fn spawn_button_node(
     builder: &mut ChildBuilder,
     button_components: impl Bundle,
     text: &str,
     font_size: f32,
 ) {
-    let button_node = (
+    let button_node = build_button_node(button_components);
+
+    builder.spawn(button_node).with_children(|button| {
+        button.spawn(build_button_text_node(text, font_size));
+    });
+}
+
+fn build_button_node(button_components: impl Bundle) -> impl Bundle {
+    (
         button_components,
         ButtonBundle {
             style: Style {
@@ -52,9 +58,11 @@ pub fn build_button_node(
             border_color: BorderColor(NEUTRAL_900.into()),
             ..default()
         },
-    );
+    )
+}
 
-    let text_node = TextBundle {
+fn build_button_text_node(text: &str, font_size: f32) -> impl Bundle {
+    TextBundle {
         text: Text {
             sections: vec![TextSection {
                 value: String::from(text),
@@ -67,9 +75,5 @@ pub fn build_button_node(
             ..default()
         },
         ..default()
-    };
-
-    builder.spawn(button_node).with_children(|button| {
-        button.spawn(text_node);
-    });
+    }
 }

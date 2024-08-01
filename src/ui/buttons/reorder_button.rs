@@ -61,18 +61,45 @@ pub fn send_reorder_button_pressed_events(
     }
 }
 
-pub fn build_reorder_button(
+pub fn spawn_reorder_button(
     builder: &mut ChildBuilder,
     button_direction: ReorderDirection,
     list_item_entity: Entity,
     size: f32,
 ) {
-    let button_text = match button_direction {
-        ReorderDirection::Next => String::from(">"),
-        ReorderDirection::Previous => String::from("<"),
-    };
+    builder
+        .spawn(build_button_node(button_direction, list_item_entity, size))
+        .with_children(|button| {
+            button.spawn(build_button_text_node(button_direction, size));
+        });
+}
 
-    let button_node = (
+fn build_button_text_node(button_direction: ReorderDirection, size: f32) -> TextBundle {
+    let button_text = get_reorder_button_text(button_direction);
+
+    TextBundle {
+        text: Text {
+            sections: vec![TextSection {
+                value: button_text,
+                style: TextStyle {
+                    color: NEUTRAL_900.into(),
+                    font_size: size - 1.0,
+                    ..default()
+                },
+            }],
+            justify: JustifyText::Center,
+            ..default()
+        },
+        ..default()
+    }
+}
+
+fn build_button_node(
+    button_direction: ReorderDirection,
+    list_item_entity: Entity,
+    size: f32,
+) -> (ReorderButton, ButtonBundle) {
+    (
         ReorderButton {
             direction: button_direction,
             list_item_entity,
@@ -89,25 +116,12 @@ pub fn build_reorder_button(
             border_color: BorderColor(NEUTRAL_900.into()),
             ..default()
         },
-    );
+    )
+}
 
-    let text_node = TextBundle {
-        text: Text {
-            sections: vec![TextSection {
-                value: button_text,
-                style: TextStyle {
-                    color: NEUTRAL_900.into(),
-                    font_size: size - 1.0,
-                    ..default()
-                },
-            }],
-            justify: JustifyText::Center,
-            ..default()
-        },
-        ..default()
-    };
-
-    builder.spawn(button_node).with_children(|button| {
-        button.spawn(text_node);
-    });
+fn get_reorder_button_text(button_direction: ReorderDirection) -> String {
+    match button_direction {
+        ReorderDirection::Next => String::from(">"),
+        ReorderDirection::Previous => String::from("<"),
+    }
 }

@@ -8,7 +8,7 @@ use load::LoadPlugin;
 use save::SavePlugin;
 
 use super::{
-    buttons::{build_button_node, LoadButton, SaveButton},
+    buttons::{spawn_button_node, LoadButton, SaveButton},
     List,
 };
 
@@ -28,7 +28,21 @@ struct ToolBar;
 struct RoadComponentsList;
 
 pub fn spawn_toolbar(mut commands: Commands) {
-    let container_node = NodeBundle {
+    commands
+        .spawn(build_container_node())
+        .with_children(|container| {
+            container
+                .spawn(build_toobar_node())
+                .with_children(|toolbar| {
+                    spawn_action_buttons(toolbar);
+
+                    toolbar.spawn(build_road_components_list_node());
+                });
+        });
+}
+
+fn build_container_node() -> impl Bundle {
+    NodeBundle {
         style: Style {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::End,
@@ -38,9 +52,11 @@ pub fn spawn_toolbar(mut commands: Commands) {
             ..default()
         },
         ..default()
-    };
+    }
+}
 
-    let toolbar_node = (
+fn build_toobar_node() -> impl Bundle {
+    (
         ToolBar,
         NodeBundle {
             style: Style {
@@ -52,9 +68,11 @@ pub fn spawn_toolbar(mut commands: Commands) {
             background_color: BackgroundColor(CYAN_800.with_alpha(0.4).into()),
             ..default()
         },
-    );
+    )
+}
 
-    let road_components_list_node = (
+fn build_road_components_list_node() -> impl Bundle {
+    (
         RoadComponentsList,
         List,
         NodeBundle {
@@ -66,19 +84,20 @@ pub fn spawn_toolbar(mut commands: Commands) {
             },
             ..default()
         },
-    );
-
-    commands.spawn(container_node).with_children(|container| {
-        container.spawn(toolbar_node).with_children(|toolbar| {
-            spawn_action_buttons(toolbar);
-
-            toolbar.spawn(road_components_list_node);
-        });
-    });
+    )
 }
 
 fn spawn_action_buttons(builder: &mut ChildBuilder) {
-    let action_buttons_container_node = NodeBundle {
+    builder
+        .spawn(build_action_buttons_container_node())
+        .with_children(|container| {
+            spawn_button_node(container, SaveButton, "Save", 24.0);
+            spawn_button_node(container, LoadButton, "Load", 24.0);
+        });
+}
+
+fn build_action_buttons_container_node() -> impl Bundle {
+    NodeBundle {
         style: Style {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Stretch,
@@ -86,12 +105,5 @@ fn spawn_action_buttons(builder: &mut ChildBuilder) {
             ..default()
         },
         ..default()
-    };
-
-    builder
-        .spawn(action_buttons_container_node)
-        .with_children(|container| {
-            build_button_node(container, SaveButton, "Save", 24.0);
-            build_button_node(container, LoadButton, "Load", 24.0);
-        });
+    }
 }
