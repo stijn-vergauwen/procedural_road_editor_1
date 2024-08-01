@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{road::OnLoadActiveRoadRequested, ui::buttons::OnLoadButtonPressed, GameRunningSet};
+use crate::{road::OnLoadRoadRequested, ui::buttons::OnLoadButtonPressed, GameRunningSet};
 
 pub struct LoadPlugin;
 
@@ -15,11 +15,11 @@ impl Plugin for LoadPlugin {
 
 fn send_load_requests(
     mut events: EventReader<OnLoadButtonPressed>,
-    mut requests: EventWriter<OnLoadActiveRoadRequested>,
+    mut requests: EventWriter<OnLoadRoadRequested>,
 ) {
     for _ in events.read() {
         let road_name = String::from("Example road");
 
-        requests.send(OnLoadActiveRoadRequested::new(road_name));
+        requests.send(OnLoadRoadRequested::new(road_name));
     }
 }

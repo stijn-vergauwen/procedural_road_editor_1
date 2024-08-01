@@ -6,12 +6,12 @@ mod road_data;
 mod road_editor;
 mod save;
 
-pub use load::OnLoadActiveRoadRequested;
+pub use load::OnLoadRoadRequested;
 pub use reorder_components::OnReorderRoadComponentRequested;
 pub use road_component::RoadComponent;
 pub use road_data::RoadData;
 pub use road_editor::{ActiveRoad, OnActiveRoadModified, RoadEditor};
-pub use save::OnSaveActiveRoadRequested;
+pub use save::OnSaveRoadRequested;
 
 use bevy::prelude::*;
 use load::LoadRoadPlugin;

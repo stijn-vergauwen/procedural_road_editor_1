@@ -50,10 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - File manager for saving & loading roads
-            - Can save given road to file (filename is road name)
-            - Can get road with given name
-            - Can get road names
         - Setup road component config
             - In sidebar
             - Displays width and height of component

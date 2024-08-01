@@ -12,7 +12,7 @@ pub struct LoadRoadPlugin;
 
 impl Plugin for LoadRoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnLoadActiveRoadRequested>().add_systems(
+        app.add_event::<OnLoadRoadRequested>().add_systems(
             Update,
             handle_load_requests.in_set(GameRunningSet::HandleCommands),
         );
@@ -20,11 +20,11 @@ impl Plugin for LoadRoadPlugin {
 }
 
 #[derive(Event)]
-pub struct OnLoadActiveRoadRequested {
+pub struct OnLoadRoadRequested {
     road_name: String,
 }
 
-impl OnLoadActiveRoadRequested {
+impl OnLoadRoadRequested {
     pub fn new(road_name: String) -> Self {
         Self { road_name }
     }
@@ -35,7 +35,7 @@ impl OnLoadActiveRoadRequested {
 }
 
 fn handle_load_requests(
-    mut requests: EventReader<OnLoadActiveRoadRequested>,
+    mut requests: EventReader<OnLoadRoadRequested>,
     mut road_editor: ResMut<RoadEditor>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {

@@ -5,7 +5,7 @@ use ron::ser::PrettyConfig;
 
 use crate::GameRunningSet;
 
-use super::{RoadData, RoadEditor};
+use super::RoadData;
 
 // TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
 
@@ -13,7 +13,7 @@ pub struct SaveRoadPlugin;
 
 impl Plugin for SaveRoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnSaveActiveRoadRequested>().add_systems(
+        app.add_event::<OnSaveRoadRequested>().add_systems(
             Update,
             handle_save_requests.in_set(GameRunningSet::HandleCommands),
         );
@@ -21,15 +21,24 @@ impl Plugin for SaveRoadPlugin {
 }
 
 #[derive(Event)]
-pub struct OnSaveActiveRoadRequested;
+pub struct OnSaveRoadRequested {
+    road: RoadData,
+}
 
-fn handle_save_requests(
-    mut requests: EventReader<OnSaveActiveRoadRequested>,
-    road_editor: Res<RoadEditor>,
-) {
-    for _ in requests.read() {
-        let file_name = road_editor.road().name();
-        let Ok(road_data) = serialize_road_data(road_editor.road()) else {
+impl OnSaveRoadRequested {
+    pub fn new(road: RoadData) -> Self {
+        Self { road }
+    }
+
+    pub fn road(&self) -> &RoadData {
+        &self.road
+    }
+}
+
+fn handle_save_requests(mut requests: EventReader<OnSaveRoadRequested>) {
+    for request in requests.read() {
+        let file_name = request.road().name();
+        let Ok(road_data) = serialize_road_data(request.road()) else {
             warn!("Something went wrong while serializing road data!");
             return;
         };
