@@ -80,8 +80,6 @@ fn redraw_road_on_modified(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for _ in on_modified.read() {
-        println!("Redraw road!");
-
         // TODO: refactor
 
         let mut road_builder = RoadBuilder::new();

@@ -30,12 +30,12 @@ fn handle_save_requests(
     for _ in requests.read() {
         let file_name = road_editor.road().name();
         let Ok(road_data) = serialize_road_data(road_editor.road()) else {
-            warn!("Road data did not serialize successfully!");
+            warn!("Something went wrong while serializing road data!");
             return;
         };
 
         if let Err(_) = save_data_to_asset_folder(road_data, file_name) {
-            warn!("Road data did not save successfully!");
+            warn!("Something went wrong while saving road data!");
         }
     }
 }

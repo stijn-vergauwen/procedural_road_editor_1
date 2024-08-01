@@ -20,23 +20,33 @@ impl Plugin for LoadRoadPlugin {
 }
 
 #[derive(Event)]
-pub struct OnLoadActiveRoadRequested;
+pub struct OnLoadActiveRoadRequested {
+    road_name: String,
+}
+
+impl OnLoadActiveRoadRequested {
+    pub fn new(road_name: String) -> Self {
+        Self { road_name }
+    }
+
+    pub fn road_name(&self) -> &str {
+        &self.road_name
+    }
+}
 
 fn handle_load_requests(
     mut requests: EventReader<OnLoadActiveRoadRequested>,
     mut road_editor: ResMut<RoadEditor>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
-    for _ in requests.read() {
-        // TODO: get file_name from request
-        let file_name = "Example road";
-        let Ok(serialized_data) = load_data_from_asset_folder(file_name) else {
-            warn!("Road data did not load successfully!");
+    for request in requests.read() {
+        let Ok(serialized_data) = load_data_from_asset_folder(request.road_name()) else {
+            warn!("Something went wrong while loading road data!");
             return;
         };
 
         let Ok(road_data) = deserialize_road_data(&serialized_data) else {
-            warn!("Road data did not save successfully!");
+            warn!("Something went wrong while deserializing road data!");
             return;
         };
 

@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    road::OnLoadActiveRoadRequested, ui::buttons::OnLoadButtonPressed, GameRunningSet,
-};
+use crate::{road::OnLoadActiveRoadRequested, ui::buttons::OnLoadButtonPressed, GameRunningSet};
 
 // TODO: replace plugin with generic system that can be called for each button press & request event combination (or refactor to ButtonAction)
 
@@ -22,8 +20,8 @@ fn send_load_requests(
     mut requests: EventWriter<OnLoadActiveRoadRequested>,
 ) {
     for _ in events.read() {
-        println!("Load button pressed!");
+        let road_name = String::from("Example road");
 
-        requests.send(OnLoadActiveRoadRequested);
+        requests.send(OnLoadActiveRoadRequested::new(road_name));
     }
 }

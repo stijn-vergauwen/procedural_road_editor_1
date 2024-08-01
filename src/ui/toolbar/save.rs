@@ -1,8 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{
-    road::OnSaveActiveRoadRequested, ui::buttons::OnSaveButtonPressed, GameRunningSet,
-};
+use crate::{road::OnSaveActiveRoadRequested, ui::buttons::OnSaveButtonPressed, GameRunningSet};
 
 // TODO: replace plugin with generic system that can be called for each button press & request event combination (or refactor to ButtonAction)
 
@@ -22,8 +20,6 @@ fn send_save_requests(
     mut requests: EventWriter<OnSaveActiveRoadRequested>,
 ) {
     for _ in events.read() {
-        println!("Save button pressed!");
-
         requests.send(OnSaveActiveRoadRequested);
     }
 }
