@@ -38,8 +38,8 @@ impl RoadBuilder {
         let road_width = road_data.total_width();
         let mut width_of_built_sections = 0.0;
 
-        for component in road_data.components.iter() {
-            let size = component.size;
+        for component in road_data.components() {
+            let size = component.size();
             let x_position = -road_width / 2.0 + width_of_built_sections + size.x / 2.0;
             width_of_built_sections += size.x;
 
@@ -85,7 +85,7 @@ fn redraw_road_on_modified(
         // TODO: refactor
 
         let mut road_builder = RoadBuilder::new();
-        road_builder.build_from_road_data(road_editor.road.clone());
+        road_builder.build_from_road_data(road_editor.road().clone());
 
         let road_mesh = meshes.add(road_builder.get_mesh());
 

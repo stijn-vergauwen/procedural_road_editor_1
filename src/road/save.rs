@@ -28,7 +28,7 @@ fn handle_save_requests(
     road_editor: Res<RoadEditor>,
 ) {
     for _ in requests.read() {
-        let file_name = road_editor.road().name.as_str();
+        let file_name = road_editor.road().name();
         let Ok(road_data) = serialize_road_data(road_editor.road()) else {
             warn!("Road data did not serialize successfully!");
             return;
