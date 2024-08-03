@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{OnSaveRoadRequested, RoadEditor},
+    road::{OnSaveRoadRequested, ActiveRoad},
     ui::buttons::OnSaveButtonPressed,
     GameRunningSet,
 };
@@ -20,9 +20,9 @@ impl Plugin for SavePlugin {
 fn send_save_requests(
     mut events: EventReader<OnSaveButtonPressed>,
     mut requests: EventWriter<OnSaveRoadRequested>,
-    road_editor: Res<RoadEditor>,
+    road_editor: Res<ActiveRoad>,
 ) {
     for _ in events.read() {
-        requests.send(OnSaveRoadRequested::new(road_editor.road().clone()));
+        requests.send(OnSaveRoadRequested::new(road_editor.road_data().clone()));
     }
 }

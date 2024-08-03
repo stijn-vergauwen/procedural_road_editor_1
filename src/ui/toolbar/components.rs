@@ -32,7 +32,7 @@ pub fn generate_road_components(
 ) {
     for event in on_road_modified.read() {
         let components_list_entity = components_list_query.single();
-        let road_components = event.road().components();
+        let road_components = event.road_data().components();
         let component_count = road_components.len();
 
         commands

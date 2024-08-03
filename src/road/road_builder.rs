@@ -1,21 +1,10 @@
-use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
+use bevy::prelude::*;
 
-use crate::{utility::mesh_builder::MeshBuilder, GameRunningSet};
+use crate::utility::mesh_builder::MeshBuilder;
 
-use super::{ActiveRoad, OnActiveRoadModified, RoadData};
+use super::RoadData;
 
 const ROAD_LENGTH: f32 = 20.0;
-
-pub struct RoadBuilderPlugin;
-
-impl Plugin for RoadBuilderPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            redraw_road_on_modified.in_set(GameRunningSet::UpdateEntities),
-        );
-    }
-}
 
 pub struct RoadBuilder {
     mesh_builder: MeshBuilder,
@@ -78,38 +67,6 @@ impl RoadBuilder {
         );
 
         *width_of_built_sections += component_size.x;
-    }
-}
-
-fn redraw_road_on_modified(
-    mut on_modified: EventReader<OnActiveRoadModified>,
-    mut commands: Commands,
-    mut active_road_query: Query<&mut Handle<Mesh>, With<ActiveRoad>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    for event in on_modified.read() {
-        let mut road_builder = RoadBuilder::new();
-        road_builder.build_from_road_data(event.road().clone());
-
-        let road_mesh = meshes.add(road_builder.get_mesh());
-
-        if let Ok(mut active_road_mesh) = active_road_query.get_single_mut() {
-            *active_road_mesh = road_mesh;
-        } else {
-            commands.spawn((
-                ActiveRoad,
-                PbrBundle {
-                    mesh: road_mesh,
-                    material: materials.add(StandardMaterial {
-                        base_color: GRAY_600.into(),
-                        perceptual_roughness: 0.7,
-                        ..default()
-                    }),
-                    ..default()
-                },
-            ));
-        }
     }
 }
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::GameRunningSet;
 
-use super::{OnActiveRoadModified, RoadEditor};
+use super::{OnActiveRoadModified, ActiveRoad};
 
 pub struct ReorderRoadComponentsPlugin;
 
@@ -33,7 +33,7 @@ impl OnReorderRoadComponentRequested {
 
 fn handle_reorder_requests(
     mut requests: EventReader<OnReorderRoadComponentRequested>,
-    mut road_editor: ResMut<RoadEditor>,
+    mut road_editor: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
