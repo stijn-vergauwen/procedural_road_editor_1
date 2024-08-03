@@ -12,8 +12,6 @@ impl Plugin for SidebarPlugin {
     }
 }
 
-// TODO: Show and hide sidebar depending on if a road component is selected (first allow a component to be 'selected')
-
 #[derive(Component)]
 pub struct Sidebar;
 

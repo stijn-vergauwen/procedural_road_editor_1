@@ -50,10 +50,9 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Setup road component config <- doing
-            - In sidebar
-            - Displays width and height of component
-            - Able to edit config
+        - Track which road component is "selected", fire events for this
+        - Generate road component config section in sidebar based on the selected road component
+        - Toggle sidebar visibility
         - Goal: Have a basic footpath road design
         - Color config for road components
         - Generate road texture
