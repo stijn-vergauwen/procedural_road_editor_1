@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Setup road component config
+        - Setup road component config <- doing
             - In sidebar
             - Displays width and height of component
             - Able to edit config
