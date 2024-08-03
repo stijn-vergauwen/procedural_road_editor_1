@@ -22,7 +22,7 @@ impl Plugin for ToolbarPlugin {
 }
 
 #[derive(Component)]
-struct ToolBar;
+struct Toolbar;
 
 #[derive(Component)]
 struct RoadComponentsList;
@@ -32,7 +32,7 @@ pub fn spawn_toolbar(mut commands: Commands) {
         .spawn(build_container_node())
         .with_children(|container| {
             container
-                .spawn(build_toobar_node())
+                .spawn(build_toolbar_node())
                 .with_children(|toolbar| {
                     spawn_action_buttons(toolbar);
 
@@ -55,9 +55,9 @@ fn build_container_node() -> impl Bundle {
     }
 }
 
-fn build_toobar_node() -> impl Bundle {
+fn build_toolbar_node() -> impl Bundle {
     (
-        ToolBar,
+        Toolbar,
         NodeBundle {
             style: Style {
                 padding: UiRect::all(Val::Px(20.0)),
