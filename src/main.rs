@@ -50,11 +50,12 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Able to change road component width and height <- doing
         - Able to change road component name
         - Able to delete road component
         - Able to add road component
+        - Enter road name before save
         - Goal: Have a basic footpath road design
+        - Load button brings up list of all saved road files, click to load
         - Color config for road components
         - Generate road texture
         - Goal: Have a simple "erftoegangsweg" road design
