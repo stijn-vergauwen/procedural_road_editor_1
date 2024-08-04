@@ -1,7 +1,9 @@
 mod reorder;
+mod selected_road_component;
 
 use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 use reorder::ReorderPlugin;
+use selected_road_component::SelectedRoadComponentPlugin;
 
 use crate::{
     road::{OnActiveRoadModified, RoadComponent},
@@ -18,14 +20,20 @@ pub struct ToolbarComponentsPlugin;
 
 impl Plugin for ToolbarComponentsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(ReorderPlugin).add_systems(
-            Update,
-            generate_road_components.in_set(GameRunningSet::UpdateEntities),
-        );
+        app.add_plugins((ReorderPlugin, SelectedRoadComponentPlugin))
+            .add_systems(
+                Update,
+                regenerate_road_components.in_set(GameRunningSet::DespawnEntities),
+            );
     }
 }
 
-pub fn generate_road_components(
+#[derive(Component, Default)]
+pub struct RoadComponentItem {
+    is_selected: bool,
+}
+
+pub fn regenerate_road_components(
     mut on_road_modified: EventReader<OnActiveRoadModified>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
     mut commands: Commands,
@@ -96,6 +104,8 @@ fn spawn_road_component(
 fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {
     (
         list_item,
+        RoadComponentItem::default(),
+        Interaction::default(),
         NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Column,
