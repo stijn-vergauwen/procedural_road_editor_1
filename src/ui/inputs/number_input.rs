@@ -201,7 +201,8 @@ fn build_number_input_container_node(start_value: f32, value_range: Range<f32>) 
 fn build_number_input_elements_container_node() -> NodeBundle {
     NodeBundle {
         style: Style {
-            flex_direction: FlexDirection::Column,
+            flex_direction: FlexDirection::Row,
+            column_gap: Val::Px(4.0),
             ..default()
         },
         ..default()

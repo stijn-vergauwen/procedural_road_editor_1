@@ -1,5 +1,5 @@
 mod reorder;
-mod selected_road_component;
+pub mod selected_road_component;
 
 use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 use reorder::ReorderPlugin;
@@ -29,11 +29,11 @@ impl Plugin for ToolbarComponentsPlugin {
 }
 
 #[derive(Component, Default)]
-pub struct RoadComponentItem {
+struct RoadComponentItem {
     is_selected: bool,
 }
 
-pub fn regenerate_road_components(
+fn regenerate_road_components(
     mut on_road_modified: EventReader<OnActiveRoadModified>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
     mut commands: Commands,

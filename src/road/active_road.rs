@@ -16,11 +16,11 @@ fn setup_example_road(
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     let road_components = vec![
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.2)),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.05)),
-        RoadComponent::new("Median", Vec2::new(0.4, 0.2)),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.05)),
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.2)),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3)),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1)),
+        RoadComponent::new("Median", Vec2::new(0.4, 0.3)),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1)),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3)),
     ];
 
     let road = RoadData::new(String::from("Example road"), road_components);

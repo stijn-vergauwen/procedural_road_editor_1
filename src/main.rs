@@ -50,7 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Generate road component config section in sidebar based on the selected road component
         - Toggle sidebar visibility (delete component config children, and have a system for sidebar that hides it when it has no children)
         - Goal: Have a basic footpath road design
         - Color config for road components

@@ -45,6 +45,10 @@ impl OnRoadComponentSelected {
             component_item_entity,
         }
     }
+
+    pub fn component_data(&self) -> &RoadComponent {
+        &self.component_data
+    }
 }
 
 #[derive(Event, Clone)]
