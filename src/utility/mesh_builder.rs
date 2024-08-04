@@ -232,8 +232,8 @@ mod tests {
         assert_eq!(builder.vertex_count, 4);
         assert_eq!(builder.triangle_count, 2);
 
-        assert_eq!(builder.vertices[0], Vec3::new(1.5, 1.5, 0.0));
-        assert_eq!(builder.vertices[2], Vec3::new(2.5, 2.5, 0.0));
+        assert_eq!(builder.vertices[0], Vec3::new(1.5, 1.5, -0.5));
+        assert_eq!(builder.vertices[2], Vec3::new(2.5, 2.5, -0.5));
 
         for normal in builder.normals.iter() {
             assert_eq!(*normal, Vec3::NEG_Z);

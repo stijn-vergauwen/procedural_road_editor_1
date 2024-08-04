@@ -36,7 +36,7 @@ impl OnLoadRoadRequested {
 
 fn handle_load_requests(
     mut requests: EventReader<OnLoadRoadRequested>,
-    mut road_editor: ResMut<ActiveRoad>,
+    mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
@@ -50,7 +50,7 @@ fn handle_load_requests(
             return;
         };
 
-        road_editor.set_road_data(road_data, &mut on_road_modified);
+        active_road.set_road_data(road_data, &mut on_road_modified);
     }
 }
 

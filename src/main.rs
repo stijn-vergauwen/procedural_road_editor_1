@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Able to change road component width and height
+        - Able to change road component width and height <- doing
         - Able to change road component name
         - Able to delete road component
         - Able to add road component

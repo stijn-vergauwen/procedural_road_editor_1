@@ -20,9 +20,9 @@ impl Plugin for SavePlugin {
 fn send_save_requests(
     mut events: EventReader<OnSaveButtonPressed>,
     mut requests: EventWriter<OnSaveRoadRequested>,
-    road_editor: Res<ActiveRoad>,
+    active_road: Res<ActiveRoad>,
 ) {
     for _ in events.read() {
-        requests.send(OnSaveRoadRequested::new(road_editor.road_data().clone()));
+        requests.send(OnSaveRoadRequested::new(active_road.road_data().clone()));
     }
 }

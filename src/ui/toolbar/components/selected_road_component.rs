@@ -94,8 +94,6 @@ fn update_selected_road_component(
     mut road_component_item_query: Query<(&mut RoadComponentItem, &mut BackgroundColor, Entity)>,
 ) {
     for event in on_selected.read() {
-        println!("Set selected component");
-
         for (mut item, mut background_color, entity) in road_component_item_query.iter_mut() {
             item.is_selected = event.component_item_entity == entity;
 
@@ -113,8 +111,6 @@ fn deselect_all_road_components_on_event(
     mut road_component_item_query: Query<(&mut RoadComponentItem, &mut BackgroundColor)>,
 ) {
     for _ in on_deselected.read() {
-        println!("Deselect all components");
-
         for (mut item, mut background_color) in road_component_item_query.iter_mut() {
             item.is_selected = false;
 

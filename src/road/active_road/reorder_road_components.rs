@@ -33,11 +33,11 @@ impl OnReorderRoadComponentRequested {
 
 fn handle_reorder_requests(
     mut requests: EventReader<OnReorderRoadComponentRequested>,
-    mut road_editor: ResMut<ActiveRoad>,
+    mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
-        road_editor.reorder_road_components(
+        active_road.reorder_road_components(
             request.item_index as usize,
             request.requested_index as usize,
             &mut on_road_modified,
