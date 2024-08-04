@@ -7,14 +7,14 @@ mod road_preview;
 mod save;
 
 pub use active_road::{
-    reorder_road_components::OnReorderRoadComponentRequested, ActiveRoad, OnActiveRoadModified,
+    road_component_reorder::OnRoadComponentReorderRequested, ActiveRoad, OnActiveRoadModified,
 };
 pub use load::OnLoadRoadRequested;
 pub use road_component::RoadComponent;
 pub use road_data::RoadData;
 pub use save::OnSaveRoadRequested;
 
-use active_road::{reorder_road_components::ReorderRoadComponentsPlugin, RoadEditorPlugin};
+use active_road::ActiveRoadPlugin;
 use bevy::prelude::*;
 use load::LoadRoadPlugin;
 use road_preview::RoadPreviewPlugin;
@@ -25,10 +25,9 @@ pub struct RoadPlugin;
 impl Plugin for RoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            ReorderRoadComponentsPlugin,
             SaveRoadPlugin,
             LoadRoadPlugin,
-            RoadEditorPlugin,
+            ActiveRoadPlugin,
             RoadPreviewPlugin,
         ));
     }

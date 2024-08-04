@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::OnReorderRoadComponentRequested,
+    road::OnRoadComponentReorderRequested,
     ui::{
         buttons::{OnReorderButtonPressed, ReorderDirection},
         toolbar::RoadComponentsList,
@@ -23,7 +23,7 @@ impl Plugin for ReorderPlugin {
 
 fn send_reorder_requests(
     mut events: EventReader<OnReorderButtonPressed>,
-    mut requests: EventWriter<OnReorderRoadComponentRequested>,
+    mut requests: EventWriter<OnRoadComponentReorderRequested>,
     road_component_list_query: Query<&RoadComponentsList>,
     list_item_query: Query<&ListItem>,
 ) {
@@ -34,12 +34,12 @@ fn send_reorder_requests(
         let list_item = list_item_query.get(event.list_item_entity()).unwrap();
 
         let requested_index = match event.direction() {
-            ReorderDirection::Next => list_item.order + 1,
-            ReorderDirection::Previous => list_item.order.saturating_sub(1),
+            ReorderDirection::Next => list_item.index() + 1,
+            ReorderDirection::Previous => list_item.index().saturating_sub(1),
         };
 
-        requests.send(OnReorderRoadComponentRequested::new(
-            list_item.order,
+        requests.send(OnRoadComponentReorderRequested::new(
+            list_item.index(),
             requested_index,
         ));
     }

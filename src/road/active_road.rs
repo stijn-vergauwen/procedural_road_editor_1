@@ -1,15 +1,18 @@
-pub mod reorder_road_components;
-// TODO: make update_road_component module
+pub mod road_component_change;
+pub mod road_component_reorder;
 
 use bevy::prelude::*;
+use road_component_change::RoadComponentChangePlugin;
+use road_component_reorder::RoadComponentReorderPlugin;
 
 use super::{road_data::RoadData, RoadComponent};
 
-pub struct RoadEditorPlugin;
+pub struct ActiveRoadPlugin;
 
-impl Plugin for RoadEditorPlugin {
+impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnActiveRoadModified>()
+        app.add_plugins((RoadComponentReorderPlugin, RoadComponentChangePlugin))
+            .add_event::<OnActiveRoadModified>()
             .add_systems(Startup, setup_example_road);
     }
 }
@@ -56,7 +59,7 @@ impl ActiveRoad {
     ) {
         self.road_data = road.clone();
 
-        on_road_modified.send(OnActiveRoadModified::new(road, self.road_preview_entity));
+        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn reorder_road_components(
@@ -69,14 +72,29 @@ impl ActiveRoad {
             .components_mut()
             .swap(component_index, requested_component_index);
 
-        on_road_modified.send(OnActiveRoadModified::new(
-            self.road_data.clone(),
-            self.road_preview_entity,
-        ));
+        self.send_road_modified_event(on_road_modified);
+    }
+
+    pub fn set_road_component(
+        &mut self,
+        component_index: usize,
+        component_data: RoadComponent,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
+        self.road_data.components_mut()[component_index] = component_data;
+
+        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
+    }
+
+    fn send_road_modified_event(&self, on_road_modified: &mut EventWriter<OnActiveRoadModified>) {
+        on_road_modified.send(OnActiveRoadModified::new(
+            self.road_data.clone(),
+            self.road_preview_entity,
+        ));
     }
 }
 

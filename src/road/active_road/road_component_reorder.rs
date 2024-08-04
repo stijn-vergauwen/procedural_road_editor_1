@@ -2,13 +2,13 @@ use bevy::prelude::*;
 
 use crate::GameRunningSet;
 
-use super::{OnActiveRoadModified, ActiveRoad};
+use super::{ActiveRoad, OnActiveRoadModified};
 
-pub struct ReorderRoadComponentsPlugin;
+pub struct RoadComponentReorderPlugin;
 
-impl Plugin for ReorderRoadComponentsPlugin {
+impl Plugin for RoadComponentReorderPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnReorderRoadComponentRequested>()
+        app.add_event::<OnRoadComponentReorderRequested>()
             .add_systems(
                 Update,
                 handle_reorder_requests.in_set(GameRunningSet::HandleCommands),
@@ -17,13 +17,13 @@ impl Plugin for ReorderRoadComponentsPlugin {
 }
 
 #[derive(Event)]
-pub struct OnReorderRoadComponentRequested {
-    item_index: u8,
-    requested_index: u8,
+pub struct OnRoadComponentReorderRequested {
+    item_index: usize,
+    requested_index: usize,
 }
 
-impl OnReorderRoadComponentRequested {
-    pub fn new(item_index: u8, requested_index: u8) -> Self {
+impl OnRoadComponentReorderRequested {
+    pub fn new(item_index: usize, requested_index: usize) -> Self {
         Self {
             item_index,
             requested_index,
@@ -32,14 +32,14 @@ impl OnReorderRoadComponentRequested {
 }
 
 fn handle_reorder_requests(
-    mut requests: EventReader<OnReorderRoadComponentRequested>,
+    mut requests: EventReader<OnRoadComponentReorderRequested>,
     mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
         active_road.reorder_road_components(
-            request.item_index as usize,
-            request.requested_index as usize,
+            request.item_index,
+            request.requested_index,
             &mut on_road_modified,
         );
     }
