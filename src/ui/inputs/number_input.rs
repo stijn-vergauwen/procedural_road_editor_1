@@ -14,7 +14,7 @@ impl Plugin for NumberInputPlugin {
         app.add_event::<OnNumberInputValueChanged>().add_systems(
             Update,
             (
-                update_number_input_value_on_button_press.in_set(GameRunningSet::SendEvents),
+                update_number_input_value_on_button_press.in_set(GameRunningSet::GetUserInput),
                 update_number_display.in_set(GameRunningSet::UpdateEntities),
             ),
         );
@@ -97,6 +97,14 @@ impl OnNumberInputValueChanged {
             new_value,
         }
     }
+
+    pub fn number_input_entity(&self) -> Entity {
+        self.number_input_entity
+    }
+
+    pub fn new_value(&self) -> f32 {
+        self.new_value
+    }
 }
 
 fn update_number_input_value_on_button_press(
@@ -139,7 +147,7 @@ pub fn spawn_number_input_node(
     label: impl Into<String>,
     start_value: f32,
     value_range: Range<f32>,
-) {
+) -> Entity {
     let mut number_input =
         builder.spawn(build_number_input_container_node(start_value, value_range));
     let number_input_entity = number_input.id();
@@ -183,6 +191,8 @@ pub fn spawn_number_input_node(
                 );
             });
     });
+
+    number_input_entity
 }
 
 fn build_number_input_container_node(start_value: f32, value_range: Range<f32>) -> impl Bundle {

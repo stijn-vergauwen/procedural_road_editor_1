@@ -15,6 +15,12 @@ impl RoadComponent {
         }
     }
 
+    pub fn with_size(&mut self, size: Vec2) -> &mut Self {
+        self.size = size;
+
+        self
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }

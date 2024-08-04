@@ -29,8 +29,14 @@ impl Plugin for ToolbarComponentsPlugin {
 }
 
 #[derive(Component, Default)]
-struct RoadComponentItem {
+pub struct RoadComponentItem {
     is_selected: bool,
+}
+
+impl RoadComponentItem {
+    pub fn is_selected(&self) -> bool {
+        self.is_selected
+    }
 }
 
 fn regenerate_road_components(
