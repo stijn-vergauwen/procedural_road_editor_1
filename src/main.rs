@@ -50,7 +50,10 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Toggle sidebar visibility (delete component config children, and have a system for sidebar that hides it when it has no children)
+        - Able to change road component width and height
+        - Able to change road component name
+        - Able to delete road component
+        - Able to add road component
         - Goal: Have a basic footpath road design
         - Color config for road components
         - Generate road texture
