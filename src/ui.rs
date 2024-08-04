@@ -10,7 +10,7 @@ use bevy::prelude::*;
 use buttons::ButtonsPlugin;
 use inputs::UiInputsPlugin;
 use sidebar::SidebarPlugin;
-use toolbar::ToolbarPlugin;
+use toolbar::{components::RoadComponentItem, ToolbarPlugin};
 
 pub struct UiPlugin;
 
@@ -45,4 +45,13 @@ fn build_text_node(
             ..default()
         },
     )
+}
+
+fn get_selected_road_component_index(
+    road_component_items: &Query<(&RoadComponentItem, &ListItem)>,
+) -> Option<usize> {
+    road_component_items
+        .iter()
+        .find(|(component_item, _)| component_item.is_selected())
+        .map(|(_, list_item)| list_item.index())
 }

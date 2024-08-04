@@ -3,13 +3,13 @@ pub mod selected_road_component;
 
 use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 use reorder::ReorderPlugin;
-use selected_road_component::SelectedRoadComponentPlugin;
+use selected_road_component::{OnRoadComponentSelected, SelectedRoadComponentPlugin};
 
 use crate::{
     road::{OnActiveRoadModified, RoadComponent},
     ui::{
         buttons::{spawn_reorder_button, ReorderDirection},
-        ListItem,
+        get_selected_road_component_index, ListItem,
     },
     GameRunningSet,
 };
@@ -34,6 +34,10 @@ pub struct RoadComponentItem {
 }
 
 impl RoadComponentItem {
+    pub fn new(is_selected: bool) -> Self {
+        Self { is_selected }
+    }
+
     pub fn is_selected(&self) -> bool {
         self.is_selected
     }
@@ -41,10 +45,15 @@ impl RoadComponentItem {
 
 fn regenerate_road_components(
     mut on_road_modified: EventReader<OnActiveRoadModified>,
-    components_list_query: Query<Entity, With<RoadComponentsList>>,
+    mut on_component_selected: EventWriter<OnRoadComponentSelected>,
     mut commands: Commands,
+    components_list_query: Query<Entity, With<RoadComponentsList>>,
+    component_item_query: Query<(&RoadComponentItem, &ListItem)>,
 ) {
     for event in on_road_modified.read() {
+        let selected_component_index = get_selected_road_component_index(&component_item_query);
+        let mut selected_component = None;
+
         let components_list_entity = components_list_query.single();
         let road_components = event.road_data().components();
         let component_count = road_components.len();
@@ -54,15 +63,28 @@ fn regenerate_road_components(
             .despawn_descendants()
             .with_children(|components_list| {
                 for (index, road_component) in road_components.iter().enumerate() {
-                    spawn_road_component(
+                    let component_item_entity = spawn_road_component(
                         components_list,
                         index,
                         components_list_entity,
                         road_component,
                         component_count,
                     );
+
+                    if Some(index) == selected_component_index {
+                        selected_component = Some((road_component.clone(), component_item_entity));
+                    }
                 }
             });
+
+        // Re-select road component because entities got cleared
+        // TODO: remove the need for this workaround
+        if let Some((road_component, component_item_entity)) = selected_component {
+            on_component_selected.send(OnRoadComponentSelected::new(
+                road_component,
+                component_item_entity,
+            ));
+        }
     }
 }
 
@@ -72,7 +94,7 @@ fn spawn_road_component(
     components_list_entity: Entity,
     road_component: &RoadComponent,
     component_count: usize,
-) {
+) -> Entity {
     let mut container = components_list.spawn(build_road_components_container_node(ListItem::new(
         components_list_entity,
         index as u8,
@@ -105,6 +127,8 @@ fn spawn_road_component(
                 }
             });
     });
+
+    container_entity
 }
 
 fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {

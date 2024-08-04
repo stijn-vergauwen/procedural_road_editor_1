@@ -3,13 +3,10 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::{
     road::{ActiveRoad, OnRoadComponentChangeRequested},
     ui::{
-        build_text_node,
-        inputs::number_input::{spawn_number_input_node, OnNumberInputValueChanged},
-        toolbar::components::{
+        build_text_node, get_selected_road_component_index, inputs::number_input::{spawn_number_input_node, OnNumberInputValueChanged}, toolbar::components::{
             selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected},
             RoadComponentItem,
-        },
-        ListItem,
+        }, ListItem
     },
     GameRunningSet,
 };
@@ -168,13 +165,4 @@ fn build_config_container_node() -> impl Bundle {
         },
         ..default()
     }
-}
-
-fn get_selected_road_component_index(
-    road_component_items: &Query<(&RoadComponentItem, &ListItem)>,
-) -> Option<usize> {
-    road_component_items
-        .iter()
-        .find(|(component_item, _)| component_item.is_selected())
-        .map(|(_, list_item)| list_item.index())
 }
