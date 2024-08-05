@@ -21,6 +21,12 @@ impl RoadComponent {
         self
     }
 
+    pub fn with_name(&mut self, name: String) -> &mut Self {
+        self.name = name;
+
+        self
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }

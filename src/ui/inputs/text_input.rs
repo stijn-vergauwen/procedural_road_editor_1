@@ -157,6 +157,14 @@ impl OnTextInputValueChanged {
             text,
         }
     }
+
+    pub fn text_input_entity(&self) -> Entity {
+        self.text_input_entity
+    }
+
+    pub fn text(&self) -> &str {
+        &self.text
+    }
 }
 
 pub fn spawn_text_input_node(builder: &mut ChildBuilder, text: impl Into<String>) -> Entity {

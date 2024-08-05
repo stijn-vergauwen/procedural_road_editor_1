@@ -6,7 +6,7 @@ use crate::{
         get_selected_road_component_index,
         inputs::{
             number_input::{spawn_number_input_node, OnNumberInputValueChanged},
-            text_input::spawn_text_input_node,
+            text_input::{spawn_text_input_node, OnTextInputValueChanged},
         },
         toolbar::components::{
             selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected},
@@ -26,7 +26,11 @@ impl Plugin for RoadComponentConfigPlugin {
         app.add_systems(
             Update,
             (
-                (send_change_requests.in_set(GameRunningSet::SendCommands)),
+                (
+                    handle_number_input_changed_events,
+                    handle_text_input_changed_events,
+                )
+                    .in_set(GameRunningSet::SendCommands),
                 (
                     generate_config_section_for_selected_component,
                     despawn_config_section_on_component_deselected,
@@ -37,20 +41,25 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
-// TODO: add title input entity field
-// TODO: update component title when this field updates
+// TODO: update component title when this field updates <- doing
 
 #[derive(Component)]
 pub struct RoadComponentConfig {
     width_input_entity: Entity,
     height_input_entity: Entity,
+    title_input_entity: Entity,
 }
 
 impl RoadComponentConfig {
-    pub fn new(width_input_entity: Entity, height_input_entity: Entity) -> Self {
+    pub fn new(
+        width_input_entity: Entity,
+        height_input_entity: Entity,
+        title_input_entity: Entity,
+    ) -> Self {
         Self {
             width_input_entity,
             height_input_entity,
+            title_input_entity,
         }
     }
 
@@ -60,6 +69,10 @@ impl RoadComponentConfig {
 
     fn entity_matches_height_input(&self, entity: Entity) -> bool {
         self.height_input_entity == entity
+    }
+
+    fn entity_matches_title_input(&self, entity: Entity) -> bool {
+        self.title_input_entity == entity
     }
 }
 
@@ -79,9 +92,11 @@ fn generate_config_section_for_selected_component(
                 let mut component_config = sidebar.spawn(build_config_container_node());
                 let mut width_input_entity = None;
                 let mut height_input_entity = None;
+                let mut title_input_entity = None;
 
                 component_config.with_children(|container| {
-                    spawn_text_input_node(container, component_data.name());
+                    title_input_entity =
+                        Some(spawn_text_input_node(container, component_data.name()));
 
                     width_input_entity = Some(spawn_number_input_node(
                         container,
@@ -101,6 +116,7 @@ fn generate_config_section_for_selected_component(
                 component_config.insert(RoadComponentConfig::new(
                     width_input_entity.unwrap(),
                     height_input_entity.unwrap(),
+                    title_input_entity.unwrap(),
                 ));
             });
     }
@@ -118,7 +134,7 @@ fn despawn_config_section_on_component_deselected(
     }
 }
 
-fn send_change_requests(
+fn handle_number_input_changed_events(
     mut on_input_changed: EventReader<OnNumberInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
@@ -149,6 +165,39 @@ fn send_change_requests(
                 current_component_data.size().x,
                 event.new_value(),
             ));
+        }
+
+        on_change_request.send(OnRoadComponentChangeRequested::new(
+            selected_component_index,
+            current_component_data,
+            new_component_data,
+        ));
+    }
+}
+
+fn handle_text_input_changed_events(
+    mut on_input_changed: EventReader<OnTextInputValueChanged>,
+    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
+    component_config_query: Query<&RoadComponentConfig>,
+    component_item_query: Query<(&RoadComponentItem, &ListItem)>,
+    active_road: Res<ActiveRoad>,
+) {
+    for event in on_input_changed.read() {
+        let event_entity = event.text_input_entity();
+        let component_config = component_config_query.single();
+
+        let Some(selected_component_index) =
+            get_selected_road_component_index(&component_item_query)
+        else {
+            continue;
+        };
+
+        let current_component_data =
+            active_road.road_data().components()[selected_component_index].clone();
+        let mut new_component_data = current_component_data.clone();
+
+        if component_config.entity_matches_title_input(event_entity) {
+            new_component_data.with_name(event.text().into());
         }
 
         on_change_request.send(OnRoadComponentChangeRequested::new(
