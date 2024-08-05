@@ -112,11 +112,10 @@ fn update_number_input_value_on_button_press(
     mut button_query: Query<(&Interaction, &mut NumberInputButton), Changed<Interaction>>,
     mut number_input_query: Query<&mut NumberInput>,
 ) {
-    for (interaction, number_input_button) in button_query.iter_mut() {
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-
+    for (_, number_input_button) in button_query
+        .iter_mut()
+        .filter(|(interaction, _)| **interaction == Interaction::Pressed)
+    {
         let number_input_entity = number_input_button.parent_entity;
         let mut number_input = number_input_query.get_mut(number_input_entity).unwrap();
 

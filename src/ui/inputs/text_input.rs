@@ -1,6 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*, ui::FocusPolicy};
 
-// TODO: enable is_selected when user clicks input
+use crate::GameRunningSet;
+
 // TODO: disable is_selected when user clicks outside of input
 // TODO: disable is_selected on esc
 // TODO: listen to keypresses when selected
@@ -11,17 +12,49 @@ use bevy::{color::palettes::tailwind::*, prelude::*, ui::FocusPolicy};
 pub struct TextInputPlugin;
 
 impl Plugin for TextInputPlugin {
-    fn build(&self, _app: &mut App) {
-        // app.add_systems(Update, ());
+    fn build(&self, app: &mut App) {
+        app.add_event::<OnTextInputSelected>()
+            .add_event::<OnTextInputDeselected>()
+            .add_systems(
+                Update,
+                (
+                    (select_input_when_clicked).in_set(GameRunningSet::GetUserInput),
+                    (update_input_border_color).in_set(GameRunningSet::UpdateEntities),
+                ),
+            );
     }
 }
 
-#[derive(Component)]
-pub struct TextInput;
+#[derive(Component, Default)]
+pub struct TextInput {
+    is_selected: bool,
+}
 
 #[derive(Component)]
 pub struct TextDisplay {
     input_entity: Entity,
+}
+
+#[derive(Event)]
+pub struct OnTextInputSelected {
+    text_input_entity: Entity,
+}
+
+impl OnTextInputSelected {
+    pub fn new(text_input_entity: Entity) -> Self {
+        Self { text_input_entity }
+    }
+}
+
+#[derive(Event)]
+pub struct OnTextInputDeselected {
+    text_input_entity: Entity,
+}
+
+impl OnTextInputDeselected {
+    pub fn new(text_input_entity: Entity) -> Self {
+        Self { text_input_entity }
+    }
 }
 
 pub fn spawn_text_input_node(builder: &mut ChildBuilder, text: impl Into<String>) -> Entity {
@@ -35,9 +68,47 @@ pub fn spawn_text_input_node(builder: &mut ChildBuilder, text: impl Into<String>
     text_input_entity
 }
 
+// Systems
+
+fn select_input_when_clicked(
+    mut on_selected: EventWriter<OnTextInputSelected>,
+    mut input_query: Query<
+        (&Interaction, &mut TextInput, &mut BorderColor, Entity),
+        Changed<Interaction>,
+    >,
+) {
+    for (_, mut input, mut border_color, entity) in
+        input_query.iter_mut().filter(|(interaction, input, _, _)| {
+            **interaction == Interaction::Pressed && !input.is_selected
+        })
+    {
+        input.is_selected = true;
+
+        on_selected.send(OnTextInputSelected::new(entity));
+    }
+}
+
+fn update_input_border_color(
+    mut on_selected: EventReader<OnTextInputSelected>,
+    mut on_deselected: EventReader<OnTextInputDeselected>,
+    mut input_query: Query<&mut BorderColor, (With<TextInput>, Changed<TextInput>)>,
+) {
+    for event in on_selected.read() {
+        if let Ok(mut border_color) = input_query.get_mut(event.text_input_entity) {
+            border_color.0 = CYAN_300.into();
+        };
+    }
+
+    for event in on_deselected.read() {
+        if let Ok(mut border_color) = input_query.get_mut(event.text_input_entity) {
+            border_color.0 = NEUTRAL_900.into();
+        };
+    }
+}
+
 fn build_text_input_node() -> impl Bundle {
     (
-        TextInput,
+        TextInput::default(),
         NodeBundle {
             style: Style {
                 justify_content: JustifyContent::Center,
