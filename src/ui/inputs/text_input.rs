@@ -10,10 +10,6 @@ use bevy::{
 
 use crate::GameRunningSet;
 
-// TODO: update text display to text being edited when selected <- doing
-// TODO: when user presses enter, save new value
-// TODO: when deselected, return text to value before selected
-
 pub struct TextInputPlugin;
 
 impl Plugin for TextInputPlugin {
@@ -21,6 +17,7 @@ impl Plugin for TextInputPlugin {
         app.add_event::<OnTextInputSelected>()
             .add_event::<OnTextInputDeselected>()
             .add_event::<OnTextInputDisplayTextChanged>()
+            .add_event::<OnTextInputValueChanged>()
             .add_systems(
                 Update,
                 (
@@ -29,6 +26,7 @@ impl Plugin for TextInputPlugin {
                         deselect_input_on_click,
                         deselect_input_on_esc,
                         handle_keyboard_input,
+                        confirm_text_input_on_enter,
                     )
                         .in_set(GameRunningSet::GetUserInput),
                     (update_input_border_color, update_input_display_text)
@@ -74,9 +72,18 @@ impl TextInput {
         ));
     }
 
-    pub fn confirm_edit(&mut self) {
+    pub fn confirm_edit(
+        &mut self,
+        on_changed: &mut EventWriter<OnTextInputValueChanged>,
+        text_input_entity: Entity,
+    ) {
         self.is_selected = false;
         self.current_text = self.text_being_edited.clone();
+
+        on_changed.send(OnTextInputValueChanged::new(
+            text_input_entity,
+            self.current_text.clone(),
+        ));
     }
 
     pub fn update_text_being_edited(
@@ -129,6 +136,21 @@ pub struct OnTextInputDisplayTextChanged {
 }
 
 impl OnTextInputDisplayTextChanged {
+    pub fn new(text_input_entity: Entity, text: String) -> Self {
+        Self {
+            text_input_entity,
+            text,
+        }
+    }
+}
+
+#[derive(Event)]
+pub struct OnTextInputValueChanged {
+    text_input_entity: Entity,
+    text: String,
+}
+
+impl OnTextInputValueChanged {
     pub fn new(text_input_entity: Entity, text: String) -> Self {
         Self {
             text_input_entity,
@@ -213,6 +235,24 @@ fn handle_keyboard_input(
             .filter(|(input, _)| input.is_selected)
         {
             input.update_text_being_edited(&event.logical_key, &mut on_changed, text_input_entity);
+        }
+    }
+}
+
+fn confirm_text_input_on_enter(
+    mut on_deselected: EventWriter<OnTextInputDeselected>,
+    mut on_changed: EventWriter<OnTextInputValueChanged>,
+    key_input: Res<ButtonInput<KeyCode>>,
+    mut input_query: Query<(&mut TextInput, Entity)>,
+) {
+    if key_input.just_pressed(KeyCode::Enter) {
+        for (mut input, entity) in input_query
+            .iter_mut()
+            .filter(|(input, _)| input.is_selected)
+        {
+            input.confirm_edit(&mut on_changed, entity);
+
+            on_deselected.send(OnTextInputDeselected::new(entity));
         }
     }
 }
