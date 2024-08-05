@@ -41,8 +41,6 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
-// TODO: update component title when this field updates <- doing
-
 #[derive(Component)]
 pub struct RoadComponentConfig {
     width_input_entity: Entity,
