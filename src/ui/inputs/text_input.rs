@@ -20,6 +20,7 @@ impl Plugin for TextInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnTextInputSelected>()
             .add_event::<OnTextInputDeselected>()
+            .add_event::<OnTextInputDisplayTextChanged>()
             .add_systems(
                 Update,
                 (
@@ -30,7 +31,8 @@ impl Plugin for TextInputPlugin {
                         handle_keyboard_input,
                     )
                         .in_set(GameRunningSet::GetUserInput),
-                    (update_input_border_color).in_set(GameRunningSet::UpdateEntities),
+                    (update_input_border_color, update_input_display_text)
+                        .in_set(GameRunningSet::UpdateEntities),
                 ),
             );
     }
@@ -44,23 +46,52 @@ pub struct TextInput {
 }
 
 impl TextInput {
-    pub fn set_is_selected(&mut self, is_selected: bool) {
-        self.is_selected = is_selected;
+    pub fn new(text: String) -> Self {
+        Self {
+            is_selected: false,
+            current_text: text,
+            text_being_edited: String::default(),
+        }
     }
 
-    pub fn update_text_being_edited(&mut self, keyboard_input: &Key) {
-        match keyboard_input {
-            Key::Character(character) => {
-                self.text_being_edited.push_str(&character);
-            }
-            Key::Space => {
-                self.text_being_edited.push(' ');
-            }
-            Key::Backspace => {
-                self.text_being_edited.pop();
-            }
-            _ => (),
-        }
+    pub fn select(&mut self) {
+        self.is_selected = true;
+
+        self.text_being_edited = self.current_text.clone();
+    }
+
+    pub fn cancel_edit(
+        &mut self,
+        on_changed: &mut EventWriter<OnTextInputDisplayTextChanged>,
+        text_input_entity: Entity,
+    ) {
+        self.is_selected = false;
+        self.text_being_edited.clear();
+
+        on_changed.send(OnTextInputDisplayTextChanged::new(
+            text_input_entity,
+            self.current_text.clone(),
+        ));
+    }
+
+    pub fn confirm_edit(&mut self) {
+        self.is_selected = false;
+        self.current_text = self.text_being_edited.clone();
+    }
+
+    pub fn update_text_being_edited(
+        &mut self,
+        keyboard_input: &Key,
+        on_changed: &mut EventWriter<OnTextInputDisplayTextChanged>,
+        text_input_entity: Entity,
+    ) {
+        self.text_being_edited =
+            parse_keyboard_input(self.text_being_edited.clone(), keyboard_input);
+
+        on_changed.send(OnTextInputDisplayTextChanged::new(
+            text_input_entity,
+            self.text_being_edited.clone(),
+        ));
     }
 }
 
@@ -91,8 +122,24 @@ impl OnTextInputDeselected {
     }
 }
 
+#[derive(Event)]
+pub struct OnTextInputDisplayTextChanged {
+    text_input_entity: Entity,
+    text: String,
+}
+
+impl OnTextInputDisplayTextChanged {
+    pub fn new(text_input_entity: Entity, text: String) -> Self {
+        Self {
+            text_input_entity,
+            text,
+        }
+    }
+}
+
 pub fn spawn_text_input_node(builder: &mut ChildBuilder, text: impl Into<String>) -> Entity {
-    let mut text_input = builder.spawn(build_text_input_node());
+    let text = text.into();
+    let mut text_input = builder.spawn(build_text_input_node(text.clone()));
     let text_input_entity = text_input.id();
 
     text_input.with_children(|text_input| {
@@ -111,7 +158,7 @@ fn select_input_when_clicked(
     for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
         **interaction == Interaction::Pressed && !input.is_selected
     }) {
-        input.set_is_selected(true);
+        input.select();
 
         on_selected.send(OnTextInputSelected::new(entity));
     }
@@ -119,6 +166,7 @@ fn select_input_when_clicked(
 
 fn deselect_input_on_click(
     mut on_deselected: EventWriter<OnTextInputDeselected>,
+    mut on_changed: EventWriter<OnTextInputDisplayTextChanged>,
     mouse_input: Res<ButtonInput<MouseButton>>,
     mut input_query: Query<(&Interaction, &mut TextInput, Entity)>,
 ) {
@@ -126,7 +174,7 @@ fn deselect_input_on_click(
         for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
             **interaction == Interaction::None && input.is_selected
         }) {
-            input.set_is_selected(false);
+            input.cancel_edit(&mut on_changed, entity);
 
             on_deselected.send(OnTextInputDeselected::new(entity));
         }
@@ -135,6 +183,7 @@ fn deselect_input_on_click(
 
 fn deselect_input_on_esc(
     mut on_deselected: EventWriter<OnTextInputDeselected>,
+    mut on_changed: EventWriter<OnTextInputDisplayTextChanged>,
     key_input: Res<ButtonInput<KeyCode>>,
     mut input_query: Query<(&mut TextInput, Entity)>,
 ) {
@@ -143,7 +192,7 @@ fn deselect_input_on_esc(
             .iter_mut()
             .filter(|(input, _)| input.is_selected)
         {
-            input.set_is_selected(false);
+            input.cancel_edit(&mut on_changed, entity);
 
             on_deselected.send(OnTextInputDeselected::new(entity));
         }
@@ -152,15 +201,32 @@ fn deselect_input_on_esc(
 
 fn handle_keyboard_input(
     mut on_keyboard_input: EventReader<KeyboardInput>,
-    mut input_query: Query<&mut TextInput>,
+    mut on_changed: EventWriter<OnTextInputDisplayTextChanged>,
+    mut input_query: Query<(&mut TextInput, Entity)>,
 ) {
     for event in on_keyboard_input
         .read()
         .filter(|event| event.state == ButtonState::Pressed)
     {
-        for mut input in input_query.iter_mut().filter(|input| input.is_selected) {
-            input.update_text_being_edited(&event.logical_key);
+        for (mut input, text_input_entity) in input_query
+            .iter_mut()
+            .filter(|(input, _)| input.is_selected)
+        {
+            input.update_text_being_edited(&event.logical_key, &mut on_changed, text_input_entity);
         }
+    }
+}
+
+fn update_input_display_text(
+    mut on_changed: EventReader<OnTextInputDisplayTextChanged>,
+    mut text_display_query: Query<(&TextDisplay, &mut Text)>,
+) {
+    for event in on_changed.read() {
+        let (_, mut text) = text_display_query.iter_mut()
+        .find(|(text_display, _)| text_display.input_entity == event.text_input_entity)
+        .expect("TextInputDisplayTextChanged event should always match TextInput entity with a display node.");
+
+        text.sections[0].value = event.text.clone();
     }
 }
 
@@ -182,9 +248,9 @@ fn update_input_border_color(
     }
 }
 
-fn build_text_input_node() -> impl Bundle {
+fn build_text_input_node(text: String) -> impl Bundle {
     (
-        TextInput::default(),
+        TextInput::new(text),
         NodeBundle {
             style: Style {
                 justify_content: JustifyContent::Center,
@@ -201,13 +267,13 @@ fn build_text_input_node() -> impl Bundle {
     )
 }
 
-fn build_text_display_node(text: impl Into<String>, input_entity: Entity) -> impl Bundle {
+fn build_text_display_node(text: String, input_entity: Entity) -> impl Bundle {
     (
         TextDisplay { input_entity },
         TextBundle {
             text: Text {
                 sections: vec![TextSection {
-                    value: text.into(),
+                    value: text,
                     style: TextStyle {
                         color: Color::WHITE,
                         font_size: 30.0,
@@ -219,4 +285,21 @@ fn build_text_display_node(text: impl Into<String>, input_entity: Entity) -> imp
             ..default()
         },
     )
+}
+
+fn parse_keyboard_input(mut text: String, keyboard_input: &Key) -> String {
+    match keyboard_input {
+        Key::Character(character) => {
+            text.push_str(&character);
+        }
+        Key::Space => {
+            text.push(' ');
+        }
+        Key::Backspace => {
+            text.pop();
+        }
+        _ => (),
+    }
+
+    text
 }
