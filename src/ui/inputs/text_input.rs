@@ -2,8 +2,6 @@ use bevy::{color::palettes::tailwind::*, prelude::*, ui::FocusPolicy};
 
 use crate::GameRunningSet;
 
-// TODO: disable is_selected when user clicks outside of input
-// TODO: disable is_selected on esc
 // TODO: listen to keypresses when selected
 // TODO: update input text with keypresses
 // TODO: when user presses enter, save new value
@@ -18,7 +16,12 @@ impl Plugin for TextInputPlugin {
             .add_systems(
                 Update,
                 (
-                    (select_input_when_clicked).in_set(GameRunningSet::GetUserInput),
+                    (
+                        select_input_when_clicked,
+                        deselect_input_on_click,
+                        deselect_input_on_esc,
+                    )
+                        .in_set(GameRunningSet::GetUserInput),
                     (update_input_border_color).in_set(GameRunningSet::UpdateEntities),
                 ),
             );
@@ -72,19 +75,47 @@ pub fn spawn_text_input_node(builder: &mut ChildBuilder, text: impl Into<String>
 
 fn select_input_when_clicked(
     mut on_selected: EventWriter<OnTextInputSelected>,
-    mut input_query: Query<
-        (&Interaction, &mut TextInput, &mut BorderColor, Entity),
-        Changed<Interaction>,
-    >,
+    mut input_query: Query<(&Interaction, &mut TextInput, Entity), Changed<Interaction>>,
 ) {
-    for (_, mut input, mut border_color, entity) in
-        input_query.iter_mut().filter(|(interaction, input, _, _)| {
-            **interaction == Interaction::Pressed && !input.is_selected
-        })
-    {
+    for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
+        **interaction == Interaction::Pressed && !input.is_selected
+    }) {
         input.is_selected = true;
 
         on_selected.send(OnTextInputSelected::new(entity));
+    }
+}
+
+fn deselect_input_on_click(
+    mut on_deselected: EventWriter<OnTextInputDeselected>,
+    mouse_input: Res<ButtonInput<MouseButton>>,
+    mut input_query: Query<(&Interaction, &mut TextInput, Entity)>,
+) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
+            **interaction == Interaction::None && input.is_selected
+        }) {
+            input.is_selected = false;
+
+            on_deselected.send(OnTextInputDeselected::new(entity));
+        }
+    }
+}
+
+fn deselect_input_on_esc(
+    mut on_deselected: EventWriter<OnTextInputDeselected>,
+    key_input: Res<ButtonInput<KeyCode>>,
+    mut input_query: Query<(&mut TextInput, Entity)>,
+) {
+    if key_input.just_pressed(KeyCode::Escape) {
+        for (mut input, entity) in input_query
+            .iter_mut()
+            .filter(|(input, _)| input.is_selected)
+        {
+            input.is_selected = false;
+
+            on_deselected.send(OnTextInputDeselected::new(entity));
+        }
     }
 }
 

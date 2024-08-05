@@ -9,18 +9,18 @@ pub struct UtilityPlugin;
 
 impl Plugin for UtilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, shutdown_on_esc);
+        app.add_systems(Update, shutdown_on_control_q);
     }
 }
 
 // Helper systems
 
-fn shutdown_on_esc(
+fn shutdown_on_control_q(
     input: Res<ButtonInput<KeyCode>>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
     mut on_exit: EventWriter<AppExit>,
 ) {
-    if input.just_pressed(KeyCode::Escape) {
+    if input.pressed(KeyCode::ControlLeft) && input.just_pressed(KeyCode::KeyQ) {
         let Ok(mut window) = window_query.get_single_mut() else {
             return;
         };
