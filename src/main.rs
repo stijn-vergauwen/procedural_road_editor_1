@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Able to change road component name
+        - Able to change road component name <- doing
         - Able to delete road component
         - Able to add road component
         - Enter road name before save

@@ -1,12 +1,18 @@
-use bevy::{color::palettes::tailwind::*, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     road::{ActiveRoad, OnRoadComponentChangeRequested},
     ui::{
-        build_text_node, get_selected_road_component_index, inputs::number_input::{spawn_number_input_node, OnNumberInputValueChanged}, toolbar::components::{
+        get_selected_road_component_index,
+        inputs::{
+            number_input::{spawn_number_input_node, OnNumberInputValueChanged},
+            text_input::spawn_text_input_node,
+        },
+        toolbar::components::{
             selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected},
             RoadComponentItem,
-        }, ListItem
+        },
+        ListItem,
     },
     GameRunningSet,
 };
@@ -30,6 +36,9 @@ impl Plugin for RoadComponentConfigPlugin {
         );
     }
 }
+
+// TODO: add title input entity field
+// TODO: update component title when this field updates
 
 #[derive(Component)]
 pub struct RoadComponentConfig {
@@ -72,13 +81,7 @@ fn generate_config_section_for_selected_component(
                 let mut height_input_entity = None;
 
                 component_config.with_children(|container| {
-                    container.spawn(build_text_node(
-                        component_data.name(),
-                        30.0,
-                        GRAY_900,
-                        JustifyText::Center,
-                        (),
-                    ));
+                    spawn_text_input_node(container, component_data.name());
 
                     width_input_entity = Some(spawn_number_input_node(
                         container,
