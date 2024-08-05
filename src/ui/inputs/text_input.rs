@@ -1,9 +1,16 @@
-use bevy::{color::palettes::tailwind::*, prelude::*, ui::FocusPolicy};
+use bevy::{
+    color::palettes::tailwind::*,
+    input::{
+        keyboard::{Key, KeyboardInput},
+        ButtonState,
+    },
+    prelude::*,
+    ui::FocusPolicy,
+};
 
 use crate::GameRunningSet;
 
-// TODO: listen to keypresses when selected
-// TODO: update input text with keypresses
+// TODO: update text display to text being edited when selected <- doing
 // TODO: when user presses enter, save new value
 // TODO: when deselected, return text to value before selected
 
@@ -20,6 +27,7 @@ impl Plugin for TextInputPlugin {
                         select_input_when_clicked,
                         deselect_input_on_click,
                         deselect_input_on_esc,
+                        handle_keyboard_input,
                     )
                         .in_set(GameRunningSet::GetUserInput),
                     (update_input_border_color).in_set(GameRunningSet::UpdateEntities),
@@ -31,6 +39,29 @@ impl Plugin for TextInputPlugin {
 #[derive(Component, Default)]
 pub struct TextInput {
     is_selected: bool,
+    current_text: String,
+    text_being_edited: String,
+}
+
+impl TextInput {
+    pub fn set_is_selected(&mut self, is_selected: bool) {
+        self.is_selected = is_selected;
+    }
+
+    pub fn update_text_being_edited(&mut self, keyboard_input: &Key) {
+        match keyboard_input {
+            Key::Character(character) => {
+                self.text_being_edited.push_str(&character);
+            }
+            Key::Space => {
+                self.text_being_edited.push(' ');
+            }
+            Key::Backspace => {
+                self.text_being_edited.pop();
+            }
+            _ => (),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -80,7 +111,7 @@ fn select_input_when_clicked(
     for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
         **interaction == Interaction::Pressed && !input.is_selected
     }) {
-        input.is_selected = true;
+        input.set_is_selected(true);
 
         on_selected.send(OnTextInputSelected::new(entity));
     }
@@ -95,7 +126,7 @@ fn deselect_input_on_click(
         for (_, mut input, entity) in input_query.iter_mut().filter(|(interaction, input, _)| {
             **interaction == Interaction::None && input.is_selected
         }) {
-            input.is_selected = false;
+            input.set_is_selected(false);
 
             on_deselected.send(OnTextInputDeselected::new(entity));
         }
@@ -112,9 +143,23 @@ fn deselect_input_on_esc(
             .iter_mut()
             .filter(|(input, _)| input.is_selected)
         {
-            input.is_selected = false;
+            input.set_is_selected(false);
 
             on_deselected.send(OnTextInputDeselected::new(entity));
+        }
+    }
+}
+
+fn handle_keyboard_input(
+    mut on_keyboard_input: EventReader<KeyboardInput>,
+    mut input_query: Query<&mut TextInput>,
+) {
+    for event in on_keyboard_input
+        .read()
+        .filter(|event| event.state == ButtonState::Pressed)
+    {
+        for mut input in input_query.iter_mut().filter(|input| input.is_selected) {
+            input.update_text_being_edited(&event.logical_key);
         }
     }
 }
