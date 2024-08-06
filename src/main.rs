@@ -57,6 +57,14 @@ use world::WorldPlugin;
         - Color config for road components
         - Generate road texture
         - Goal: Have a simple "erftoegangsweg" road design
+        - Large refactor
+            - Fix index mapping of road components after CRUD stuff
+            - Use small enum components to identify the type of button or input an entity is (this way "Button" component and event doesn't need to be unique per action, the added-on enum component is the identifier)
+            - In road_config: replace the entity references with smth like a "ConfigInput" component, that has an enum for what value it configs
+            - Make UI utility modules
+                - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
+            - Rework layout & colors etc, more web-devvy
+            
         - Lane lines support
         - Goal: Have a multilane highway road design with grass median
         - General road markings support
