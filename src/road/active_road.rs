@@ -1,8 +1,10 @@
 pub mod road_component_change;
+pub mod road_component_deletion;
 pub mod road_component_reorder;
 
 use bevy::prelude::*;
 use road_component_change::RoadComponentChangePlugin;
+use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
 
 use super::{road_data::RoadData, RoadComponent};
@@ -11,9 +13,13 @@ pub struct ActiveRoadPlugin;
 
 impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((RoadComponentReorderPlugin, RoadComponentChangePlugin))
-            .add_event::<OnActiveRoadModified>()
-            .add_systems(Startup, setup_example_road);
+        app.add_plugins((
+            RoadComponentReorderPlugin,
+            RoadComponentChangePlugin,
+            RoadComponentDeletionPlugin,
+        ))
+        .add_event::<OnActiveRoadModified>()
+        .add_systems(Startup, setup_example_road);
     }
 }
 
@@ -86,6 +92,16 @@ impl ActiveRoad {
         self.send_road_modified_event(on_road_modified);
     }
 
+    pub fn delete_road_component(
+        &mut self,
+        component_index: usize,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
+        self.road_data.components_mut().remove(component_index);
+
+        self.send_road_modified_event(on_road_modified);
+    }
+
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
     }
@@ -98,6 +114,7 @@ impl ActiveRoad {
     }
 }
 
+// TODO: add road components index map to event (vec of arrays with 2 ints, one for prev index and one for new index of each component)
 #[derive(Event, Clone)]
 pub struct OnActiveRoadModified {
     road_data: RoadData,

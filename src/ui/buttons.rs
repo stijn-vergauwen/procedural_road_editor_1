@@ -1,8 +1,11 @@
+mod delete_button;
 mod load_button;
 mod reorder_button;
 mod save_button;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
+use delete_button::send_delete_button_pressed_events;
+pub use delete_button::{DeleteButton, OnDeleteButtonPressed};
 use load_button::send_load_button_pressed_events;
 pub use load_button::{LoadButton, OnLoadButtonPressed};
 use reorder_button::send_reorder_button_pressed_events;
@@ -19,14 +22,16 @@ impl Plugin for ButtonsPlugin {
         app.add_event::<OnReorderButtonPressed>()
             .add_event::<OnSaveButtonPressed>()
             .add_event::<OnLoadButtonPressed>()
+            .add_event::<OnDeleteButtonPressed>()
             .add_systems(
                 Update,
                 (
                     send_reorder_button_pressed_events,
                     send_save_button_pressed_events,
                     send_load_button_pressed_events,
+                    send_delete_button_pressed_events,
                 )
-                    .in_set(GameRunningSet::SendEvents),
+                    .in_set(GameRunningSet::GetUserInput),
             );
     }
 }
@@ -36,12 +41,15 @@ pub fn spawn_button_node(
     button_components: impl Bundle,
     text: &str,
     font_size: f32,
-) {
+) -> Entity {
     let button_node = build_button_node(button_components);
 
-    builder.spawn(button_node).with_children(|button| {
-        button.spawn(build_button_text_node(text, font_size));
-    });
+    builder
+        .spawn(button_node)
+        .with_children(|button| {
+            button.spawn(build_button_text_node(text, font_size));
+        })
+        .id()
 }
 
 fn build_button_node(button_components: impl Bundle) -> impl Bundle {

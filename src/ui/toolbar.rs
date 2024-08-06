@@ -41,6 +41,15 @@ pub fn spawn_toolbar(mut commands: Commands) {
         });
 }
 
+fn spawn_action_buttons(builder: &mut ChildBuilder) {
+    builder
+        .spawn(build_action_buttons_container_node())
+        .with_children(|container| {
+            spawn_button_node(container, SaveButton, "Save", 24.0);
+            spawn_button_node(container, LoadButton, "Load", 24.0);
+        });
+}
+
 fn build_container_node() -> impl Bundle {
     NodeBundle {
         style: Style {
@@ -85,15 +94,6 @@ fn build_road_components_list_node() -> impl Bundle {
             ..default()
         },
     )
-}
-
-fn spawn_action_buttons(builder: &mut ChildBuilder) {
-    builder
-        .spawn(build_action_buttons_container_node())
-        .with_children(|container| {
-            spawn_button_node(container, SaveButton, "Save", 24.0);
-            spawn_button_node(container, LoadButton, "Load", 24.0);
-        });
 }
 
 fn build_action_buttons_container_node() -> impl Bundle {

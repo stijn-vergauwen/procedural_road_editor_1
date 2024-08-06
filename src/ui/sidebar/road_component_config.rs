@@ -1,8 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{ActiveRoad, OnRoadComponentChangeRequested},
+    road::{ActiveRoad, OnRoadComponentChangeRequested, OnRoadComponentDeletionRequested},
     ui::{
+        buttons::{spawn_button_node, DeleteButton, OnDeleteButtonPressed},
         get_selected_road_component_index,
         inputs::{
             number_input::{spawn_number_input_node, OnNumberInputValueChanged},
@@ -29,6 +30,7 @@ impl Plugin for RoadComponentConfigPlugin {
                 (
                     handle_number_input_changed_events,
                     handle_text_input_changed_events,
+                    handle_delete_button_pressed_events,
                 )
                     .in_set(GameRunningSet::SendCommands),
                 (
@@ -43,6 +45,7 @@ impl Plugin for RoadComponentConfigPlugin {
 
 #[derive(Component)]
 pub struct RoadComponentConfig {
+    // TODO: remove need for these entity fields
     width_input_entity: Entity,
     height_input_entity: Entity,
     title_input_entity: Entity,
@@ -60,6 +63,8 @@ impl RoadComponentConfig {
             title_input_entity,
         }
     }
+
+    // TODO: remove need for these functions
 
     fn entity_matches_width_input(&self, entity: Entity) -> bool {
         self.width_input_entity == entity
@@ -109,6 +114,8 @@ fn generate_config_section_for_selected_component(
                         component_data.size().y,
                         0.0..10.0,
                     ));
+
+                    spawn_button_node(container, DeleteButton, "Delete", 24.0);
                 });
 
                 component_config.insert(RoadComponentConfig::new(
@@ -153,6 +160,7 @@ fn handle_number_input_changed_events(
             active_road.road_data().components()[selected_component_index].clone();
         let mut new_component_data = current_component_data.clone();
 
+        // TODO: replace entity check with enum in event to describe what data was changed
         if component_config.entity_matches_width_input(event_entity) {
             new_component_data.with_size(Vec2::new(
                 event.new_value(),
@@ -203,6 +211,22 @@ fn handle_text_input_changed_events(
             current_component_data,
             new_component_data,
         ));
+    }
+}
+
+fn handle_delete_button_pressed_events(
+    mut on_button_pressed: EventReader<OnDeleteButtonPressed>,
+    mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
+    component_item_query: Query<(&RoadComponentItem, &ListItem)>,
+) {
+    for _ in on_button_pressed.read() {
+        if let Some(selected_component_index) =
+            get_selected_road_component_index(&component_item_query)
+        {
+            on_deletion_request.send(OnRoadComponentDeletionRequested::new(
+                selected_component_index,
+            ));
+        };
     }
 }
 

@@ -51,6 +51,7 @@ fn regenerate_road_components(
     component_item_query: Query<(&RoadComponentItem, &ListItem)>,
 ) {
     for event in on_road_modified.read() {
+        // TODO: add road components index map to event, use this to re-select correct component (unless it got deleted)
         let selected_component_index = get_selected_road_component_index(&component_item_query);
         let mut selected_component = None;
 

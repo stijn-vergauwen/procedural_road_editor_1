@@ -50,7 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Able to delete road component
         - Able to add road component
         - Enter road name before save
         - Goal: Have a basic footpath road design

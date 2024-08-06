@@ -8,6 +8,7 @@ mod save;
 
 pub use active_road::{
     road_component_change::OnRoadComponentChangeRequested,
+    road_component_deletion::OnRoadComponentDeletionRequested,
     road_component_reorder::OnRoadComponentReorderRequested, ActiveRoad, OnActiveRoadModified,
 };
 pub use load::OnLoadRoadRequested;
