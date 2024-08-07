@@ -93,6 +93,7 @@ fn generate_config_section_for_selected_component(
             .despawn_descendants()
             .with_children(|sidebar| {
                 let mut component_config = sidebar.spawn(build_config_container_node());
+                // TODO: remove the need for these option vars
                 let mut width_input_entity = None;
                 let mut height_input_entity = None;
                 let mut title_input_entity = None;

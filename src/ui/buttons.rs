@@ -1,3 +1,4 @@
+// TODO: move the save, load, and delete buttons to the code that actually uses them (right now I'm splitting it in horizontal layers instead of vertical sections)
 mod delete_button;
 mod load_button;
 mod reorder_button;

@@ -34,6 +34,7 @@ impl Plugin for SelectedRoadComponentPlugin {
 
 #[derive(Event, Clone)]
 pub struct OnRoadComponentSelected {
+    // TODO: replace component data with component_index that points to correct data in ActiveRoad Res
     component_data: RoadComponent,
     component_item_entity: Entity,
 }
