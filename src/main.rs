@@ -50,7 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Able to add road component
         - Enter road name before save
         - Goal: Have a basic footpath road design
         - Load button brings up list of all saved road files, click to load
@@ -59,7 +58,9 @@ use world::WorldPlugin;
         - Goal: Have a simple "erftoegangsweg" road design
         - Large refactor
             - Fix index mapping of road components after CRUD stuff
+                - add an road_component index mapping field to OnActiveRoadModified
             - Use small enum components to identify the type of button or input an entity is (this way "Button" component and event doesn't need to be unique per action, the added-on enum component is the identifier)
+                - Make generic system to pass events like ButtonPressed to the correct Command event (as long as it doesn't have params), generics for: Command event, Identifier enum
             - In road_config: replace the entity references with smth like a "ConfigInput" component, that has an enum for what value it configs
             - Make UI utility modules
                 - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")

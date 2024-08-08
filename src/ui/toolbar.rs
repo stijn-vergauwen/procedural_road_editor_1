@@ -1,7 +1,9 @@
+mod add_road_component;
 pub mod components;
 mod load;
 mod save;
 
+use add_road_component::{AddRoadComponentButton, AddRoadComponentPlugin};
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use components::ToolbarComponentsPlugin;
 use load::LoadPlugin;
@@ -16,8 +18,13 @@ pub struct ToolbarPlugin;
 
 impl Plugin for ToolbarPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((ToolbarComponentsPlugin, SavePlugin, LoadPlugin))
-            .add_systems(Startup, spawn_toolbar);
+        app.add_plugins((
+            ToolbarComponentsPlugin,
+            SavePlugin,
+            LoadPlugin,
+            AddRoadComponentPlugin,
+        ))
+        .add_systems(Startup, spawn_toolbar);
     }
 }
 
@@ -37,6 +44,12 @@ pub fn spawn_toolbar(mut commands: Commands) {
                     spawn_action_buttons(toolbar);
 
                     toolbar.spawn(build_road_components_list_node());
+
+                    toolbar
+                        .spawn(build_content_centered_container_node())
+                        .with_children(|container| {
+                            spawn_button_node(container, AddRoadComponentButton, "+", 30.0);
+                        });
                 });
         });
 }
@@ -102,6 +115,17 @@ fn build_action_buttons_container_node() -> impl Bundle {
             flex_direction: FlexDirection::Column,
             align_items: AlignItems::Stretch,
             row_gap: Val::Px(4.0),
+            ..default()
+        },
+        ..default()
+    }
+}
+
+fn build_content_centered_container_node() -> impl Bundle {
+    NodeBundle {
+        style: Style {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
             ..default()
         },
         ..default()

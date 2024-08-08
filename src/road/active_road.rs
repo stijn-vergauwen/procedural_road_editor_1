@@ -1,8 +1,10 @@
+pub mod new_road_component;
 pub mod road_component_change;
 pub mod road_component_deletion;
 pub mod road_component_reorder;
 
 use bevy::prelude::*;
+use new_road_component::NewRoadComponentPlugin;
 use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
@@ -17,6 +19,7 @@ impl Plugin for ActiveRoadPlugin {
             RoadComponentReorderPlugin,
             RoadComponentChangePlugin,
             RoadComponentDeletionPlugin,
+            NewRoadComponentPlugin,
         ))
         .add_event::<OnActiveRoadModified>()
         .add_systems(Startup, setup_example_road);
@@ -64,6 +67,16 @@ impl ActiveRoad {
         on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data = road.clone();
+
+        self.send_road_modified_event(on_road_modified);
+    }
+
+    pub fn add_road_component(
+        &mut self,
+        component_data: RoadComponent,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
+        self.road_data.components_mut().push(component_data);
 
         self.send_road_modified_event(on_road_modified);
     }

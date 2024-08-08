@@ -7,6 +7,7 @@ mod road_preview;
 mod save;
 
 pub use active_road::{
+    new_road_component::OnNewRoadComponentRequested,
     road_component_change::OnRoadComponentChangeRequested,
     road_component_deletion::OnRoadComponentDeletionRequested,
     road_component_reorder::OnRoadComponentReorderRequested, ActiveRoad, OnActiveRoadModified,
