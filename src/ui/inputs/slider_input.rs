@@ -6,25 +6,29 @@ pub struct SliderInputPlugin;
 
 impl Plugin for SliderInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnSliderInputValueChanged>()
-            .add_systems(
-                Update,
-                (
-                    update_slider_value.in_set(GameRunningSet::UpdateEntities),
-                    print_slider_events,
-                ),
-            );
+        app.add_event::<OnSliderInputValueChanged>().add_systems(
+            Update,
+            handle_slider_interaction.in_set(GameRunningSet::UpdateEntities),
+        );
     }
 }
 
 #[derive(Component)]
-struct SliderInput {
+pub struct SliderInput {
     value: f32,
 }
 
 impl SliderInput {
     fn new(value: f32) -> Self {
         Self { value }
+    }
+
+    pub fn value(&self) -> f32 {
+        self.value
+    }
+
+    pub fn value_as_percentage(&self) -> f32 {
+        self.value * 100.0
     }
 }
 
@@ -55,6 +59,7 @@ impl OnSliderInputValueChanged {
         self.new_value
     }
 }
+
 pub fn spawn_slider_input(builder: &mut ChildBuilder, root_components: impl Bundle) -> Entity {
     let mut slider_input = builder.spawn(build_slider_input_node(
         Val::Px(200.0),
@@ -74,7 +79,7 @@ pub fn spawn_slider_input(builder: &mut ChildBuilder, root_components: impl Bund
     slider_input_entity
 }
 
-fn update_slider_value(
+fn handle_slider_interaction(
     mut on_changed: EventWriter<OnSliderInputValueChanged>,
     mut slider_query: Query<(
         &Interaction,
@@ -88,9 +93,13 @@ fn update_slider_value(
         .iter_mut()
         .filter(|slider| *slider.0 == Interaction::Pressed)
     {
-        let Some(relative_position) = relative_cursor_position.normalized else {
+        let Some(new_value) = calculate_slider_value(relative_cursor_position) else {
             continue;
         };
+
+        if new_value == slider_input.value {
+            continue;
+        }
 
         let Some((_, mut handle_style)) = slider_handle_query
             .iter_mut()
@@ -99,14 +108,7 @@ fn update_slider_value(
             continue;
         };
 
-        let new_value = relative_position.x.clamp(0.0, 1.0);
-
-        if new_value == slider_input.value {
-            continue;
-        }
-
-        slider_input.value = new_value;
-        handle_style.margin = UiRect::left(Val::Percent(slider_input.value * 100.0));
+        update_slider_input(&mut slider_input, &mut handle_style, new_value);
 
         on_changed.send(OnSliderInputValueChanged::new(
             slider_entity,
@@ -115,10 +117,17 @@ fn update_slider_value(
     }
 }
 
-fn print_slider_events(mut events: EventReader<OnSliderInputValueChanged>) {
-    for event in events.read() {
-        println!("Slider value: {}", event.new_value());
-    }
+fn update_slider_input(slider_input: &mut SliderInput, handle_style: &mut Style, new_value: f32) {
+    slider_input.value = new_value;
+    handle_style.margin = calculate_handle_margin(&slider_input);
+}
+
+fn calculate_handle_margin(slider_input: &SliderInput) -> UiRect {
+    UiRect::left(Val::Percent(slider_input.value_as_percentage()))
+}
+
+fn calculate_slider_value(relative_cursor_position: &RelativeCursorPosition) -> Option<f32> {
+    Some(relative_cursor_position.normalized?.x.clamp(0.0, 1.0))
 }
 
 // Node builders
