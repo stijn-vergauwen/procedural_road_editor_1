@@ -100,7 +100,7 @@ fn generate_config_section_for_selected_component(
 
                 component_config.with_children(|container| {
                     title_input_entity =
-                        Some(spawn_text_input_node(container, component_data.name()));
+                        Some(spawn_text_input_node(container, (), component_data.name()));
 
                     width_input_entity = Some(spawn_number_input_node(
                         container,
@@ -149,7 +149,10 @@ fn handle_number_input_changed_events(
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.number_input_entity();
-        let component_config = component_config_query.single();
+
+        let Ok(component_config) = component_config_query.get_single() else {
+            continue;
+        };
 
         let Some(selected_component_index) =
             get_selected_road_component_index(&component_item_query)
@@ -191,7 +194,10 @@ fn handle_text_input_changed_events(
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.text_input_entity();
-        let component_config = component_config_query.single();
+
+        let Ok(component_config) = component_config_query.get_single() else {
+            continue;
+        };
 
         let Some(selected_component_index) =
             get_selected_road_component_index(&component_item_query)

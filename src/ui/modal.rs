@@ -1,4 +1,4 @@
-use bevy::{color::palettes::tailwind::NEUTRAL_800, prelude::*, ui::RelativeCursorPosition};
+use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition};
 
 use crate::GameRunningSet;
 
@@ -13,7 +13,8 @@ impl Plugin for ModalPlugin {
                 Update,
                 (
                     (hide_modal_when_clicking_outside).in_set(GameRunningSet::GetUserInput),
-                    (handle_show_requests, handle_hide_requests)
+                    (handle_hide_requests, handle_show_requests)
+                        .chain()
                         .in_set(GameRunningSet::DespawnEntities),
                 ),
             );
@@ -25,7 +26,13 @@ pub struct Modal;
 
 #[derive(Event)]
 pub struct OnShowModalRequested {
-    child_entities: Vec<Entity>,
+    child_entity: Entity,
+}
+
+impl OnShowModalRequested {
+    pub fn new(child_entity: Entity) -> Self {
+        Self { child_entity }
+    }
 }
 
 #[derive(Event)]
@@ -52,7 +59,7 @@ fn handle_show_requests(
         commands
             .entity(modal_entity)
             .despawn_descendants()
-            .push_children(&request.child_entities);
+            .add_child(request.child_entity);
     }
 }
 
@@ -103,11 +110,10 @@ fn build_modal_node() -> impl Bundle {
         RelativeCursorPosition::default(),
         NodeBundle {
             style: Style {
-                flex_direction: FlexDirection::Column,
-                padding: UiRect::all(Val::Px(8.0)),
+                padding: UiRect::all(Val::Px(12.0)),
                 ..default()
             },
-            background_color: NEUTRAL_800.into(),
+            background_color: NEUTRAL_500.into(),
             visibility: Visibility::Hidden,
             ..default()
         },
