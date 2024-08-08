@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Color config for road components
+        - Color config for road components <- doing
         - Generate road texture
         - Goal: Have a simple "erftoegangsweg" road design
         - Large refactor
