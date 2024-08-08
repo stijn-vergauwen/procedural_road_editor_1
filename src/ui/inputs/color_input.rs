@@ -1,7 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-// TODO: draggable slider handle (0 to 1)
-// TODO: split slider to module
+use super::slider_input::spawn_slider_input;
+
 // TODO: slider with texture as background
 // TODO: generate color texture
 // TODO: sliders for rgb
@@ -18,12 +18,6 @@ impl Plugin for ColorInputPlugin {
 
 #[derive(Component)]
 struct ColorInput;
-
-#[derive(Component)]
-struct SliderInput;
-
-#[derive(Component)]
-struct SliderHandle;
 
 fn spawn_test_thing(mut commands: Commands) {
     commands
@@ -42,58 +36,13 @@ pub fn spawn_color_input(builder: &mut ChildBuilder) -> Entity {
     let color_input_entity = color_input.id();
 
     color_input.with_children(|color_input| {
-        spawn_slider_input(color_input);
+        spawn_slider_input(color_input, ());
     });
 
     color_input_entity
 }
 
-pub fn spawn_slider_input(builder: &mut ChildBuilder) -> Entity {
-    let mut slider_input = builder.spawn(build_slider_input_container_node(
-        Val::Px(200.0),
-        Val::Px(20.0),
-    ));
-    let slider_input_entity = slider_input.id();
-
-    slider_input.with_children(|color_input| {
-        color_input.spawn(build_slider_handle_node());
-    });
-
-    slider_input_entity
-}
-
 // Node builders
-
-fn build_slider_input_container_node(width: Val, height: Val) -> impl Bundle {
-    (
-        SliderInput,
-        NodeBundle {
-            style: Style {
-                width,
-                height,
-                ..default()
-            },
-            background_color: NEUTRAL_500.into(),
-            ..default()
-        },
-    )
-}
-
-fn build_slider_handle_node() -> impl Bundle {
-    (
-        SliderHandle,
-        ButtonBundle {
-            style: Style {
-                height: Val::Percent(100.0),
-                width: Val::Px(8.0),
-                ..default()
-            },
-            border_radius: BorderRadius::all(Val::Px(4.0)),
-            background_color: NEUTRAL_800.into(),
-            ..default()
-        },
-    )
-}
 
 fn build_color_input_container_node() -> impl Bundle {
     (
