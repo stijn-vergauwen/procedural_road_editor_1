@@ -1,4 +1,5 @@
 pub mod mesh_builder;
+pub mod texture_builder;
 
 use bevy::{
     prelude::*,

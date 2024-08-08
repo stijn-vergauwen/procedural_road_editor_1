@@ -2,7 +2,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use super::slider_input::spawn_slider_input;
 
-// TODO: slider with texture as background
+// TODO: slider with texture as background <- doing
 // TODO: generate color texture
 // TODO: sliders for rgb
 // TODO: update textures when color changes
