@@ -110,7 +110,7 @@ fn build_modal_node() -> impl Bundle {
         RelativeCursorPosition::default(),
         NodeBundle {
             style: Style {
-                padding: UiRect::all(Val::Px(12.0)),
+                padding: UiRect::all(Val::Px(20.0)),
                 ..default()
             },
             background_color: NEUTRAL_500.into(),

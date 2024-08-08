@@ -50,7 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Load button brings up list of all saved road files, click to load
         - Color config for road components
         - Generate road texture
         - Goal: Have a simple "erftoegangsweg" road design
