@@ -1,6 +1,7 @@
 mod buttons;
 mod inputs;
 mod list;
+mod modal;
 mod sidebar;
 mod toolbar;
 
@@ -9,6 +10,7 @@ pub use list::{List, ListItem};
 use bevy::prelude::*;
 use buttons::ButtonsPlugin;
 use inputs::UiInputsPlugin;
+use modal::ModalPlugin;
 use sidebar::SidebarPlugin;
 use toolbar::{components::RoadComponentItem, ToolbarPlugin};
 
@@ -16,7 +18,13 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((ButtonsPlugin, ToolbarPlugin, SidebarPlugin, UiInputsPlugin));
+        app.add_plugins((
+            ButtonsPlugin,
+            ToolbarPlugin,
+            SidebarPlugin,
+            UiInputsPlugin,
+            ModalPlugin,
+        ));
     }
 }
 
