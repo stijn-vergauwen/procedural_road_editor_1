@@ -38,7 +38,7 @@ fn show_modal_on_save_button_pressed(
         let modal_content_entity = modal_content_container.id();
 
         modal_content_container.with_children(|container| {
-            spawn_text_input_node(container, RoadNameInput, "Road name");
+            spawn_text_input_node(container, RoadNameInput, "New road");
 
             spawn_button_node(container, SaveConfirmButton, "Confirm", 24.0);
         });

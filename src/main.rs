@@ -50,8 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Enter road name before save <- doing
-        - Goal: Have a basic footpath road design
         - Load button brings up list of all saved road files, click to load
         - Color config for road components
         - Generate road texture
