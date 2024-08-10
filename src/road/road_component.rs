@@ -1,7 +1,8 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RoadComponent {
     name: String,
     size: Vec2,
@@ -45,5 +46,15 @@ impl RoadComponent {
 
     pub fn color(&self) -> Color {
         self.color
+    }
+}
+
+impl Default for RoadComponent {
+    fn default() -> Self {
+        Self {
+            name: String::from("New component"),
+            size: Vec2::new(1.0, 0.2),
+            color: GRAY_600.into(),
+        }
     }
 }

@@ -1,4 +1,4 @@
-use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
+use bevy::prelude::*;
 
 use crate::{
     road::{OnNewRoadComponentRequested, RoadComponent},
@@ -25,11 +25,7 @@ pub fn handle_add_road_component_button_pressed(
 ) {
     for interaction in button_query.iter() {
         if *interaction == Interaction::Pressed {
-            on_request.send(OnNewRoadComponentRequested::new(RoadComponent::new(
-                "New component",
-                Vec2::new(1.0, 0.2),
-                GRAY_600.into(),
-            )));
+            on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
         }
     }
 }
