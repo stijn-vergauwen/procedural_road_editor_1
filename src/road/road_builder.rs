@@ -22,13 +22,15 @@ impl RoadBuilder {
             warn!("build method called on a RoadBuilder that already contains mesh data.");
         }
 
+        let component_count = road_data.components().len();
         let mut width_of_built_sections = 0.0;
 
-        for component in road_data.components() {
+        for (index, component) in road_data.components().iter().enumerate() {
             self.build_road_component(
                 &mut width_of_built_sections,
                 component.size(),
                 road_data.total_width(),
+                calculate_road_component_uv(index, component_count),
             )
         }
     }
@@ -42,8 +44,8 @@ impl RoadBuilder {
         width_of_built_sections: &mut f32,
         component_size: Vec2,
         road_width: f32,
+        uv: Vec2,
     ) {
-        let uv = Vec2::new(0.0, 0.0);
         let x_position = calculate_x_position_of_road_component(
             road_width,
             *width_of_built_sections,
@@ -96,4 +98,9 @@ fn calculate_x_position_of_road_component(
     size: Vec2,
 ) -> f32 {
     -road_width / 2.0 + width_of_built_sections + size.x / 2.0
+}
+
+fn calculate_road_component_uv(index: usize, component_count: usize) -> Vec2 {
+    let step_size = 1.0 / component_count as f32;
+    Vec2::new(step_size * index as f32 + step_size * 0.5, 0.5)
 }

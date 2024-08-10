@@ -67,8 +67,6 @@ fn send_load_requests(
         let text = text_query.get(button_children[0]).unwrap();
         let road_name = text.sections[0].value.clone();
 
-        println!("Send load request for road: {}", road_name.clone());
-
         on_load_request.send(OnLoadRoadRequested::new(road_name));
 
         on_hide_request.send(OnHideModalRequested);

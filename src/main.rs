@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Generate road texture
+        - Generate road texture <- doing
         - Goal: Have a simple "erftoegangsweg" road design
         - Large refactor
             - Fix index mapping of road components after CRUD stuff

@@ -25,7 +25,7 @@ impl TextureBuilder {
         let texture_data = self.colors_to_flat_array();
 
         if self.colors.len() == 0 {
-            println!("WARNING: Color length is 0!");
+            warn!("WARNING: Color length is 0!");
         }
 
         Image::new(
