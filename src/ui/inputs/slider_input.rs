@@ -102,6 +102,7 @@ pub fn spawn_slider_input_with_image(
     slider_input_entity
 }
 
+// TODO: split to "send events" and "update slider", so the event can be sent in the "GetUserInput" set
 fn handle_slider_interaction(
     mut on_changed: EventWriter<OnSliderInputValueChanged>,
     mut slider_query: Query<(
