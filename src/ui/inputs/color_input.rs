@@ -15,7 +15,10 @@ impl Plugin for ColorInputPlugin {
             .add_systems(Startup, spawn_test_thing)
             .add_systems(
                 Update,
-                send_color_input_changed_events.in_set(GameRunningSet::SendEvents),
+                (
+                    send_color_input_changed_events.in_set(GameRunningSet::SendEvents),
+                    update_color_input_textures.in_set(GameRunningSet::UpdateEntities),
+                ),
             );
     }
 }
@@ -48,7 +51,7 @@ impl ColorInputSlider {
 
 /// The different channels of a full color representation.  
 /// For example: red, green, and blue for RGB colors.
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, PartialOrd)]
 enum ColorChannel {
     A,
     B,
@@ -74,43 +77,49 @@ impl OnColorInputValueChanged {
 }
 
 fn spawn_test_thing(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
+    let start_color = Color::srgb(0.4, 0.3, 0.8);
+
     commands
         .spawn(build_centered_container_node())
         .with_children(|container| {
             container
                 .spawn(build_background_section_node())
                 .with_children(|section| {
-                    spawn_color_input(section, &mut images);
+                    spawn_color_input(section, &mut images, start_color);
                 });
         });
 }
 
-pub fn spawn_color_input(builder: &mut ChildBuilder, images: &mut Assets<Image>) -> Entity {
-    let red_image = images.add(TextureBuilder::image_from_colors(vec![
-        LinearRgba::WHITE.into(),
-        LinearRgba::RED.into(),
-    ]));
-    let green_image = images.add(TextureBuilder::image_from_colors(vec![
-        LinearRgba::WHITE.into(),
-        LinearRgba::GREEN.into(),
-    ]));
-    let blue_image = images.add(TextureBuilder::image_from_colors(vec![
-        LinearRgba::WHITE.into(),
-        LinearRgba::BLUE.into(),
-    ]));
-
+pub fn spawn_color_input(
+    builder: &mut ChildBuilder,
+    images: &mut Assets<Image>,
+    start_color: Color,
+) -> Entity {
     let mut color_input = builder.spawn(build_color_input_container_node());
     let color_input_entity = color_input.id();
 
     color_input.with_children(|color_input| {
-        spawn_color_input_slider(color_input, color_input_entity, ColorChannel::A, red_image);
         spawn_color_input_slider(
             color_input,
+            images,
+            color_input_entity,
+            ColorChannel::A,
+            start_color,
+        );
+        spawn_color_input_slider(
+            color_input,
+            images,
             color_input_entity,
             ColorChannel::B,
-            green_image,
+            start_color,
         );
-        spawn_color_input_slider(color_input, color_input_entity, ColorChannel::C, blue_image);
+        spawn_color_input_slider(
+            color_input,
+            images,
+            color_input_entity,
+            ColorChannel::C,
+            start_color,
+        );
     });
 
     color_input_entity
@@ -118,13 +127,17 @@ pub fn spawn_color_input(builder: &mut ChildBuilder, images: &mut Assets<Image>)
 
 fn spawn_color_input_slider(
     builder: &mut ChildBuilder,
+    images: &mut Assets<Image>,
     color_input_entity: Entity,
     color_channel: ColorChannel,
-    image: Handle<Image>,
+    start_color: Color,
 ) -> Entity {
+    let image = images.add(generate_slider_image(start_color, color_channel));
+
     spawn_slider_input_with_image(
         builder,
         ColorInputSlider::new(color_input_entity, color_channel),
+        get_rgba_color_channel(start_color, color_channel),
         image,
     )
 }
@@ -163,37 +176,29 @@ fn send_color_input_changed_events(
 
 fn update_color_input_textures(
     mut on_color_changed: EventReader<OnColorInputValueChanged>,
-    color_input_slider_query: Query<&mut UiImage, With<ColorInputSlider>>,
+    mut images: ResMut<Assets<Image>>,
+    color_input_slider_query: Query<(&UiImage, &ColorInputSlider)>,
 ) {
     for event in on_color_changed.read() {
-        // TODO: wrong entity is being matched, the query should be that of the color input, not it's sliders
-        let Ok(color_input_slider) = color_input_slider_query.get(event.color_input_entity) else {
-            continue;
-        };
+        for (ui_image, slider) in color_input_slider_query.iter().filter(|(_, slider)| {
+            slider.color_input_entity == event.color_input_entity
+                && slider.color_channel != event.color_channel
+        }) {
+            let image = images.get_mut(&ui_image.texture).unwrap();
 
-        // TODO: Left off here: implement this method, update the images of the ui sliders (check the entity event for if the input slider is the correct one?)
-
-        // let color_input_entity = color_input_slider.color_input_entity;
-        // let color_channel = color_input_slider.color_channel;
-
-        // let Ok(mut color_input) = color_input_query.get_mut(color_input_entity) else {
-        //     continue;
-        // };
-
-        // let new_color =
-        //     get_rgba_color_with_channel(color_input.value, color_channel, event.new_value());
-
-        // color_input.value = new_color;
-
-        // on_color_changed.send(OnColorInputValueChanged::new(
-        //     color_input_entity,
-        //     color_channel,
-        //     new_color,
-        // ));
+            *image = generate_slider_image(event.new_color, slider.color_channel);
+        }
     }
 }
 
 // Utility
+
+fn generate_slider_image(color: Color, channel: ColorChannel) -> Image {
+    TextureBuilder::image_from_colors(vec![
+        get_rgba_color_with_channel(color, channel, 0.0),
+        get_rgba_color_with_channel(color, channel, 1.0),
+    ])
+}
 
 fn get_rgba_color_with_channel(color: Color, channel: ColorChannel, new_value: f32) -> Color {
     match channel {
@@ -201,6 +206,15 @@ fn get_rgba_color_with_channel(color: Color, channel: ColorChannel, new_value: f
         ColorChannel::B => color.to_srgba().with_green(new_value).into(),
         ColorChannel::C => color.to_srgba().with_blue(new_value).into(),
         ColorChannel::Alpha => color.to_srgba().with_alpha(new_value).into(),
+    }
+}
+
+fn get_rgba_color_channel(color: Color, channel: ColorChannel) -> f32 {
+    match channel {
+        ColorChannel::A => color.to_srgba().red,
+        ColorChannel::B => color.to_srgba().green,
+        ColorChannel::C => color.to_srgba().blue,
+        ColorChannel::Alpha => color.to_srgba().alpha,
     }
 }
 

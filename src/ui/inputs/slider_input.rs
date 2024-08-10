@@ -61,16 +61,21 @@ impl OnSliderInputValueChanged {
 }
 
 #[allow(unused)]
-pub fn spawn_slider_input(builder: &mut ChildBuilder, root_components: impl Bundle) -> Entity {
+pub fn spawn_slider_input(
+    builder: &mut ChildBuilder,
+    root_components: impl Bundle,
+    start_value: f32,
+) -> Entity {
     let mut slider_input = builder.spawn(build_slider_input_node(
         root_components,
+        start_value,
         build_button_bundle(Val::Px(200.0), Val::Px(12.0)),
     ));
     let slider_input_entity = slider_input.id();
 
     slider_input.with_children(|color_input| {
         color_input
-            .spawn(build_slider_handle_node(slider_input_entity))
+            .spawn(build_slider_handle_node(slider_input_entity, start_value))
             .with_children(|slider_handle| {
                 slider_handle.spawn(build_slider_handle_bar_node(6.0));
             });
@@ -83,17 +88,19 @@ pub fn spawn_slider_input(builder: &mut ChildBuilder, root_components: impl Bund
 pub fn spawn_slider_input_with_image(
     builder: &mut ChildBuilder,
     root_components: impl Bundle,
+    start_value: f32,
     image: Handle<Image>,
 ) -> Entity {
     let mut slider_input = builder.spawn(build_slider_input_node(
         root_components,
+        start_value,
         build_button_bundle_with_image(Val::Px(200.0), Val::Px(12.0), image),
     ));
     let slider_input_entity = slider_input.id();
 
     slider_input.with_children(|color_input| {
         color_input
-            .spawn(build_slider_handle_node(slider_input_entity))
+            .spawn(build_slider_handle_node(slider_input_entity, start_value))
             .with_children(|slider_handle| {
                 slider_handle.spawn(build_slider_handle_bar_node(6.0));
             });
@@ -143,11 +150,11 @@ fn handle_slider_interaction(
 
 fn update_slider_input(slider_input: &mut SliderInput, handle_style: &mut Style, new_value: f32) {
     slider_input.value = new_value;
-    handle_style.margin = calculate_handle_margin(&slider_input);
+    handle_style.margin = calculate_handle_margin(slider_input.value());
 }
 
-fn calculate_handle_margin(slider_input: &SliderInput) -> UiRect {
-    UiRect::left(Val::Percent(slider_input.value_as_percentage()))
+fn calculate_handle_margin(slider_value: f32) -> UiRect {
+    UiRect::left(Val::Percent(slider_value * 100.0))
 }
 
 fn calculate_slider_value(relative_cursor_position: &RelativeCursorPosition) -> Option<f32> {
@@ -156,16 +163,20 @@ fn calculate_slider_value(relative_cursor_position: &RelativeCursorPosition) -> 
 
 // Node builders
 
-fn build_slider_input_node(components: impl Bundle, button_bundle: ButtonBundle) -> impl Bundle {
+fn build_slider_input_node(
+    components: impl Bundle,
+    start_value: f32,
+    button_bundle: ButtonBundle,
+) -> impl Bundle {
     (
         components,
-        SliderInput::new(0.0),
+        SliderInput::new(start_value),
         RelativeCursorPosition::default(),
         button_bundle,
     )
 }
 
-fn build_slider_handle_node(slider_input_entity: Entity) -> impl Bundle {
+fn build_slider_handle_node(slider_input_entity: Entity, start_value: f32) -> impl Bundle {
     (
         SliderHandle {
             slider_input_entity,
@@ -173,6 +184,7 @@ fn build_slider_handle_node(slider_input_entity: Entity) -> impl Bundle {
         NodeBundle {
             style: Style {
                 height: Val::Percent(100.0),
+                margin: calculate_handle_margin(start_value),
                 ..default()
             },
             ..default()
