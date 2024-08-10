@@ -16,6 +16,11 @@ impl TextureBuilder {
         Self { colors }
     }
 
+    pub fn image_from_colors(colors: Vec<Color>) -> Image {
+        let builder = Self::new(colors);
+        builder.build_texture_image()
+    }
+
     pub fn build_texture_image(&self) -> Image {
         let texture_data = self.colors_to_flat_array();
 

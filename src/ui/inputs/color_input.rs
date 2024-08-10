@@ -1,10 +1,10 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use super::slider_input::spawn_slider_input;
+use crate::utility::texture_builder::TextureBuilder;
 
-// TODO: slider with texture as background <- doing
-// TODO: generate color texture
-// TODO: sliders for rgb
+use super::slider_input::spawn_slider_input_with_image;
+
+// TODO: sliders for rgb <- doing
 // TODO: update textures when color changes
 // TODO: display current color
 
@@ -19,24 +19,33 @@ impl Plugin for ColorInputPlugin {
 #[derive(Component)]
 struct ColorInput;
 
-fn spawn_test_thing(mut commands: Commands) {
+fn spawn_test_thing(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     commands
         .spawn(build_centered_container_node())
         .with_children(|container| {
             container
                 .spawn(build_background_section_node())
                 .with_children(|section| {
-                    spawn_color_input(section);
+                    spawn_color_input(section, &mut images);
                 });
         });
 }
 
-pub fn spawn_color_input(builder: &mut ChildBuilder) -> Entity {
+pub fn spawn_color_input(builder: &mut ChildBuilder, images: &mut Assets<Image>) -> Entity {
+    // Texture test
+    let linear_colors = vec![LinearRgba::RED.into(), LinearRgba::BLUE.into()];
+    let s_colors = vec![Color::srgb(0.0, 0.5, 0.5), Color::srgb(1.0, 0.5, 0.5)];
+
+    let linear_image = images.add(TextureBuilder::image_from_colors(linear_colors));
+    let s_image = images.add(TextureBuilder::image_from_colors(s_colors));
+    // End of texture test
+
     let mut color_input = builder.spawn(build_color_input_container_node());
     let color_input_entity = color_input.id();
 
     color_input.with_children(|color_input| {
-        spawn_slider_input(color_input, ());
+        spawn_slider_input_with_image(color_input, (), linear_image);
+        spawn_slider_input_with_image(color_input, (), s_image);
     });
 
     color_input_entity

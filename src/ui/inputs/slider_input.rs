@@ -60,11 +60,34 @@ impl OnSliderInputValueChanged {
     }
 }
 
+#[allow(unused)]
 pub fn spawn_slider_input(builder: &mut ChildBuilder, root_components: impl Bundle) -> Entity {
     let mut slider_input = builder.spawn(build_slider_input_node(
-        Val::Px(200.0),
-        Val::Px(12.0),
         root_components,
+        build_button_bundle(Val::Px(200.0), Val::Px(12.0)),
+    ));
+    let slider_input_entity = slider_input.id();
+
+    slider_input.with_children(|color_input| {
+        color_input
+            .spawn(build_slider_handle_node(slider_input_entity))
+            .with_children(|slider_handle| {
+                slider_handle.spawn(build_slider_handle_bar_node(6.0));
+            });
+    });
+
+    slider_input_entity
+}
+
+#[allow(unused)]
+pub fn spawn_slider_input_with_image(
+    builder: &mut ChildBuilder,
+    root_components: impl Bundle,
+    image: Handle<Image>,
+) -> Entity {
+    let mut slider_input = builder.spawn(build_slider_input_node(
+        root_components,
+        build_button_bundle_with_image(Val::Px(200.0), Val::Px(12.0), image),
     ));
     let slider_input_entity = slider_input.id();
 
@@ -132,20 +155,12 @@ fn calculate_slider_value(relative_cursor_position: &RelativeCursorPosition) -> 
 
 // Node builders
 
-fn build_slider_input_node(width: Val, height: Val, components: impl Bundle) -> impl Bundle {
+fn build_slider_input_node(components: impl Bundle, button_bundle: ButtonBundle) -> impl Bundle {
     (
         components,
         SliderInput::new(0.0),
         RelativeCursorPosition::default(),
-        ButtonBundle {
-            style: Style {
-                width,
-                height,
-                ..default()
-            },
-            background_color: NEUTRAL_500.into(),
-            ..default()
-        },
+        button_bundle,
     )
 }
 
@@ -178,4 +193,31 @@ fn build_slider_handle_bar_node(width: f32) -> impl Bundle {
         background_color: NEUTRAL_100.into(),
         ..default()
     },)
+}
+
+fn build_button_bundle(width: Val, height: Val) -> ButtonBundle {
+    ButtonBundle {
+        style: Style {
+            width,
+            height,
+            ..default()
+        },
+        background_color: NEUTRAL_500.into(),
+        ..default()
+    }
+}
+
+fn build_button_bundle_with_image(width: Val, height: Val, image: Handle<Image>) -> ButtonBundle {
+    ButtonBundle {
+        style: Style {
+            width,
+            height,
+            ..default()
+        },
+        image: UiImage {
+            texture: image,
+            ..default()
+        },
+        ..default()
+    }
 }
