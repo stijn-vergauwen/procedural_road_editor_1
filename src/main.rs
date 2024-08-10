@@ -50,7 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Color config for road components <- doing
         - Generate road texture
         - Goal: Have a simple "erftoegangsweg" road design
         - Large refactor
@@ -62,7 +61,7 @@ use world::WorldPlugin;
             - Make UI utility modules
                 - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
             - Rework layout & colors etc, more web-devvy
-            
+
         - Lane lines support
         - Goal: Have a multilane highway road design with grass median
         - General road markings support

@@ -157,7 +157,7 @@ fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
             height: Val::Px(road_component.size().y * 50.0),
             ..default()
         },
-        background_color: BackgroundColor(GRAY_600.into()),
+        background_color: road_component.color().into(),
         ..default()
     }
 }

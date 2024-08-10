@@ -5,13 +5,15 @@ use serde::{Deserialize, Serialize};
 pub struct RoadComponent {
     name: String,
     size: Vec2,
+    color: Color,
 }
 
 impl RoadComponent {
-    pub fn new(name: impl Into<String>, size: Vec2) -> Self {
+    pub fn new(name: impl Into<String>, size: Vec2, color: Color) -> Self {
         Self {
             name: name.into(),
             size,
+            color,
         }
     }
 
@@ -27,11 +29,21 @@ impl RoadComponent {
         self
     }
 
+    pub fn with_color(&mut self, color: Color) -> &mut Self {
+        self.color = color;
+
+        self
+    }
+
     pub fn name(&self) -> &str {
         &self.name
     }
 
     pub fn size(&self) -> Vec2 {
         self.size
+    }
+
+    pub fn color(&self) -> Color {
+        self.color
     }
 }

@@ -3,7 +3,7 @@ pub mod road_component_change;
 pub mod road_component_deletion;
 pub mod road_component_reorder;
 
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::*, prelude::*};
 use new_road_component::NewRoadComponentPlugin;
 use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
@@ -31,11 +31,11 @@ fn setup_example_road(
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     let road_components = vec![
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3)),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1)),
-        RoadComponent::new("Median", Vec2::new(0.4, 0.3)),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1)),
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3)),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
+        RoadComponent::new("Median", Vec2::new(0.4, 0.3), GRAY_600.into()),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
     ];
 
     let road = RoadData::new(String::from("Example road"), road_components);

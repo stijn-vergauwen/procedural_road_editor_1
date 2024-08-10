@@ -4,22 +4,18 @@ use crate::{ui::build_text_node, utility::texture_builder::TextureBuilder, GameR
 
 use super::slider_input::{spawn_slider_input_with_image, OnSliderInputValueChanged};
 
-// TODO: display current color
-
 pub struct ColorInputPlugin;
 
 impl Plugin for ColorInputPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnColorInputValueChanged>()
-            .add_systems(Startup, spawn_test_thing)
-            .add_systems(
-                Update,
-                (
-                    send_color_input_changed_events.in_set(GameRunningSet::SendEvents),
-                    (update_color_input_textures, update_color_input_display)
-                        .in_set(GameRunningSet::UpdateEntities),
-                ),
-            );
+        app.add_event::<OnColorInputValueChanged>().add_systems(
+            Update,
+            (
+                send_color_input_changed_events.in_set(GameRunningSet::SendEvents),
+                (update_color_input_textures, update_color_input_display)
+                    .in_set(GameRunningSet::UpdateEntities),
+            ),
+        );
     }
 }
 
@@ -56,7 +52,6 @@ enum ColorChannel {
     A,
     B,
     C,
-    Alpha,
 }
 
 #[derive(Component)]
@@ -71,7 +66,7 @@ impl ColorInputDisplay {
 }
 
 #[derive(Event)]
-struct OnColorInputValueChanged {
+pub struct OnColorInputValueChanged {
     color_input_entity: Entity,
     color_channel: ColorChannel,
     new_color: Color,
@@ -85,20 +80,14 @@ impl OnColorInputValueChanged {
             new_color,
         }
     }
-}
 
-fn spawn_test_thing(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
-    let start_color = Color::srgb(0.4, 0.3, 0.8);
+    pub fn color_input_entity(&self) -> Entity {
+        self.color_input_entity
+    }
 
-    commands
-        .spawn(build_centered_container_node())
-        .with_children(|container| {
-            container
-                .spawn(build_background_section_node())
-                .with_children(|section| {
-                    spawn_color_input(section, &mut images, start_color, Some("Color"));
-                });
-        });
+    pub fn new_color(&self) -> Color {
+        self.new_color
+    }
 }
 
 pub fn spawn_color_input(
@@ -107,7 +96,7 @@ pub fn spawn_color_input(
     start_color: Color,
     label: Option<impl Into<String>>,
 ) -> Entity {
-    let mut color_input = builder.spawn(build_color_input_container_node());
+    let mut color_input = builder.spawn(build_color_input_container_node(start_color));
     let color_input_entity = color_input.id();
 
     color_input.with_children(|color_input| {
@@ -245,7 +234,6 @@ fn get_rgba_color_with_channel(color: Color, channel: ColorChannel, new_value: f
         ColorChannel::A => color.to_srgba().with_red(new_value).into(),
         ColorChannel::B => color.to_srgba().with_green(new_value).into(),
         ColorChannel::C => color.to_srgba().with_blue(new_value).into(),
-        ColorChannel::Alpha => color.to_srgba().with_alpha(new_value).into(),
     }
 }
 
@@ -254,15 +242,14 @@ fn get_rgba_color_channel(color: Color, channel: ColorChannel) -> f32 {
         ColorChannel::A => color.to_srgba().red,
         ColorChannel::B => color.to_srgba().green,
         ColorChannel::C => color.to_srgba().blue,
-        ColorChannel::Alpha => color.to_srgba().alpha,
     }
 }
 
 // Node builders
 
-fn build_color_input_container_node() -> impl Bundle {
+fn build_color_input_container_node(start_color: Color) -> impl Bundle {
     (
-        ColorInput::new(Color::WHITE),
+        ColorInput::new(start_color),
         NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Column,
@@ -275,30 +262,6 @@ fn build_color_input_container_node() -> impl Bundle {
             ..default()
         },
     )
-}
-
-fn build_centered_container_node() -> impl Bundle {
-    NodeBundle {
-        style: Style {
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        ..default()
-    }
-}
-
-fn build_background_section_node() -> impl Bundle {
-    NodeBundle {
-        style: Style {
-            padding: UiRect::all(Val::Px(20.0)),
-            ..default()
-        },
-        background_color: NEUTRAL_700.into(),
-        ..default()
-    }
 }
 
 fn build_color_display_node(color_input_entity: Entity, start_color: Color) -> impl Bundle {

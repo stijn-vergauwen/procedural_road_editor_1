@@ -124,11 +124,14 @@ fn handle_slider_interaction(
         .iter_mut()
         .filter(|slider| *slider.0 == Interaction::Pressed)
     {
+        println!("Slider input pressed!");
+
         let Some(new_value) = calculate_slider_value(relative_cursor_position) else {
             continue;
         };
 
         if new_value == slider_input.value {
+            println!("Slider input value is same!");
             continue;
         }
 

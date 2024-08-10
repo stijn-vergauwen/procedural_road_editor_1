@@ -6,6 +6,7 @@ use crate::{
         buttons::{spawn_button_node, DeleteButton, OnDeleteButtonPressed},
         get_selected_road_component_index,
         inputs::{
+            color_input::{spawn_color_input, OnColorInputValueChanged},
             number_input::{spawn_number_input_node, OnNumberInputValueChanged},
             text_input::{spawn_text_input_node, OnTextInputValueChanged},
         },
@@ -30,6 +31,7 @@ impl Plugin for RoadComponentConfigPlugin {
                 (
                     handle_number_input_changed_events,
                     handle_text_input_changed_events,
+                    handle_color_input_changed_events,
                     handle_delete_button_pressed_events,
                 )
                     .in_set(GameRunningSet::SendCommands),
@@ -49,6 +51,7 @@ pub struct RoadComponentConfig {
     width_input_entity: Entity,
     height_input_entity: Entity,
     title_input_entity: Entity,
+    color_input_entity: Entity,
 }
 
 impl RoadComponentConfig {
@@ -56,11 +59,13 @@ impl RoadComponentConfig {
         width_input_entity: Entity,
         height_input_entity: Entity,
         title_input_entity: Entity,
+        color_input_entity: Entity,
     ) -> Self {
         Self {
             width_input_entity,
             height_input_entity,
             title_input_entity,
+            color_input_entity,
         }
     }
 
@@ -77,11 +82,16 @@ impl RoadComponentConfig {
     fn entity_matches_title_input(&self, entity: Entity) -> bool {
         self.title_input_entity == entity
     }
+
+    fn entity_matches_color_input(&self, entity: Entity) -> bool {
+        self.color_input_entity == entity
+    }
 }
 
 fn generate_config_section_for_selected_component(
     mut on_selected: EventReader<OnRoadComponentSelected>,
     mut commands: Commands,
+    mut images: ResMut<Assets<Image>>,
     sidebar_query: Query<Entity, With<Sidebar>>,
 ) {
     for event in on_selected.read() {
@@ -97,6 +107,7 @@ fn generate_config_section_for_selected_component(
                 let mut width_input_entity = None;
                 let mut height_input_entity = None;
                 let mut title_input_entity = None;
+                let mut color_input_entity = None;
 
                 component_config.with_children(|container| {
                     title_input_entity =
@@ -116,6 +127,13 @@ fn generate_config_section_for_selected_component(
                         0.0..10.0,
                     ));
 
+                    color_input_entity = Some(spawn_color_input(
+                        container,
+                        &mut images,
+                        component_data.color(),
+                        Some("Color"),
+                    ));
+
                     spawn_button_node(container, DeleteButton, "Delete", 24.0);
                 });
 
@@ -123,6 +141,7 @@ fn generate_config_section_for_selected_component(
                     width_input_entity.unwrap(),
                     height_input_entity.unwrap(),
                     title_input_entity.unwrap(),
+                    color_input_entity.unwrap(),
                 ));
             });
     }
@@ -211,6 +230,42 @@ fn handle_text_input_changed_events(
 
         if component_config.entity_matches_title_input(event_entity) {
             new_component_data.with_name(event.text().into());
+        }
+
+        on_change_request.send(OnRoadComponentChangeRequested::new(
+            selected_component_index,
+            current_component_data,
+            new_component_data,
+        ));
+    }
+}
+
+fn handle_color_input_changed_events(
+    mut on_input_changed: EventReader<OnColorInputValueChanged>,
+    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
+    component_config_query: Query<&RoadComponentConfig>,
+    component_item_query: Query<(&RoadComponentItem, &ListItem)>,
+    active_road: Res<ActiveRoad>,
+) {
+    for event in on_input_changed.read() {
+        let event_entity = event.color_input_entity();
+
+        let Ok(component_config) = component_config_query.get_single() else {
+            continue;
+        };
+
+        let Some(selected_component_index) =
+            get_selected_road_component_index(&component_item_query)
+        else {
+            continue;
+        };
+
+        let current_component_data =
+            active_road.road_data().components()[selected_component_index].clone();
+        let mut new_component_data = current_component_data.clone();
+
+        if component_config.entity_matches_color_input(event_entity) {
+            new_component_data.with_color(event.new_color());
         }
 
         on_change_request.send(OnRoadComponentChangeRequested::new(
