@@ -68,6 +68,7 @@ impl NumberInputButton {
 
 #[derive(Component)]
 pub struct NumberInputDisplay {
+    // TODO: replace with iter_ancestors
     /// The [`NumberInput`] this entity belongs to.
     parent_entity: Entity,
 }

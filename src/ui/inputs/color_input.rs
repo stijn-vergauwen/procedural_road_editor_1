@@ -32,6 +32,7 @@ impl ColorInput {
 
 #[derive(Component)]
 struct ColorInputSlider {
+// TODO: replace with iter_ancestors
     color_input_entity: Entity,
     color_channel: ColorChannel,
 }
@@ -56,6 +57,7 @@ enum ColorChannel {
 
 #[derive(Component)]
 struct ColorInputDisplay {
+// TODO: replace with iter_ancestors
     color_input_entity: Entity,
 }
 

@@ -5,6 +5,7 @@ pub struct List;
 
 #[derive(Component, Clone, Copy)]
 pub struct ListItem {
+    // TODO: replace with iter_ancestors
     /// Reference to the List entity this item belongs to.
     pub list_entity: Entity,
     /// This item's order in the list.

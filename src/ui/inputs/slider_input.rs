@@ -34,6 +34,7 @@ impl SliderInput {
 
 #[derive(Component)]
 struct SliderHandle {
+    // TODO: replace with iter_ancestors
     slider_input_entity: Entity,
 }
 

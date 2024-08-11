@@ -108,6 +108,7 @@ impl TextInput {
 
 #[derive(Component)]
 pub struct TextDisplay {
+    // TODO: replace with iter_ancestors
     input_entity: Entity,
 }
 
