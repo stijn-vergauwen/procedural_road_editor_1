@@ -52,6 +52,8 @@ impl OnRoadComponentSelected {
     }
 }
 
+// TODO: add on deselected event
+
 #[derive(Event, Clone)]
 pub struct OnRoadComponentDeselected;
 

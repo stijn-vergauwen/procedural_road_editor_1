@@ -9,7 +9,8 @@ use crate::{
     road::{
         active_road::{
             new_road_component::OnRoadComponentAdded,
-            road_component_change::OnRoadComponentChanged, OnActiveRoadSet,
+            road_component_change::OnRoadComponentChanged,
+            road_component_deletion::OnRoadComponentDeleted, OnActiveRoadSet,
         },
         RoadComponent,
     },
@@ -34,7 +35,8 @@ impl Plugin for ToolbarComponentsPlugin {
                 (
                     (handle_road_component_added, handle_road_component_changed)
                         .in_set(GameRunningSet::UpdateEntities),
-                    handle_active_road_set.in_set(GameRunningSet::DespawnEntities),
+                    (handle_active_road_set, handle_road_component_deleted)
+                        .in_set(GameRunningSet::DespawnEntities),
                 ),
             );
     }
@@ -172,7 +174,25 @@ fn handle_road_component_changed(
 
 // TODO: read reorder events
 
-// TODO: read delete events
+fn handle_road_component_deleted(
+    mut on_deleted: EventReader<OnRoadComponentDeleted>,
+    mut commands: Commands,
+    component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
+) {
+    for event in on_deleted.read() {
+        // TODO: get component item entity from the event
+        let Some((component_item_entity, _)) = component_item_query
+            .iter()
+            .find(|(_, list_item)| list_item.index() == event.component_index())
+        else {
+            continue;
+        };
+
+        let mut component_item_commands = commands.entity(component_item_entity);
+        component_item_commands.remove_parent();
+        component_item_commands.despawn_recursive();
+    }
+}
 
 // Utility
 

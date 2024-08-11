@@ -36,6 +36,11 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
+// TODO: add "RoadComponentConfigInput" enum to identify each input
+// TODO: replace all entity references with this identifier enum
+
+// TODO: handle on component deselected events, hide config
+
 // TODO: store the component index of the selected road component in this struct
 // TODO: store the entity of the component item that got selected
 // TODO: pass component item entity to the OnRequested events, these can then be used in 'components' module
@@ -81,9 +86,6 @@ impl RoadComponentConfig {
         self.color_input_entity == entity
     }
 }
-
-// TODO: add "RoadComponentConfigInput" enum to identify each input
-// TODO: replace all entity references with this identifier enum
 
 fn generate_config_section_for_selected_component(
     mut on_selected: EventReader<OnRoadComponentSelected>,
