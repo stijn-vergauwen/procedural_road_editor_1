@@ -20,20 +20,16 @@ impl Plugin for RoadComponentChangePlugin {
 #[derive(Event)]
 pub struct OnRoadComponentChangeRequested {
     component_index: usize,
-    #[allow(unused)]
-    current_data: RoadComponent,
     requested_data: RoadComponent,
 }
 
 impl OnRoadComponentChangeRequested {
     pub fn new(
         component_index: usize,
-        current_data: RoadComponent,
         requested_data: RoadComponent,
     ) -> Self {
         Self {
             component_index,
-            current_data,
             requested_data,
         }
     }

@@ -144,12 +144,13 @@ fn update_number_display(
 
 pub fn spawn_number_input_node(
     builder: &mut ChildBuilder,
+    root_components: impl Bundle,
     label: impl Into<String>,
     start_value: f32,
     value_range: Range<f32>,
 ) -> Entity {
     let mut number_input =
-        builder.spawn(build_number_input_container_node(start_value, value_range));
+        builder.spawn(build_number_input_container_node(root_components, start_value, value_range));
     let number_input_entity = number_input.id();
 
     number_input.with_children(|number_input| {
@@ -195,8 +196,9 @@ pub fn spawn_number_input_node(
     number_input_entity
 }
 
-fn build_number_input_container_node(start_value: f32, value_range: Range<f32>) -> impl Bundle {
+fn build_number_input_container_node(root_components: impl Bundle, start_value: f32, value_range: Range<f32>) -> impl Bundle {
     (
+        root_components,
         NumberInput::new(start_value, value_range),
         NodeBundle {
             style: Style {

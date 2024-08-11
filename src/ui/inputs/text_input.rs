@@ -174,11 +174,11 @@ impl OnTextInputValueChanged {
 
 pub fn spawn_text_input_node(
     builder: &mut ChildBuilder,
-    extra_input_components: impl Bundle,
+    root_components: impl Bundle,
     text: impl Into<String>,
 ) -> Entity {
     let text = text.into();
-    let mut text_input = builder.spawn(build_text_input_node(extra_input_components, text.clone()));
+    let mut text_input = builder.spawn(build_text_input_node(root_components, text.clone()));
     let text_input_entity = text_input.id();
 
     text_input.with_children(|text_input| {
@@ -305,9 +305,9 @@ fn update_input_border_color(
     }
 }
 
-fn build_text_input_node(extra_components: impl Bundle, text: String) -> impl Bundle {
+fn build_text_input_node(root_components: impl Bundle, text: String) -> impl Bundle {
     (
-        extra_components,
+        root_components,
         TextInput::new(text),
         NodeBundle {
             style: Style {

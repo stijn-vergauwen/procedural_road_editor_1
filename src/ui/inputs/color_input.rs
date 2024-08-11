@@ -20,7 +20,7 @@ impl Plugin for ColorInputPlugin {
 }
 
 #[derive(Component)]
-struct ColorInput {
+pub struct ColorInput {
     value: Color,
 }
 
@@ -32,7 +32,7 @@ impl ColorInput {
 
 #[derive(Component)]
 struct ColorInputSlider {
-// TODO: replace with iter_ancestors
+    // TODO: replace with iter_ancestors
     color_input_entity: Entity,
     color_channel: ColorChannel,
 }
@@ -57,7 +57,7 @@ enum ColorChannel {
 
 #[derive(Component)]
 struct ColorInputDisplay {
-// TODO: replace with iter_ancestors
+    // TODO: replace with iter_ancestors
     color_input_entity: Entity,
 }
 
@@ -94,11 +94,15 @@ impl OnColorInputValueChanged {
 
 pub fn spawn_color_input(
     builder: &mut ChildBuilder,
+    root_components: impl Bundle,
     images: &mut Assets<Image>,
     start_color: Color,
     label: Option<impl Into<String>>,
 ) -> Entity {
-    let mut color_input = builder.spawn(build_color_input_container_node(start_color));
+    let mut color_input = builder.spawn(build_color_input_container_node(
+        root_components,
+        start_color,
+    ));
     let color_input_entity = color_input.id();
 
     color_input.with_children(|color_input| {
@@ -249,8 +253,12 @@ fn get_rgba_color_channel(color: Color, channel: ColorChannel) -> f32 {
 
 // Node builders
 
-fn build_color_input_container_node(start_color: Color) -> impl Bundle {
+fn build_color_input_container_node(
+    root_components: impl Bundle,
+    start_color: Color,
+) -> impl Bundle {
     (
+        root_components,
         ColorInput::new(start_color),
         NodeBundle {
             style: Style {
