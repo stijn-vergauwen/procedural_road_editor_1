@@ -21,6 +21,7 @@ impl Plugin for ActiveRoadPlugin {
             RoadComponentDeletionPlugin,
             NewRoadComponentPlugin,
         ))
+        .add_event::<OnActiveRoadSet>()
         .add_event::<OnActiveRoadModified>()
         .add_systems(Startup, setup_example_road);
     }
@@ -28,7 +29,7 @@ impl Plugin for ActiveRoadPlugin {
 
 fn setup_example_road(
     mut commands: Commands,
-    mut on_road_modified: EventWriter<OnActiveRoadModified>,
+    mut on_road_set: EventWriter<OnActiveRoadSet>,
 ) {
     let road_components = vec![
         RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
@@ -47,7 +48,7 @@ fn setup_example_road(
 
     commands.insert_resource(active_road);
 
-    on_road_modified.send(OnActiveRoadModified::new(road, None));
+    on_road_set.send(OnActiveRoadSet::new(road));
 }
 
 #[derive(Resource)]
@@ -62,7 +63,7 @@ impl ActiveRoad {
     }
 
     pub fn set_road_data(&mut self, road: RoadData) {
-        self.road_data = road.clone();
+        self.road_data = road;
     }
 
     pub fn add_road_component(&mut self, component_data: RoadComponent) -> usize {
@@ -97,10 +98,7 @@ impl ActiveRoad {
         &self,
         on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
-        on_road_modified.send(OnActiveRoadModified::new(
-            self.road_data.clone(),
-            self.road_preview_entity,
-        ));
+        on_road_modified.send(OnActiveRoadModified::new(self.road_data.clone()));
     }
 
     pub fn component_count(&self) -> usize {
@@ -108,25 +106,32 @@ impl ActiveRoad {
     }
 }
 
-#[derive(Event, Clone)]
-pub struct OnActiveRoadModified {
+#[derive(Event)]
+pub struct OnActiveRoadSet {
     road_data: RoadData,
-    road_preview_entity: Option<Entity>,
 }
 
-impl OnActiveRoadModified {
-    pub fn new(road_data: RoadData, road_preview_entity: Option<Entity>) -> Self {
-        Self {
-            road_data,
-            road_preview_entity,
-        }
+impl OnActiveRoadSet {
+    pub fn new(road_data: RoadData) -> Self {
+        Self { road_data }
     }
 
     pub fn road_data(&self) -> &RoadData {
         &self.road_data
     }
+}
 
-    pub fn road_preview_entity(&self) -> Option<Entity> {
-        self.road_preview_entity
+#[derive(Event, Clone)]
+pub struct OnActiveRoadModified {
+    road_data: RoadData,
+}
+
+impl OnActiveRoadModified {
+    pub fn new(road_data: RoadData) -> Self {
+        Self { road_data }
+    }
+
+    pub fn road_data(&self) -> &RoadData {
+        &self.road_data
     }
 }

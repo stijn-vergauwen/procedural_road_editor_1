@@ -36,7 +36,9 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
-// TODO: store the component data of the selected road component in this struct
+// TODO: store the component index of the selected road component in this struct
+// TODO: store the entity of the component item that got selected
+// TODO: pass component item entity to the OnRequested events, these can then be used in 'components' module
 #[derive(Component)]
 pub struct RoadComponentConfig {
     // TODO: remove need for these entity fields

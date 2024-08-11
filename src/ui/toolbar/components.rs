@@ -7,17 +7,22 @@ use selected_road_component::{OnRoadComponentSelected, SelectedRoadComponentPlug
 
 use crate::{
     road::{
-        active_road::{new_road_component::OnRoadComponentAdded, OnActiveRoadModified},
+        active_road::{
+            new_road_component::OnRoadComponentAdded,
+            road_component_change::OnRoadComponentChanged, OnActiveRoadSet,
+        },
         RoadComponent,
     },
     ui::{
         buttons::{spawn_reorder_button, ReorderDirection},
-        get_selected_road_component_index, ListItem,
+        ListItem,
     },
     GameRunningSet,
 };
 
 use super::RoadComponentsList;
+
+const COMPONENT_DISPLAY_SCALE: f32 = 50.0;
 
 pub struct ToolbarComponentsPlugin;
 
@@ -27,8 +32,9 @@ impl Plugin for ToolbarComponentsPlugin {
             .add_systems(
                 Update,
                 (
-                    handle_road_component_added.in_set(GameRunningSet::UpdateEntities),
-                    // regenerate_road_components.in_set(GameRunningSet::DespawnEntities),
+                    (handle_road_component_added, handle_road_component_changed)
+                        .in_set(GameRunningSet::UpdateEntities),
+                    handle_active_road_set.in_set(GameRunningSet::DespawnEntities),
                 ),
             );
     }
@@ -49,7 +55,38 @@ impl RoadComponentItem {
     }
 }
 
-// -- Start of new systems code --
+#[derive(Component)]
+struct RoadComponentName;
+
+#[derive(Component)]
+struct RoadComponentDisplay;
+
+fn handle_active_road_set(
+    mut on_road_set: EventReader<OnActiveRoadSet>,
+    mut commands: Commands,
+    components_list_query: Query<Entity, With<RoadComponentsList>>,
+) {
+    for event in on_road_set.read() {
+        let components_list_entity = components_list_query.single();
+        let road_components = event.road_data().components();
+        let component_count = road_components.len();
+
+        commands
+            .entity(components_list_entity)
+            .despawn_descendants()
+            .with_children(|components_list| {
+                for (index, road_component) in road_components.iter().enumerate() {
+                    spawn_road_component(
+                        components_list,
+                        index,
+                        components_list_entity,
+                        road_component,
+                        component_count,
+                    );
+                }
+            });
+    }
+}
 
 fn handle_road_component_added(
     mut on_added: EventReader<OnRoadComponentAdded>,
@@ -60,7 +97,7 @@ fn handle_road_component_added(
     for event in on_added.read() {
         let components_list_entity = components_list_query.single();
 
-        // TODO: remove this entity
+        // TODO: refactor out this entity
         let mut component_item_entity = None;
 
         commands
@@ -75,6 +112,7 @@ fn handle_road_component_added(
                 ));
             });
 
+        // TODO: refactor out this if let
         if let Some(component_item_entity) = component_item_entity {
             on_component_selected.send(OnRoadComponentSelected::new(
                 event.component_data().clone(),
@@ -84,55 +122,59 @@ fn handle_road_component_added(
     }
 }
 
-// -- End of new systems code --
-
-// -- Start of old systems code --
-
-#[allow(unused)]
-fn regenerate_road_components(
-    mut on_road_modified: EventReader<OnActiveRoadModified>,
-    mut on_component_selected: EventWriter<OnRoadComponentSelected>,
-    mut commands: Commands,
-    components_list_query: Query<Entity, With<RoadComponentsList>>,
-    component_item_query: Query<(&RoadComponentItem, &ListItem)>,
+fn handle_road_component_changed(
+    mut on_changed: EventReader<OnRoadComponentChanged>,
+    component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
+    mut component_display_query: Query<
+        (Entity, &mut Style, &mut BackgroundColor),
+        With<RoadComponentDisplay>,
+    >,
+    mut component_name_query: Query<(Entity, &mut Text), With<RoadComponentName>>,
+    parent_query: Query<&Parent>,
 ) {
-    for event in on_road_modified.read() {
-        let selected_component_index = get_selected_road_component_index(&component_item_query);
-        let mut selected_component = None;
+    for event in on_changed.read() {
+        // TODO: get component item entity from the event
+        let Some((component_item_entity, _)) = component_item_query
+            .iter()
+            .find(|(_, list_item)| list_item.index() == event.component_index())
+        else {
+            continue;
+        };
 
-        let components_list_entity = components_list_query.single();
-        let road_components = event.road_data().components();
-        let component_count = road_components.len();
+        let road_component = event.component_data();
 
-        commands
-            .entity(components_list_entity)
-            .despawn_descendants()
-            .with_children(|components_list| {
-                for (index, road_component) in road_components.iter().enumerate() {
-                    let component_item_entity = spawn_road_component(
-                        components_list,
-                        index,
-                        components_list_entity,
-                        road_component,
-                        component_count,
-                    );
+        if let Some((_, mut style, mut background_color)) =
+            component_display_query
+                .iter_mut()
+                .find(|(display_entity, _, _)| {
+                    // TODO: split this parent query search to a utility function (will be reused a LOT :D)
+                    parent_query
+                        .iter_ancestors(*display_entity)
+                        .find(|ancestor| *ancestor == component_item_entity)
+                        .is_some()
+                })
+        {
+            *style = build_component_display_style(road_component);
+            *background_color = road_component.color().into();
+        }
 
-                    if Some(index) == selected_component_index {
-                        selected_component = Some((road_component.clone(), component_item_entity));
-                    }
-                }
-            });
-
-        // Re-select road component because entities got cleared
-        // TODO: remove the need for this workaround
-        if let Some((road_component, component_item_entity)) = selected_component {
-            on_component_selected.send(OnRoadComponentSelected::new(
-                road_component,
-                component_item_entity,
-            ));
+        if let Some((_, mut text)) = component_name_query.iter_mut().find(|(display_entity, _)| {
+            // TODO: split this parent query search to a utility function (will be reused a LOT :D)
+            parent_query
+                .iter_ancestors(*display_entity)
+                .find(|ancestor| *ancestor == component_item_entity)
+                .is_some()
+        }) {
+            text.sections[0].value = road_component.name().to_string();
         }
     }
 }
+
+// TODO: read reorder events
+
+// TODO: read delete events
+
+// Utility
 
 fn spawn_road_component(
     components_list: &mut ChildBuilder,
@@ -177,10 +219,6 @@ fn spawn_road_component(
     container_entity
 }
 
-// -- End of old systems code --
-
-// Utility
-
 fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {
     (
         list_item,
@@ -200,32 +238,42 @@ fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {
 }
 
 fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
-    NodeBundle {
-        style: Style {
-            width: Val::Px(road_component.size().x * 50.0),
-            height: Val::Px(road_component.size().y * 50.0),
+    (
+        RoadComponentDisplay,
+        NodeBundle {
+            style: build_component_display_style(road_component),
+            background_color: road_component.color().into(),
             ..default()
         },
-        background_color: road_component.color().into(),
+    )
+}
+
+fn build_component_display_style(road_component: &RoadComponent) -> Style {
+    Style {
+        width: Val::Px(road_component.size().x * COMPONENT_DISPLAY_SCALE),
+        height: Val::Px(road_component.size().y * COMPONENT_DISPLAY_SCALE),
         ..default()
     }
 }
 
 fn build_component_text_node(road_component: &RoadComponent) -> impl Bundle {
-    TextBundle {
-        text: Text {
-            sections: vec![TextSection {
-                value: road_component.name().to_string(),
-                style: TextStyle {
-                    color: NEUTRAL_900.into(),
-                    ..default()
-                },
-            }],
-            linebreak_behavior: BreakLineOn::NoWrap,
-            justify: JustifyText::Center,
+    (
+        RoadComponentName,
+        TextBundle {
+            text: Text {
+                sections: vec![TextSection {
+                    value: road_component.name().to_string(),
+                    style: TextStyle {
+                        color: NEUTRAL_900.into(),
+                        ..default()
+                    },
+                }],
+                linebreak_behavior: BreakLineOn::NoWrap,
+                justify: JustifyText::Center,
+            },
+            ..default()
         },
-        ..default()
-    }
+    )
 }
 
 fn build_button_container_node() -> impl Bundle {

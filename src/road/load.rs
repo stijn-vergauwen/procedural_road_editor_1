@@ -4,7 +4,10 @@ use bevy::prelude::*;
 
 use crate::GameRunningSet;
 
-use super::{active_road::OnActiveRoadModified, ActiveRoad, RoadData};
+use super::{
+    active_road::OnActiveRoadSet,
+    ActiveRoad, RoadData,
+};
 
 // TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
 
@@ -36,8 +39,8 @@ impl OnLoadRoadRequested {
 
 fn handle_load_requests(
     mut requests: EventReader<OnLoadRoadRequested>,
+    mut on_road_set: EventWriter<OnActiveRoadSet>,
     mut active_road: ResMut<ActiveRoad>,
-    mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
         let Ok(serialized_data) = load_data_from_asset_folder(request.road_name()) else {
@@ -50,8 +53,9 @@ fn handle_load_requests(
             return;
         };
 
-        active_road.set_road_data(road_data);
-        active_road.send_road_modified_event(&mut on_road_modified);
+        active_road.set_road_data(road_data.clone());
+
+        on_road_set.send(OnActiveRoadSet::new(road_data));
     }
 }
 
