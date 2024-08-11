@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{utility::texture_builder::TextureBuilder, GameRunningSet};
 
-use super::{road_builder::RoadBuilder, ActiveRoad, OnActiveRoadModified, RoadData};
+use super::{active_road::OnActiveRoadModified, road_builder::RoadBuilder, ActiveRoad, RoadData};
 
 pub struct RoadPreviewPlugin;
 

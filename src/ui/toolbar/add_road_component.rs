@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{OnNewRoadComponentRequested, RoadComponent},
+    road::{active_road::new_road_component::OnNewRoadComponentRequested, RoadComponent},
     GameRunningSet,
 };
 

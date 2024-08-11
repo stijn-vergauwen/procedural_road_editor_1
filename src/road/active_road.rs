@@ -61,18 +61,14 @@ impl ActiveRoad {
         &self.road_data
     }
 
-    pub fn set_road_data(
-        &mut self,
-        road: RoadData,
-    ) {
+    pub fn set_road_data(&mut self, road: RoadData) {
         self.road_data = road.clone();
     }
 
-    pub fn add_road_component(
-        &mut self,
-        component_data: RoadComponent,
-    ) {
+    pub fn add_road_component(&mut self, component_data: RoadComponent) -> usize {
         self.road_data.components_mut().push(component_data);
+
+        self.component_count() - 1
     }
 
     pub fn reorder_road_components(
@@ -85,18 +81,11 @@ impl ActiveRoad {
             .swap(component_index, requested_component_index);
     }
 
-    pub fn set_road_component(
-        &mut self,
-        component_index: usize,
-        component_data: RoadComponent,
-    ) {
+    pub fn set_road_component(&mut self, component_index: usize, component_data: RoadComponent) {
         self.road_data.components_mut()[component_index] = component_data;
     }
 
-    pub fn delete_road_component(
-        &mut self,
-        component_index: usize,
-    ) {
+    pub fn delete_road_component(&mut self, component_index: usize) {
         self.road_data.components_mut().remove(component_index);
     }
 
@@ -104,11 +93,18 @@ impl ActiveRoad {
         self.road_preview_entity = road_preview_entity;
     }
 
-    pub fn send_road_modified_event(&self, on_road_modified: &mut EventWriter<OnActiveRoadModified>) {
+    pub fn send_road_modified_event(
+        &self,
+        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
+    ) {
         on_road_modified.send(OnActiveRoadModified::new(
             self.road_data.clone(),
             self.road_preview_entity,
         ));
+    }
+
+    pub fn component_count(&self) -> usize {
+        self.road_data.components().len()
     }
 }
 

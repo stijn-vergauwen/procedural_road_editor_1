@@ -6,7 +6,10 @@ use reorder::ReorderPlugin;
 use selected_road_component::{OnRoadComponentSelected, SelectedRoadComponentPlugin};
 
 use crate::{
-    road::{OnActiveRoadModified, RoadComponent},
+    road::{
+        active_road::{new_road_component::OnRoadComponentAdded, OnActiveRoadModified},
+        RoadComponent,
+    },
     ui::{
         buttons::{spawn_reorder_button, ReorderDirection},
         get_selected_road_component_index, ListItem,
@@ -23,7 +26,10 @@ impl Plugin for ToolbarComponentsPlugin {
         app.add_plugins((ReorderPlugin, SelectedRoadComponentPlugin))
             .add_systems(
                 Update,
-                regenerate_road_components.in_set(GameRunningSet::DespawnEntities),
+                (
+                    handle_road_component_added.in_set(GameRunningSet::UpdateEntities),
+                    // regenerate_road_components.in_set(GameRunningSet::DespawnEntities),
+                ),
             );
     }
 }
@@ -43,6 +49,46 @@ impl RoadComponentItem {
     }
 }
 
+// -- Start of new systems code --
+
+fn handle_road_component_added(
+    mut on_added: EventReader<OnRoadComponentAdded>,
+    mut on_component_selected: EventWriter<OnRoadComponentSelected>,
+    mut commands: Commands,
+    components_list_query: Query<Entity, With<RoadComponentsList>>,
+) {
+    for event in on_added.read() {
+        let components_list_entity = components_list_query.single();
+
+        // TODO: remove this entity
+        let mut component_item_entity = None;
+
+        commands
+            .entity(components_list_entity)
+            .with_children(|components_list| {
+                component_item_entity = Some(spawn_road_component(
+                    components_list,
+                    event.component_index(),
+                    components_list_entity,
+                    event.component_data(),
+                    event.component_count(),
+                ));
+            });
+
+        if let Some(component_item_entity) = component_item_entity {
+            on_component_selected.send(OnRoadComponentSelected::new(
+                event.component_data().clone(),
+                component_item_entity,
+            ));
+        }
+    }
+}
+
+// -- End of new systems code --
+
+// -- Start of old systems code --
+
+#[allow(unused)]
 fn regenerate_road_components(
     mut on_road_modified: EventReader<OnActiveRoadModified>,
     mut on_component_selected: EventWriter<OnRoadComponentSelected>,
@@ -51,7 +97,6 @@ fn regenerate_road_components(
     component_item_query: Query<(&RoadComponentItem, &ListItem)>,
 ) {
     for event in on_road_modified.read() {
-        // TODO: add road components index map to event, use this to re-select correct component (unless it got deleted)
         let selected_component_index = get_selected_road_component_index(&component_item_query);
         let mut selected_component = None;
 
@@ -131,6 +176,10 @@ fn spawn_road_component(
 
     container_entity
 }
+
+// -- End of old systems code --
+
+// Utility
 
 fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {
     (

@@ -4,7 +4,7 @@ use bevy::prelude::*;
 
 use crate::GameRunningSet;
 
-use super::{ActiveRoad, OnActiveRoadModified, RoadData};
+use super::{active_road::OnActiveRoadModified, ActiveRoad, RoadData};
 
 // TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
 

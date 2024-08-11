@@ -14,7 +14,7 @@ impl Plugin for UtilityPlugin {
     }
 }
 
-// Helper systems
+// Utility systems
 
 fn shutdown_on_control_q(
     input: Res<ButtonInput<KeyCode>>,
@@ -33,7 +33,7 @@ fn shutdown_on_control_q(
     }
 }
 
-// Helper functions
+// Utility functions
 
 pub fn add_rotations_as_eulers(rotation_a: Quat, rotation_b: Quat, euler: EulerRot) -> Quat {
     let euler_a = rotation_a.to_euler(euler);

@@ -1,22 +1,13 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{ActiveRoad, OnRoadComponentChangeRequested, OnRoadComponentDeletionRequested},
-    ui::{
-        buttons::{spawn_button_node, DeleteButton, OnDeleteButtonPressed},
-        get_selected_road_component_index,
-        inputs::{
+    road::{active_road::{road_component_change::OnRoadComponentChangeRequested, road_component_deletion::OnRoadComponentDeletionRequested}, ActiveRoad}, ui::{
+        buttons::{spawn_button_node, DeleteButton, OnDeleteButtonPressed}, get_selected_road_component_index, inputs::{
             color_input::{spawn_color_input, OnColorInputValueChanged},
             number_input::{spawn_number_input_node, OnNumberInputValueChanged},
             text_input::{spawn_text_input_node, OnTextInputValueChanged},
-        },
-        toolbar::components::{
-            selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected},
-            RoadComponentItem,
-        },
-        ListItem,
-    },
-    GameRunningSet,
+        }, toolbar::components::{selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected}, RoadComponentItem}, ListItem
+    }, GameRunningSet
 };
 
 use super::Sidebar;
@@ -45,6 +36,7 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
+// TODO: store the component data of the selected road component in this struct
 #[derive(Component)]
 pub struct RoadComponentConfig {
     // TODO: remove need for these entity fields
@@ -87,6 +79,9 @@ impl RoadComponentConfig {
         self.color_input_entity == entity
     }
 }
+
+// TODO: add "RoadComponentConfigInput" enum to identify each input
+// TODO: replace all entity references with this identifier enum
 
 fn generate_config_section_for_selected_component(
     mut on_selected: EventReader<OnRoadComponentSelected>,
@@ -173,6 +168,7 @@ fn handle_number_input_changed_events(
             continue;
         };
 
+        // TODO: Remove the need for this function call by storing the selected index in the config struct
         let Some(selected_component_index) =
             get_selected_road_component_index(&component_item_query)
         else {
@@ -218,6 +214,7 @@ fn handle_text_input_changed_events(
             continue;
         };
 
+        // TODO: Remove the need for this function call by storing the selected index in the config struct
         let Some(selected_component_index) =
             get_selected_road_component_index(&component_item_query)
         else {
@@ -228,6 +225,7 @@ fn handle_text_input_changed_events(
             active_road.road_data().components()[selected_component_index].clone();
         let mut new_component_data = current_component_data.clone();
 
+        // TODO: replace entity check with enum in event to describe what data was changed
         if component_config.entity_matches_title_input(event_entity) {
             new_component_data.with_name(event.text().into());
         }
@@ -254,6 +252,7 @@ fn handle_color_input_changed_events(
             continue;
         };
 
+        // TODO: Remove the need for this function call by storing the selected index in the config struct
         let Some(selected_component_index) =
             get_selected_road_component_index(&component_item_query)
         else {
@@ -264,6 +263,7 @@ fn handle_color_input_changed_events(
             active_road.road_data().components()[selected_component_index].clone();
         let mut new_component_data = current_component_data.clone();
 
+        // TODO: replace entity check with enum in event to describe what data was changed
         if component_config.entity_matches_color_input(event_entity) {
             new_component_data.with_color(event.new_color());
         }

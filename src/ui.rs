@@ -55,6 +55,7 @@ fn build_text_node(
     )
 }
 
+// Remove the need for this function (listening to the individual "changed" "deleted" etc events gives enough info)
 fn get_selected_road_component_index(
     road_component_items: &Query<(&RoadComponentItem, &ListItem)>,
 ) -> Option<usize> {
