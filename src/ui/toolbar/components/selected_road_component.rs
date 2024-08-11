@@ -15,7 +15,7 @@ impl Plugin for SelectedRoadComponentPlugin {
                 (
                     (
                         send_road_component_selected_events,
-                        send_road_component_deselected_events,
+                        send_deselected_when_selected_component_pressed,
                     )
                         .in_set(GameRunningSet::GetUserInput),
                     (
@@ -72,7 +72,7 @@ fn send_road_component_selected_events(
     }
 }
 
-fn send_road_component_deselected_events(
+fn send_deselected_when_selected_component_pressed(
     mut on_deselected: EventWriter<OnRoadComponentDeselected>,
     road_component_item_query: Query<(&RoadComponentItem, &Interaction), Changed<Interaction>>,
 ) {

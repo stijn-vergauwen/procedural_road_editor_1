@@ -48,8 +48,6 @@ impl Plugin for RoadComponentConfigPlugin {
     }
 }
 
-// TODO: handle on component deselected events, hide config. Wait this already exists, check where deselected events are sent <- doing
-
 #[derive(Component)]
 pub struct RoadComponentConfig {
     component_index: usize,
@@ -241,6 +239,7 @@ fn handle_color_input_changed_events(
 fn handle_delete_button_pressed_events(
     mut on_button_pressed: EventReader<OnDeleteButtonPressed>,
     mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
+    mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
 ) {
     for _ in on_button_pressed.read() {
@@ -250,6 +249,8 @@ fn handle_delete_button_pressed_events(
             component_config.component_entity,
             component_config.component_index,
         ));
+
+        on_deselect.send(OnRoadComponentDeselected);
     }
 }
 

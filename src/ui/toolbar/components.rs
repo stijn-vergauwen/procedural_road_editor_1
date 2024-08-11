@@ -3,7 +3,9 @@ pub mod selected_road_component;
 
 use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 use reorder::ReorderPlugin;
-use selected_road_component::{OnRoadComponentSelected, SelectedRoadComponentPlugin};
+use selected_road_component::{
+    OnRoadComponentDeselected, OnRoadComponentSelected, SelectedRoadComponentPlugin,
+};
 
 use crate::{
     road::{
@@ -78,6 +80,7 @@ struct RoadComponentDisplay;
 
 fn rebuild_road_components_on_active_road_set(
     mut on_road_set: EventReader<OnActiveRoadSet>,
+    mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     mut commands: Commands,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
@@ -100,6 +103,8 @@ fn rebuild_road_components_on_active_road_set(
                     );
                 }
             });
+
+        on_deselect.send(OnRoadComponentDeselected);
     }
 }
 
