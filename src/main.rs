@@ -50,12 +50,14 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Large refactor
-            - Fix index mapping of road components after CRUD stuff
-                - add an road_component index mapping field to OnActiveRoadModified
+        - Large refactor <- doing
             - Use small enum components to identify the type of button or input an entity is (this way "Button" component and event doesn't need to be unique per action, the added-on enum component is the identifier)
                 - Make generic system to pass events like ButtonPressed to the correct Command event (as long as it doesn't have params), generics for: Command event, Identifier enum
-            - In road_config: replace the entity references with smth like a "ConfigInput" component, that has an enum for what value it configs
+            - Give reorder button module it's own plugin
+                - Move button visibility logic from components module to the reorder button module
+            - Decide structure for what components should have entity references and what shouldn't
+                - Make a "IsPartOf" component that holds an entity ref (? so refs for connecting groups of entities, but no refs for checking heirarchy?)
+                - Remove all unwanted entity refs
             - Make UI utility modules
                 - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
             - Rework layout & colors etc, more web-devvy
