@@ -31,16 +31,15 @@ impl OnRoadComponentReorderRequested {
     }
 }
 
+// TODO: add onReordered event
+
 fn handle_reorder_requests(
     mut requests: EventReader<OnRoadComponentReorderRequested>,
     mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
-        active_road.reorder_road_components(
-            request.item_index,
-            request.requested_index,
-            &mut on_road_modified,
-        );
+        active_road.reorder_road_components(request.item_index, request.requested_index);
+        active_road.send_road_modified_event(&mut on_road_modified);
     }
 }

@@ -64,62 +64,47 @@ impl ActiveRoad {
     pub fn set_road_data(
         &mut self,
         road: RoadData,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data = road.clone();
-
-        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn add_road_component(
         &mut self,
         component_data: RoadComponent,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data.components_mut().push(component_data);
-
-        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn reorder_road_components(
         &mut self,
         component_index: usize,
         requested_component_index: usize,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data
             .components_mut()
             .swap(component_index, requested_component_index);
-
-        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn set_road_component(
         &mut self,
         component_index: usize,
         component_data: RoadComponent,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data.components_mut()[component_index] = component_data;
-
-        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn delete_road_component(
         &mut self,
         component_index: usize,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         self.road_data.components_mut().remove(component_index);
-
-        self.send_road_modified_event(on_road_modified);
     }
 
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
     }
 
-    fn send_road_modified_event(&self, on_road_modified: &mut EventWriter<OnActiveRoadModified>) {
+    pub fn send_road_modified_event(&self, on_road_modified: &mut EventWriter<OnActiveRoadModified>) {
         on_road_modified.send(OnActiveRoadModified::new(
             self.road_data.clone(),
             self.road_preview_entity,
@@ -127,7 +112,6 @@ impl ActiveRoad {
     }
 }
 
-// TODO: add road components index map to event (vec of arrays with 2 ints, one for prev index and one for new index of each component)
 #[derive(Event, Clone)]
 pub struct OnActiveRoadModified {
     road_data: RoadData,

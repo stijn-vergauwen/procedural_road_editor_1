@@ -27,12 +27,15 @@ impl OnRoadComponentDeletionRequested {
     }
 }
 
+// TODO: add OnDeleted event
+
 fn handle_deletion_requests(
     mut requests: EventReader<OnRoadComponentDeletionRequested>,
     mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
-        active_road.delete_road_component(request.component_index, &mut on_road_modified);
+        active_road.delete_road_component(request.component_index);
+        active_road.send_road_modified_event(&mut on_road_modified);
     }
 }

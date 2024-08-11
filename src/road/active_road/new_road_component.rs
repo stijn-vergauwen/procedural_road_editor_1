@@ -26,12 +26,15 @@ impl OnNewRoadComponentRequested {
     }
 }
 
+// TODO: add onAdded event
+
 fn handle_change_requests(
     mut requests: EventReader<OnNewRoadComponentRequested>,
     mut active_road: ResMut<ActiveRoad>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
 ) {
     for request in requests.read() {
-        active_road.add_road_component(request.component_data.clone(), &mut on_road_modified);
+        active_road.add_road_component(request.component_data.clone());
+        active_road.send_road_modified_event(&mut on_road_modified);
     }
 }
