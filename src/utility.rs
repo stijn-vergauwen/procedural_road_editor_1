@@ -46,3 +46,11 @@ pub fn add_rotations_as_eulers(rotation_a: Quat, rotation_b: Quat, euler: EulerR
         euler_a.2 + euler_b.2,
     )
 }
+
+
+pub fn entity_is_descendant_of(parent_query: &Query<&Parent>, entity: Entity, parent: Entity) -> bool {
+    parent_query
+        .iter_ancestors(entity)
+        .find(|ancestor| *ancestor == parent)
+        .is_some()
+}

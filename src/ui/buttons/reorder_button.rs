@@ -2,6 +2,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::ui::ListItem;
 
+// TODO: either remove these entity refs, or get them by iterating ancestors. Not yet sure which
 #[derive(Event)]
 pub struct OnReorderButtonPressed {
     list_entity: Entity,
@@ -34,7 +35,18 @@ impl OnReorderButtonPressed {
 #[derive(Component)]
 pub struct ReorderButton {
     direction: ReorderDirection,
+    // TODO: replace with iter_ancestors
     list_item_entity: Entity,
+}
+
+impl ReorderButton {
+    pub fn direction(&self) -> ReorderDirection {
+        self.direction
+    }
+    
+    pub fn list_item_entity(&self) -> Entity {
+        self.list_item_entity
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -66,9 +78,15 @@ pub fn spawn_reorder_button(
     button_direction: ReorderDirection,
     list_item_entity: Entity,
     size: f32,
+    visibility: Visibility,
 ) {
     builder
-        .spawn(build_button_node(button_direction, list_item_entity, size))
+        .spawn(build_button_node(
+            button_direction,
+            list_item_entity,
+            size,
+            visibility,
+        ))
         .with_children(|button| {
             button.spawn(build_button_text_node(button_direction, size));
         });
@@ -98,6 +116,7 @@ fn build_button_node(
     button_direction: ReorderDirection,
     list_item_entity: Entity,
     size: f32,
+    visibility: Visibility,
 ) -> (ReorderButton, ButtonBundle) {
     (
         ReorderButton {
@@ -114,6 +133,7 @@ fn build_button_node(
                 ..default()
             },
             border_color: BorderColor(NEUTRAL_900.into()),
+            visibility,
             ..default()
         },
     )

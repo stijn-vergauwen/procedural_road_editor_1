@@ -9,17 +9,19 @@ pub struct ListItem {
     /// Reference to the List entity this item belongs to.
     pub list_entity: Entity,
     /// This item's order in the list.
-    pub order: u8,
+    pub index: usize,
 }
 
 impl ListItem {
-    pub fn new(list_entity: Entity, order: u8) -> Self {
-        Self { list_entity, order }
+    pub fn new(list_entity: Entity, index: usize) -> Self {
+        Self { list_entity, index }
     }
 
-    /// Returns this ListItem's order as an index.  
-    /// If this list is based on a data array this can be used to get the corresponding item.
     pub fn index(&self) -> usize {
-        self.order as usize
+        self.index
+    }
+
+    pub fn set_index(&mut self, index: usize) {
+        self.index = index;
     }
 }

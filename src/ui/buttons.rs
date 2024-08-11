@@ -10,7 +10,7 @@ pub use delete_button::{DeleteButton, OnDeleteButtonPressed};
 use load_button::send_load_button_pressed_events;
 pub use load_button::{LoadButton, OnLoadButtonPressed};
 use reorder_button::send_reorder_button_pressed_events;
-pub use reorder_button::{spawn_reorder_button, OnReorderButtonPressed, ReorderDirection};
+pub use reorder_button::{spawn_reorder_button, OnReorderButtonPressed, ReorderDirection, ReorderButton};
 use save_button::send_save_button_pressed_events;
 pub use save_button::{OnSaveButtonPressed, SaveButton};
 
