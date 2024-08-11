@@ -8,7 +8,10 @@ impl Plugin for SliderInputPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnSliderInputValueChanged>().add_systems(
             Update,
-            handle_slider_interaction.in_set(GameRunningSet::UpdateEntities),
+            (
+                send_slider_value_changed_events.in_set(GameRunningSet::GetUserInput),
+                update_slider_handle_position.in_set(GameRunningSet::UpdateEntities),
+            ),
         );
     }
 }
@@ -110,8 +113,7 @@ pub fn spawn_slider_input_with_image(
     slider_input_entity
 }
 
-// TODO: split to "send events" and "update slider", so the event can be sent in the "GetUserInput" set
-fn handle_slider_interaction(
+fn send_slider_value_changed_events(
     mut on_changed: EventWriter<OnSliderInputValueChanged>,
     mut slider_query: Query<(
         &Interaction,
@@ -119,7 +121,6 @@ fn handle_slider_interaction(
         &mut SliderInput,
         Entity,
     )>,
-    mut slider_handle_query: Query<(&SliderHandle, &mut Style)>,
 ) {
     for (_, relative_cursor_position, mut slider_input, slider_entity) in slider_query
         .iter_mut()
@@ -129,18 +130,11 @@ fn handle_slider_interaction(
             continue;
         };
 
-        if new_value == slider_input.value {
+        if slider_input.value == new_value {
             continue;
         }
 
-        let Some((_, mut handle_style)) = slider_handle_query
-            .iter_mut()
-            .find(|(slider_handle, _)| slider_handle.slider_input_entity == slider_entity)
-        else {
-            continue;
-        };
-
-        update_slider_input(&mut slider_input, &mut handle_style, new_value);
+        slider_input.value = new_value;
 
         on_changed.send(OnSliderInputValueChanged::new(
             slider_entity,
@@ -149,9 +143,21 @@ fn handle_slider_interaction(
     }
 }
 
-fn update_slider_input(slider_input: &mut SliderInput, handle_style: &mut Style, new_value: f32) {
-    slider_input.value = new_value;
-    handle_style.margin = calculate_handle_margin(slider_input.value());
+fn update_slider_handle_position(
+    mut on_changed: EventReader<OnSliderInputValueChanged>,
+    mut slider_handle_query: Query<(&SliderHandle, &mut Style)>,
+) {
+    for event in on_changed.read() {
+        let Some((_, mut handle_style)) =
+            slider_handle_query.iter_mut().find(|(slider_handle, _)| {
+                slider_handle.slider_input_entity == event.slider_input_entity()
+            })
+        else {
+            continue;
+        };
+
+        handle_style.margin = calculate_handle_margin(event.new_value());
+    }
 }
 
 fn calculate_handle_margin(slider_value: f32) -> UiRect {

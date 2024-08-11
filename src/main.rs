@@ -53,6 +53,7 @@ use world::WorldPlugin;
         - Large refactor <- doing
             - Use small enum components to identify the type of button or input an entity is (this way "Button" component and event doesn't need to be unique per action, the added-on enum component is the identifier)
                 - Make generic system to pass events like ButtonPressed to the correct Command event (as long as it doesn't have params), generics for: Command event, Identifier enum
+            - Move modules in "buttons" module to the code that actually uses them
             - Give reorder button module it's own plugin
                 - Move button visibility logic from components module to the reorder button module
             - Decide structure for what components should have entity references and what shouldn't
