@@ -139,7 +139,6 @@ fn add_road_component_on_event(
 
 fn update_road_component_on_change(
     mut on_changed: EventReader<OnRoadComponentChanged>,
-    component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
     mut component_display_query: Query<
         (Entity, &mut Style, &mut BackgroundColor),
         With<RoadComponentDisplay>,
@@ -148,31 +147,23 @@ fn update_road_component_on_change(
     parent_query: Query<&Parent>,
 ) {
     for event in on_changed.read() {
-        // TODO: get component item entity from the event
-        let Some((component_item_entity, _)) = component_item_query
-            .iter()
-            .find(|(_, list_item)| list_item.index() == event.component_index())
-        else {
-            continue;
-        };
-
+        let component_entity = event.component_entity();
         let road_component = event.component_data();
 
         if let Some((_, mut style, mut background_color)) =
             component_display_query
                 .iter_mut()
                 .find(|(display_entity, _, _)| {
-                    entity_is_descendant_of(&parent_query, *display_entity, component_item_entity)
+                    entity_is_descendant_of(&parent_query, *display_entity, component_entity)
                 })
         {
-            *style = build_component_display_style(road_component);
-            *background_color = road_component.color().into();
+            update_component_display(&mut style, &mut background_color, road_component);
         }
 
         if let Some((_, mut text)) = component_name_query.iter_mut().find(|(name_entity, _)| {
-            entity_is_descendant_of(&parent_query, *name_entity, component_item_entity)
+            entity_is_descendant_of(&parent_query, *name_entity, component_entity)
         }) {
-            text.sections[0].value = road_component.name().to_string();
+            update_component_name(&mut text, road_component);
         }
     }
 }
@@ -240,18 +231,10 @@ fn update_reorder_buttons_on_reorder_event(
 fn delete_road_component_on_event(
     mut on_deleted: EventReader<OnRoadComponentDeleted>,
     mut commands: Commands,
-    component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
 ) {
     for event in on_deleted.read() {
-        // TODO: get component item entity from the event
-        let Some((component_item_entity, _)) = component_item_query
-            .iter()
-            .find(|(_, list_item)| list_item.index() == event.component_index())
-        else {
-            continue;
-        };
+        let mut component_item_commands = commands.entity(event.component_entity());
 
-        let mut component_item_commands = commands.entity(component_item_entity);
         component_item_commands.remove_parent();
         component_item_commands.despawn_recursive();
     }
@@ -322,6 +305,19 @@ fn get_visibility(visible: bool) -> Visibility {
         true => Visibility::default(),
         false => Visibility::Hidden,
     }
+}
+
+fn update_component_display(
+    style: &mut Style,
+    background_color: &mut BackgroundColor,
+    road_component: &RoadComponent,
+) {
+    *style = build_component_display_style(road_component);
+    *background_color = road_component.color().into();
+}
+
+fn update_component_name(text: &mut Text, road_component: &RoadComponent) {
+    text.sections[0].value = road_component.name().to_string();
 }
 
 fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {

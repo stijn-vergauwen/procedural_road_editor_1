@@ -27,10 +27,7 @@ impl Plugin for ActiveRoadPlugin {
     }
 }
 
-fn setup_example_road(
-    mut commands: Commands,
-    mut on_road_set: EventWriter<OnActiveRoadSet>,
-) {
+fn setup_example_road(mut commands: Commands, mut on_road_set: EventWriter<OnActiveRoadSet>) {
     let road_components = vec![
         RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
         RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
@@ -60,6 +57,14 @@ pub struct ActiveRoad {
 impl ActiveRoad {
     pub fn road_data(&self) -> &RoadData {
         &self.road_data
+    }
+
+    pub fn component_at_index(&self, index: usize) -> &RoadComponent {
+        &self.road_data().components()[index]
+    }
+
+    pub fn component_count(&self) -> usize {
+        self.road_data.components().len()
     }
 
     pub fn set_road_data(&mut self, road: RoadData) {
@@ -99,10 +104,6 @@ impl ActiveRoad {
         on_road_modified: &mut EventWriter<OnActiveRoadModified>,
     ) {
         on_road_modified.send(OnActiveRoadModified::new(self.road_data.clone()));
-    }
-
-    pub fn component_count(&self) -> usize {
-        self.road_data.components().len()
     }
 }
 

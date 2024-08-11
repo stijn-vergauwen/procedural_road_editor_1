@@ -19,23 +19,35 @@ impl Plugin for RoadComponentDeletionPlugin {
 
 #[derive(Event)]
 pub struct OnRoadComponentDeletionRequested {
+    component_entity: Entity,
     component_index: usize,
 }
 
 impl OnRoadComponentDeletionRequested {
-    pub fn new(component_index: usize) -> Self {
-        Self { component_index }
+    pub fn new(component_entity: Entity, component_index: usize) -> Self {
+        Self {
+            component_entity,
+            component_index,
+        }
     }
 }
 
 #[derive(Event)]
 pub struct OnRoadComponentDeleted {
+    component_entity: Entity,
     component_index: usize,
 }
 
 impl OnRoadComponentDeleted {
-    pub fn new(component_index: usize) -> Self {
-        Self { component_index }
+    pub fn new(component_entity: Entity, component_index: usize) -> Self {
+        Self {
+            component_entity,
+            component_index,
+        }
+    }
+
+    pub fn component_entity(&self) -> Entity {
+        self.component_entity
     }
 
     pub fn component_index(&self) -> usize {
@@ -53,6 +65,9 @@ fn handle_deletion_requests(
         active_road.delete_road_component(request.component_index);
         active_road.send_road_modified_event(&mut on_road_modified);
 
-        on_deleted.send(OnRoadComponentDeleted::new(request.component_index));
+        on_deleted.send(OnRoadComponentDeleted::new(
+            request.component_entity,
+            request.component_index,
+        ));
     }
 }

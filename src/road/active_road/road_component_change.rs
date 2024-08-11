@@ -19,18 +19,21 @@ impl Plugin for RoadComponentChangePlugin {
 
 #[derive(Event)]
 pub struct OnRoadComponentChangeRequested {
-    component_index: usize,
     requested_data: RoadComponent,
+    component_entity: Entity,
+    component_index: usize,
 }
 
 impl OnRoadComponentChangeRequested {
     pub fn new(
-        component_index: usize,
         requested_data: RoadComponent,
+        component_entity: Entity,
+        component_index: usize,
     ) -> Self {
         Self {
-            component_index,
             requested_data,
+            component_entity,
+            component_index,
         }
     }
 }
@@ -38,22 +41,29 @@ impl OnRoadComponentChangeRequested {
 #[derive(Event)]
 pub struct OnRoadComponentChanged {
     component_data: RoadComponent,
+    component_entity: Entity,
     component_index: usize,
 }
 
 impl OnRoadComponentChanged {
     pub fn new(
         component_data: RoadComponent,
+        component_entity: Entity,
         component_index: usize,
     ) -> Self {
         Self {
             component_data,
+            component_entity,
             component_index,
         }
     }
 
     pub fn component_data(&self) -> &RoadComponent {
         &self.component_data
+    }
+
+    pub fn component_entity(&self) -> Entity {
+        self.component_entity
     }
 
     pub fn component_index(&self) -> usize {
@@ -73,6 +83,7 @@ fn handle_change_requests(
 
         on_changed.send(OnRoadComponentChanged::new(
             request.requested_data.clone(),
+            request.component_entity,
             request.component_index,
         ));
     }
