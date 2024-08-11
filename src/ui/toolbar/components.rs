@@ -130,7 +130,7 @@ fn add_road_component_on_event(
         // TODO: refactor out this if let
         if let Some(component_item_entity) = component_item_entity {
             on_component_selected.send(OnRoadComponentSelected::new(
-                event.component_data().clone(),
+                event.component_index(),
                 component_item_entity,
             ));
         }

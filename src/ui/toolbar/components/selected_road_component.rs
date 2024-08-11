@@ -1,10 +1,6 @@
 use bevy::{color::palettes::tailwind::NEUTRAL_200, prelude::*};
 
-use crate::{
-    road::{ActiveRoad, RoadComponent},
-    ui::ListItem,
-    GameRunningSet,
-};
+use crate::{ui::ListItem, GameRunningSet};
 
 use super::RoadComponentItem;
 
@@ -34,25 +30,22 @@ impl Plugin for SelectedRoadComponentPlugin {
 
 #[derive(Event, Clone)]
 pub struct OnRoadComponentSelected {
-    // TODO: replace component data with component_index that points to correct data in ActiveRoad Res
-    component_data: RoadComponent,
+    component_index: usize,
     component_item_entity: Entity,
 }
 
 impl OnRoadComponentSelected {
-    pub fn new(component_data: RoadComponent, component_item_entity: Entity) -> Self {
+    pub fn new(component_index: usize, component_item_entity: Entity) -> Self {
         Self {
-            component_data,
+            component_index,
             component_item_entity,
         }
     }
 
-    pub fn component_data(&self) -> &RoadComponent {
-        &self.component_data
+    pub fn component_index(&self) -> usize {
+        self.component_index
     }
 }
-
-// TODO: add on deselected event
 
 #[derive(Event, Clone)]
 pub struct OnRoadComponentDeselected;
@@ -63,7 +56,6 @@ fn send_road_component_selected_events(
         (&ListItem, &RoadComponentItem, &Interaction, Entity),
         Changed<Interaction>,
     >,
-    active_road: Res<ActiveRoad>,
 ) {
     if let Some((list_item, _, _, entity)) =
         road_component_item_query
@@ -72,9 +64,7 @@ fn send_road_component_selected_events(
                 **interaction == Interaction::Pressed && !road_component_item.is_selected
             })
     {
-        let component_data = active_road.road_data().components()[list_item.index()].clone();
-
-        on_selected.send(OnRoadComponentSelected::new(component_data, entity));
+        on_selected.send(OnRoadComponentSelected::new(list_item.index(), entity));
     }
 }
 
