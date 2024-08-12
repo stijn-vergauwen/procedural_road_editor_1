@@ -3,30 +3,50 @@ use bevy::prelude::*;
 use crate::{
     road::{ActiveRoad, OnSaveRoadRequested},
     ui::{
-        buttons::{spawn_button_node, OnSaveButtonPressed},
+        buttons::spawn_button_node,
         inputs::text_input::{spawn_text_input_node, TextInput},
         modal::{OnHideModalRequested, OnShowModalRequested},
     },
     GameRunningSet,
 };
 
+use super::ToolbarAction;
+
 pub struct SavePlugin;
 
 impl Plugin for SavePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<OnSaveButtonPressed>().add_systems(
             Update,
-            (send_save_requests, show_modal_on_save_button_pressed)
-                .in_set(GameRunningSet::SendCommands),
+            (
+                send_save_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+                (send_save_requests, show_modal_on_save_button_pressed)
+                    .in_set(GameRunningSet::SendCommands),
+            ),
         );
     }
 }
 
 #[derive(Component)]
-pub struct SaveConfirmButton;
+struct SaveConfirmButton;
 
 #[derive(Component)]
-pub struct RoadNameInput;
+struct RoadNameInput;
+
+#[derive(Event)]
+struct OnSaveButtonPressed;
+
+// TODO: replace with generic system
+fn send_save_button_pressed_events(
+    mut on_pressed: EventWriter<OnSaveButtonPressed>,
+    button_query: Query<(&Interaction, &ToolbarAction), Changed<Interaction>>,
+) {
+    for (interaction, action) in button_query.iter() {
+        if *interaction == Interaction::Pressed && *action == ToolbarAction::SaveRoad {
+            on_pressed.send(OnSaveButtonPressed);
+        }
+    }
+}
 
 fn show_modal_on_save_button_pressed(
     mut events: EventReader<OnSaveButtonPressed>,

@@ -5,6 +5,8 @@ use crate::{
     GameRunningSet,
 };
 
+use super::ToolbarAction;
+
 pub struct AddRoadComponentPlugin;
 
 impl Plugin for AddRoadComponentPlugin {
@@ -16,15 +18,12 @@ impl Plugin for AddRoadComponentPlugin {
     }
 }
 
-#[derive(Component)]
-pub struct AddRoadComponentButton;
-
 pub fn handle_add_road_component_button_pressed(
     mut on_request: EventWriter<OnNewRoadComponentRequested>,
-    button_query: Query<&Interaction, (With<AddRoadComponentButton>, Changed<Interaction>)>,
+    button_query: Query<(&Interaction, &ToolbarAction), Changed<Interaction>>,
 ) {
-    for interaction in button_query.iter() {
-        if *interaction == Interaction::Pressed {
+    for (interaction, action) in button_query.iter() {
+        if *interaction == Interaction::Pressed && *action == ToolbarAction::AddComponent {
             on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
         }
     }

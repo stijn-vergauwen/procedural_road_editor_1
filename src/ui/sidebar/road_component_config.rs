@@ -9,7 +9,7 @@ use crate::{
         ActiveRoad,
     },
     ui::{
-        buttons::{spawn_button_node, DeleteButton, OnDeleteButtonPressed},
+        buttons::spawn_button_node,
         inputs::{
             color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
             number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},
@@ -28,9 +28,10 @@ pub struct RoadComponentConfigPlugin;
 
 impl Plugin for RoadComponentConfigPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<OnDeleteButtonPressed>().add_systems(
             Update,
             (
+                (send_delete_button_pressed_events.in_set(GameRunningSet::GetUserInput)),
                 (
                     handle_number_input_changed_events,
                     handle_text_input_changed_events,
@@ -64,11 +65,12 @@ impl RoadComponentConfig {
 }
 
 #[derive(Clone, Copy, Component, PartialEq)]
-enum ComponentConfigInputType {
-    Name,
-    Width,
-    Height,
-    Color,
+enum ComponentConfigAction {
+    SetName,
+    SetWidth,
+    SetHeight,
+    SetColor,
+    DeleteComponent,
 }
 
 fn generate_config_section_for_selected_component(
@@ -95,13 +97,13 @@ fn generate_config_section_for_selected_component(
                 component_config.with_children(|container| {
                     spawn_text_input_node(
                         container,
-                        ComponentConfigInputType::Name,
+                        ComponentConfigAction::SetName,
                         component_data.name(),
                     );
 
                     spawn_number_input_node(
                         container,
-                        ComponentConfigInputType::Width,
+                        ComponentConfigAction::SetWidth,
                         "Width",
                         component_data.size().x,
                         0.0..10.0,
@@ -109,7 +111,7 @@ fn generate_config_section_for_selected_component(
 
                     spawn_number_input_node(
                         container,
-                        ComponentConfigInputType::Height,
+                        ComponentConfigAction::SetHeight,
                         "Height",
                         component_data.size().y,
                         0.0..10.0,
@@ -117,13 +119,18 @@ fn generate_config_section_for_selected_component(
 
                     spawn_color_input(
                         container,
-                        ComponentConfigInputType::Color,
+                        ComponentConfigAction::SetColor,
                         &mut images,
                         component_data.color(),
                         Some("Color"),
                     );
 
-                    spawn_button_node(container, DeleteButton, "Delete", 24.0);
+                    spawn_button_node(
+                        container,
+                        ComponentConfigAction::DeleteComponent,
+                        "Delete",
+                        24.0,
+                    );
                 });
             });
     }
@@ -145,22 +152,22 @@ fn handle_number_input_changed_events(
     mut on_input_changed: EventReader<OnNumberInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    number_input_query: Query<&ComponentConfigInputType, With<NumberInput>>,
+    number_input_query: Query<&ComponentConfigAction, With<NumberInput>>,
     active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.number_input_entity();
-        let config_input_type = number_input_query.get(event_entity).unwrap();
+        let config_action = number_input_query.get(event_entity).unwrap();
 
         let component_config = component_config_query.single();
         let current_component_data =
             active_road.component_at_index(component_config.component_index);
 
-        let new_size = match config_input_type {
-            ComponentConfigInputType::Width => {
+        let new_size = match config_action {
+            ComponentConfigAction::SetWidth => {
                 Vec2::new(event.new_value(), current_component_data.size().y)
             }
-            ComponentConfigInputType::Height => {
+            ComponentConfigAction::SetHeight => {
                 Vec2::new(current_component_data.size().x, event.new_value())
             }
             _ => continue,
@@ -180,14 +187,14 @@ fn handle_text_input_changed_events(
     mut on_input_changed: EventReader<OnTextInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    text_input_query: Query<&ComponentConfigInputType, With<TextInput>>,
+    text_input_query: Query<&ComponentConfigAction, With<TextInput>>,
     active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.text_input_entity();
-        let config_input_type = text_input_query.get(event_entity).unwrap();
+        let config_action = text_input_query.get(event_entity).unwrap();
 
-        if *config_input_type != ComponentConfigInputType::Name {
+        if *config_action != ComponentConfigAction::SetName {
             continue;
         };
 
@@ -211,14 +218,14 @@ fn handle_color_input_changed_events(
     mut on_input_changed: EventReader<OnColorInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    color_input_query: Query<&ComponentConfigInputType, With<ColorInput>>,
+    color_input_query: Query<&ComponentConfigAction, With<ColorInput>>,
     active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.color_input_entity();
-        let config_input_type = color_input_query.get(event_entity).unwrap();
+        let config_action = color_input_query.get(event_entity).unwrap();
 
-        if *config_input_type != ComponentConfigInputType::Color {
+        if *config_action != ComponentConfigAction::SetColor {
             continue;
         };
 
@@ -233,6 +240,23 @@ fn handle_color_input_changed_events(
             component_config.component_entity,
             component_config.component_index,
         ));
+    }
+}
+
+// TODO: move to module
+
+#[derive(Event)]
+struct OnDeleteButtonPressed;
+
+fn send_delete_button_pressed_events(
+    mut on_pressed: EventWriter<OnDeleteButtonPressed>,
+    button_query: Query<(&Interaction, &ComponentConfigAction), Changed<Interaction>>,
+) {
+    for (interaction, action) in button_query.iter() {
+        if *interaction == Interaction::Pressed && *action == ComponentConfigAction::DeleteComponent
+        {
+            on_pressed.send(OnDeleteButtonPressed);
+        }
     }
 }
 

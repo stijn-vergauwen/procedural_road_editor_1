@@ -3,14 +3,14 @@ pub mod components;
 mod load;
 mod save;
 
-use add_road_component::{AddRoadComponentButton, AddRoadComponentPlugin};
+use add_road_component::AddRoadComponentPlugin;
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use components::ToolbarComponentsPlugin;
 use load::LoadPlugin;
 use save::SavePlugin;
 
 use super::{
-    buttons::{spawn_button_node, LoadButton, SaveButton},
+    buttons::spawn_button_node,
     List,
 };
 
@@ -34,6 +34,13 @@ struct Toolbar;
 #[derive(Component)]
 struct RoadComponentsList;
 
+#[derive(Component, PartialEq, Clone, Copy)]
+enum ToolbarAction {
+    SaveRoad,
+    LoadRoad,
+    AddComponent,
+}
+
 pub fn spawn_toolbar(mut commands: Commands) {
     commands
         .spawn(build_container_node())
@@ -48,7 +55,7 @@ pub fn spawn_toolbar(mut commands: Commands) {
                     toolbar
                         .spawn(build_content_centered_container_node())
                         .with_children(|container| {
-                            spawn_button_node(container, AddRoadComponentButton, "+", 30.0);
+                            spawn_button_node(container, ToolbarAction::AddComponent, "+", 30.0);
                         });
                 });
         });
@@ -58,8 +65,8 @@ fn spawn_action_buttons(builder: &mut ChildBuilder) {
     builder
         .spawn(build_action_buttons_container_node())
         .with_children(|container| {
-            spawn_button_node(container, SaveButton, "Save", 24.0);
-            spawn_button_node(container, LoadButton, "Load", 24.0);
+            spawn_button_node(container, ToolbarAction::SaveRoad, "Save", 24.0);
+            spawn_button_node(container, ToolbarAction::LoadRoad, "Load", 24.0);
         });
 }
 

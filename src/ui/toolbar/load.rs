@@ -7,29 +7,46 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     road::OnLoadRoadRequested,
-    ui::{
-        buttons::OnLoadButtonPressed,
-        modal::{OnHideModalRequested, OnShowModalRequested},
-    },
+    ui::modal::{OnHideModalRequested, OnShowModalRequested},
     GameRunningSet,
 };
+
+use super::ToolbarAction;
 
 pub struct LoadPlugin;
 
 impl Plugin for LoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_event::<OnLoadButtonPressed>().add_systems(
             Update,
-            (send_load_requests, show_modal_on_save_button_pressed)
-                .in_set(GameRunningSet::SendCommands),
+            (
+                send_load_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+                (send_load_requests, show_modal_on_load_button_pressed)
+                    .in_set(GameRunningSet::SendCommands),
+            ),
         );
     }
 }
 
 #[derive(Component)]
-pub struct RoadNameItem;
+struct RoadNameItem;
 
-fn show_modal_on_save_button_pressed(
+#[derive(Event)]
+struct OnLoadButtonPressed;
+
+// TODO: replace with generic system
+fn send_load_button_pressed_events(
+    mut on_pressed: EventWriter<OnLoadButtonPressed>,
+    button_query: Query<(&Interaction, &ToolbarAction), Changed<Interaction>>,
+) {
+    for (interaction, action) in button_query.iter() {
+        if *interaction == Interaction::Pressed && *action == ToolbarAction::LoadRoad {
+            on_pressed.send(OnLoadButtonPressed);
+        }
+    }
+}
+
+fn show_modal_on_load_button_pressed(
     mut events: EventReader<OnLoadButtonPressed>,
     mut on_request: EventWriter<OnShowModalRequested>,
     mut commands: Commands,

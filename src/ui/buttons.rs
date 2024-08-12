@@ -1,18 +1,11 @@
 // TODO: move the save, load, and delete buttons to the code that actually uses them (right now I'm splitting it in horizontal layers instead of vertical sections)
-mod delete_button;
-mod load_button;
 mod reorder_button;
-mod save_button;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use delete_button::send_delete_button_pressed_events;
-pub use delete_button::{DeleteButton, OnDeleteButtonPressed};
-use load_button::send_load_button_pressed_events;
-pub use load_button::{LoadButton, OnLoadButtonPressed};
 use reorder_button::send_reorder_button_pressed_events;
-pub use reorder_button::{spawn_reorder_button, OnReorderButtonPressed, ReorderDirection, ReorderButton};
-use save_button::send_save_button_pressed_events;
-pub use save_button::{OnSaveButtonPressed, SaveButton};
+pub use reorder_button::{
+    spawn_reorder_button, OnReorderButtonPressed, ReorderButton, ReorderDirection,
+};
 
 use crate::GameRunningSet;
 
@@ -20,20 +13,10 @@ pub struct ButtonsPlugin;
 
 impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnReorderButtonPressed>()
-            .add_event::<OnSaveButtonPressed>()
-            .add_event::<OnLoadButtonPressed>()
-            .add_event::<OnDeleteButtonPressed>()
-            .add_systems(
-                Update,
-                (
-                    send_reorder_button_pressed_events,
-                    send_save_button_pressed_events,
-                    send_load_button_pressed_events,
-                    send_delete_button_pressed_events,
-                )
-                    .in_set(GameRunningSet::GetUserInput),
-            );
+        app.add_event::<OnReorderButtonPressed>().add_systems(
+            Update,
+            send_reorder_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+        );
     }
 }
 
