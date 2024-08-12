@@ -78,6 +78,7 @@ fn handle_change_requests(
     mut active_road: ResMut<ActiveRoad>,
 ) {
     for request in requests.read() {
+        // TODO: get component index here from the ListItem components, then road config doesn't need to pass it
         active_road.set_road_component(request.component_index, request.requested_data.clone());
         active_road.send_road_modified_event(&mut on_road_modified);
 

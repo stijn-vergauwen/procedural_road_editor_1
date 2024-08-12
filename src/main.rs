@@ -51,14 +51,13 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Something is going wrong when deleting components, the index seems to be wrong (deletes last element?)
             - Recalculate reorder button visibility after component is added
-            - Move modules in "buttons" module to the code that actually uses them
-            - Give reorder button module it's own plugin
-                - Move button visibility logic from components module to the reorder button module
             - Decide structure for what components should have entity references and what shouldn't
                 - Make a "Partial" component that holds an entity ref (? so refs for connecting groups of entities, but no refs for checking heirarchy?)
                 - Remove all unwanted entity refs
+            - Move List CRUD and reorder logic to list module, move reorder button under list module
+            - Give reorder button module it's own plugin
+                - Move button visibility logic from components module to the reorder button module
             - Make UI utility modules
                 - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
             - Rework layout & colors etc, more web-devvy
