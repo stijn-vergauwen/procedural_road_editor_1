@@ -52,7 +52,6 @@ use world::WorldPlugin;
     Backlog:
         - Large refactor <- doing
             - Decide structure for what components should have entity references and what shouldn't
-                - Make a "Partial" component that holds an entity ref (? so refs for connecting groups of entities, but no refs for checking heirarchy?)
                 - Remove all unwanted entity refs
             - Move List CRUD and reorder logic to list module, move reorder button under list module
             - Give reorder button module it's own plugin
