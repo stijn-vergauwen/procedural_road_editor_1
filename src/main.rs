@@ -51,7 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Recalculate reorder button visibility after component is added
             - Decide structure for what components should have entity references and what shouldn't
                 - Make a "Partial" component that holds an entity ref (? so refs for connecting groups of entities, but no refs for checking heirarchy?)
                 - Remove all unwanted entity refs

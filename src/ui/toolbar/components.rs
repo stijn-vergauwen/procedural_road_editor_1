@@ -38,7 +38,11 @@ impl Plugin for ToolbarComponentsPlugin {
                 Update,
                 (
                     (
-                        add_road_component_on_event,
+                        (
+                            add_road_component_on_event,
+                            update_reorder_buttons_on_add_event,
+                        )
+                            .chain(),
                         update_road_component_on_change,
                         (
                             reorder_road_components_on_event,
@@ -142,6 +146,28 @@ fn add_road_component_on_event(
     }
 }
 
+fn update_reorder_buttons_on_add_event(
+    mut on_added: EventReader<OnRoadComponentAdded>,
+    components_list_query: Query<Entity, With<RoadComponentsList>>,
+    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
+    list_item_query: Query<&ListItem>,
+    parent_query: Query<&Parent>,
+    active_road: Res<ActiveRoad>,
+) {
+    for _ in on_added.read() {
+        let component_list_entity = components_list_query.single();
+        let component_count = active_road.component_count();
+
+        update_visibility_of_component_reorder_buttons(
+            &mut reorder_button_query,
+            &parent_query,
+            &list_item_query,
+            component_list_entity,
+            component_count,
+        );
+    }
+}
+
 fn update_road_component_on_change(
     mut on_changed: EventReader<OnRoadComponentChanged>,
     mut component_display_query: Query<
@@ -211,25 +237,54 @@ fn update_reorder_buttons_on_reorder_event(
         let component_list_entity = components_list_query.single();
         let component_count = active_road.component_count();
 
-        for (_, reorder_button, mut button_visibility) in
-            reorder_button_query
-                .iter_mut()
-                .filter(|(button_entity, _, _)| {
-                    entity_is_descendant_of(&parent_query, *button_entity, component_list_entity)
-                })
-        {
-            let list_item = list_item_query
-                .get(reorder_button.list_item_entity())
-                .unwrap();
-            let index = list_item.index();
+        update_visibility_of_component_reorder_buttons(
+            &mut reorder_button_query,
+            &parent_query,
+            &list_item_query,
+            component_list_entity,
+            component_count,
+        );
+    }
+}
 
-            let target_visibility =
-                get_button_target_visibility(reorder_button.direction(), index, component_count);
+fn update_visibility_of_component_reorder_buttons(
+    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility)>,
+    parent_query: &Query<&Parent>,
+    list_item_query: &Query<&ListItem>,
+    component_list_entity: Entity,
+    component_count: usize,
+) {
+    for (_, reorder_button, mut button_visibility) in
+        reorder_button_query
+            .iter_mut()
+            .filter(|(button_entity, _, _)| {
+                entity_is_descendant_of(parent_query, *button_entity, component_list_entity)
+            })
+    {
+        let list_item = list_item_query
+            .get(reorder_button.list_item_entity())
+            .unwrap();
 
-            if *button_visibility != target_visibility {
-                *button_visibility = target_visibility;
-            }
-        }
+        update_reorder_button_visibility(
+            reorder_button,
+            &mut button_visibility,
+            component_count,
+            list_item.index(),
+        );
+    }
+}
+
+fn update_reorder_button_visibility(
+    reorder_button: &ReorderButton,
+    button_visibility: &mut Visibility,
+    component_count: usize,
+    index: usize,
+) {
+    let target_visibility =
+        get_button_target_visibility(reorder_button.direction(), index, component_count);
+
+    if *button_visibility != target_visibility {
+        *button_visibility = target_visibility;
     }
 }
 
