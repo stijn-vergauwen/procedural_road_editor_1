@@ -7,14 +7,18 @@ pub struct List;
 pub struct ListItem {
     // TODO: replace with iter_ancestors
     /// Reference to the List entity this item belongs to.
-    pub list_entity: Entity,
+    list_entity: Entity,
     /// This item's order in the list.
-    pub index: usize,
+    index: usize,
 }
 
 impl ListItem {
     pub fn new(list_entity: Entity, index: usize) -> Self {
         Self { list_entity, index }
+    }
+
+    pub fn list_entity(&self) -> Entity {
+        self.list_entity
     }
 
     pub fn index(&self) -> usize {

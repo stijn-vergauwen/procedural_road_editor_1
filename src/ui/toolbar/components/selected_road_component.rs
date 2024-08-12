@@ -45,7 +45,7 @@ impl OnRoadComponentSelected {
     pub fn component_index(&self) -> usize {
         self.component_index
     }
-    
+
     pub fn component_item_entity(&self) -> Entity {
         self.component_item_entity
     }

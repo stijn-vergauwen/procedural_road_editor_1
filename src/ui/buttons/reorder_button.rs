@@ -2,7 +2,6 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::ui::ListItem;
 
-// TODO: either remove these entity refs, or get them by iterating ancestors. Not yet sure which
 #[derive(Event)]
 pub struct OnReorderButtonPressed {
     list_entity: Entity,
@@ -65,7 +64,7 @@ pub fn send_reorder_button_pressed_events(
             let list_item = list_item_query.get(button.list_item_entity).unwrap();
 
             on_pressed.send(OnReorderButtonPressed::new(
-                list_item.list_entity,
+                list_item.list_entity(),
                 button.list_item_entity,
                 button.direction,
             ));

@@ -236,12 +236,21 @@ fn update_reorder_buttons_on_reorder_event(
 fn delete_road_component_on_event(
     mut on_deleted: EventReader<OnRoadComponentDeleted>,
     mut commands: Commands,
+    mut component_item_query: Query<&mut ListItem, With<RoadComponentItem>>,
 ) {
     for event in on_deleted.read() {
         let mut component_item_commands = commands.entity(event.component_entity());
 
         component_item_commands.remove_parent();
         component_item_commands.despawn_recursive();
+
+        for mut item in component_item_query
+            .iter_mut()
+            .filter(|item| item.index() > event.component_index())
+        {
+            let new_index = item.index() - 1;
+            item.set_index(new_index);
+        }
     }
 }
 

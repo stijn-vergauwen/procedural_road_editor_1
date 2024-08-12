@@ -9,7 +9,7 @@ use crate::{
         ActiveRoad,
     },
     ui::{
-        buttons::spawn_button_node,
+        buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
         inputs::{
             color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
             number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},
@@ -28,10 +28,9 @@ pub struct RoadComponentConfigPlugin;
 
 impl Plugin for RoadComponentConfigPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnDeleteButtonPressed>().add_systems(
+        app.add_systems(
             Update,
             (
-                (send_delete_button_pressed_events.in_set(GameRunningSet::GetUserInput)),
                 (
                     handle_number_input_changed_events,
                     handle_text_input_changed_events,
@@ -70,7 +69,6 @@ enum ComponentConfigAction {
     SetWidth,
     SetHeight,
     SetColor,
-    DeleteComponent,
 }
 
 fn generate_config_section_for_selected_component(
@@ -83,7 +81,7 @@ fn generate_config_section_for_selected_component(
     for event in on_selected.read() {
         let sidebar = sidebar_query.single();
         let component_index = event.component_index();
-        let component_data = &active_road.road_data().components()[component_index];
+        let component_data = active_road.component_at_index(component_index);
 
         commands
             .entity(sidebar)
@@ -125,12 +123,7 @@ fn generate_config_section_for_selected_component(
                         Some("Color"),
                     );
 
-                    spawn_button_node(
-                        container,
-                        ComponentConfigAction::DeleteComponent,
-                        "Delete",
-                        24.0,
-                    );
+                    spawn_button_node(container, ButtonAction::DeleteComponent, "Delete", 24.0);
                 });
             });
     }
@@ -243,30 +236,16 @@ fn handle_color_input_changed_events(
     }
 }
 
-// TODO: move to module
-
-#[derive(Event)]
-struct OnDeleteButtonPressed;
-
-fn send_delete_button_pressed_events(
-    mut on_pressed: EventWriter<OnDeleteButtonPressed>,
-    button_query: Query<(&Interaction, &ComponentConfigAction), Changed<Interaction>>,
-) {
-    for (interaction, action) in button_query.iter() {
-        if *interaction == Interaction::Pressed && *action == ComponentConfigAction::DeleteComponent
-        {
-            on_pressed.send(OnDeleteButtonPressed);
-        }
-    }
-}
-
 fn handle_delete_button_pressed_events(
-    mut on_button_pressed: EventReader<OnDeleteButtonPressed>,
+    mut on_pressed: EventReader<OnButtonPressed>,
     mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
     mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
 ) {
-    for _ in on_button_pressed.read() {
+    for _ in on_pressed
+        .read()
+        .filter(|event| event.is_action(ButtonAction::DeleteComponent))
+    {
         let component_config = component_config_query.single();
 
         on_deletion_request.send(OnRoadComponentDeletionRequested::new(
