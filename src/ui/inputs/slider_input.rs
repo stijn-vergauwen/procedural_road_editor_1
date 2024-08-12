@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition};
 
-use crate::GameRunningSet;
+use crate::{utility::partial::Partial, GameRunningSet};
 
 pub struct SliderInputPlugin;
 
@@ -36,10 +36,7 @@ impl SliderInput {
 }
 
 #[derive(Component)]
-struct SliderHandle {
-    // TODO: replace with iter_ancestors
-    slider_input_entity: Entity,
-}
+struct SliderHandle;
 
 #[derive(Event)]
 pub struct OnSliderInputValueChanged {
@@ -75,17 +72,17 @@ pub fn spawn_slider_input(
         start_value,
         build_button_bundle(Val::Px(200.0), Val::Px(12.0)),
     ));
-    let slider_input_entity = slider_input.id();
+    let main_entity = slider_input.id();
 
     slider_input.with_children(|color_input| {
         color_input
-            .spawn(build_slider_handle_node(slider_input_entity, start_value))
+            .spawn(build_slider_handle_node(start_value, main_entity))
             .with_children(|slider_handle| {
                 slider_handle.spawn(build_slider_handle_bar_node(6.0));
             });
     });
 
-    slider_input_entity
+    main_entity
 }
 
 #[allow(unused)]
@@ -100,17 +97,17 @@ pub fn spawn_slider_input_with_image(
         start_value,
         build_button_bundle_with_image(Val::Px(200.0), Val::Px(12.0), image),
     ));
-    let slider_input_entity = slider_input.id();
+    let main_entity = slider_input.id();
 
     slider_input.with_children(|color_input| {
         color_input
-            .spawn(build_slider_handle_node(slider_input_entity, start_value))
+            .spawn(build_slider_handle_node(start_value, main_entity))
             .with_children(|slider_handle| {
                 slider_handle.spawn(build_slider_handle_bar_node(6.0));
             });
     });
 
-    slider_input_entity
+    main_entity
 }
 
 fn send_slider_value_changed_events(
@@ -145,16 +142,13 @@ fn send_slider_value_changed_events(
 
 fn update_slider_handle_position(
     mut on_changed: EventReader<OnSliderInputValueChanged>,
-    mut slider_handle_query: Query<(&SliderHandle, &mut Style)>,
+    mut slider_handle_query: Query<(&mut Style, &Partial), With<SliderHandle>>,
 ) {
     for event in on_changed.read() {
-        let Some((_, mut handle_style)) =
-            slider_handle_query.iter_mut().find(|(slider_handle, _)| {
-                slider_handle.slider_input_entity == event.slider_input_entity()
-            })
-        else {
-            continue;
-        };
+        let (mut handle_style, _) = slider_handle_query
+            .iter_mut()
+            .find(|(_, partial)| partial.main_entity() == event.slider_input_entity())
+            .expect("Slider should always have a handle");
 
         handle_style.margin = calculate_handle_margin(event.new_value());
     }
@@ -183,11 +177,9 @@ fn build_slider_input_node(
     )
 }
 
-fn build_slider_handle_node(slider_input_entity: Entity, start_value: f32) -> impl Bundle {
+fn build_slider_handle_node(start_value: f32, main_entity: Entity) -> impl Bundle {
     (
-        SliderHandle {
-            slider_input_entity,
-        },
+        (SliderHandle, Partial::new(main_entity)),
         NodeBundle {
             style: Style {
                 height: Val::Percent(100.0),

@@ -2,7 +2,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     ui::build_text_node,
-    utility::{entity_is_descendant_of, texture_builder::TextureBuilder},
+    utility::{partial::Partial, texture_builder::TextureBuilder},
     GameRunningSet,
 };
 
@@ -93,7 +93,7 @@ pub fn spawn_color_input(
         root_components,
         start_color,
     ));
-    let color_input_entity = color_input.id();
+    let main_entity = color_input.id();
 
     color_input.with_children(|color_input| {
         if let Some(label) = label {
@@ -106,13 +106,31 @@ pub fn spawn_color_input(
             ));
         }
 
-        color_input.spawn(build_color_display_node(start_color));
-        spawn_color_input_slider(color_input, images, start_color, ColorChannel::A);
-        spawn_color_input_slider(color_input, images, start_color, ColorChannel::B);
-        spawn_color_input_slider(color_input, images, start_color, ColorChannel::C);
+        color_input.spawn(build_color_display_node(start_color, main_entity));
+        spawn_color_input_slider(
+            color_input,
+            images,
+            start_color,
+            ColorChannel::A,
+            main_entity,
+        );
+        spawn_color_input_slider(
+            color_input,
+            images,
+            start_color,
+            ColorChannel::B,
+            main_entity,
+        );
+        spawn_color_input_slider(
+            color_input,
+            images,
+            start_color,
+            ColorChannel::C,
+            main_entity,
+        );
     });
 
-    color_input_entity
+    main_entity
 }
 
 fn spawn_color_input_slider(
@@ -120,12 +138,16 @@ fn spawn_color_input_slider(
     images: &mut Assets<Image>,
     start_color: Color,
     color_channel: ColorChannel,
+    main_entity: Entity,
 ) -> Entity {
     let image = images.add(generate_slider_image(start_color, color_channel));
 
     spawn_slider_input_with_image(
         builder,
-        ColorInputSlider::new(color_channel),
+        (
+            ColorInputSlider::new(color_channel),
+            Partial::new(main_entity),
+        ),
         get_rgba_color_channel(start_color, color_channel),
         image,
     )
@@ -134,31 +156,18 @@ fn spawn_color_input_slider(
 fn send_color_input_changed_events(
     mut on_slider_changed: EventReader<OnSliderInputValueChanged>,
     mut on_color_changed: EventWriter<OnColorInputValueChanged>,
-    color_input_slider_query: Query<&ColorInputSlider>,
-    mut color_input_query: Query<(Entity, &mut ColorInput)>,
-    parent_query: Query<&Parent>,
+    color_input_slider_query: Query<(&ColorInputSlider, &Partial)>,
+    mut color_input_query: Query<&mut ColorInput>,
 ) {
     for event in on_slider_changed.read() {
-        let Ok(color_input_slider) = color_input_slider_query.get(event.slider_input_entity())
+        let Ok((color_input_slider, partial)) =
+            color_input_slider_query.get(event.slider_input_entity())
         else {
             continue;
         };
 
         let color_channel = color_input_slider.color_channel;
-
-        let Some((color_input_entity, mut color_input)) =
-            color_input_query
-                .iter_mut()
-                .find(|(color_input_entity, _)| {
-                    entity_is_descendant_of(
-                        &parent_query,
-                        event.slider_input_entity(),
-                        *color_input_entity,
-                    )
-                })
-        else {
-            continue;
-        };
+        let mut color_input = color_input_query.get_mut(partial.main_entity()).unwrap();
 
         let new_color =
             get_rgba_color_with_channel(color_input.value, color_channel, event.new_value());
@@ -166,7 +175,7 @@ fn send_color_input_changed_events(
         color_input.value = new_color;
 
         on_color_changed.send(OnColorInputValueChanged::new(
-            color_input_entity,
+            partial.main_entity(),
             color_channel,
             new_color,
         ));
@@ -176,15 +185,14 @@ fn send_color_input_changed_events(
 fn update_color_input_textures(
     mut on_color_changed: EventReader<OnColorInputValueChanged>,
     mut images: ResMut<Assets<Image>>,
-    color_input_slider_query: Query<(Entity, &UiImage, &ColorInputSlider)>,
-    parent_query: Query<&Parent>,
+    color_input_slider_query: Query<(&UiImage, &ColorInputSlider, &Partial)>,
 ) {
     for event in on_color_changed.read() {
-        for (_, ui_image, slider) in
+        for (ui_image, slider, _) in
             color_input_slider_query
                 .iter()
-                .filter(|(entity, _, slider)| {
-                    entity_is_descendant_of(&parent_query, *entity, event.color_input_entity())
+                .filter(|(_, slider, partial)| {
+                    partial.main_entity() == event.color_input_entity()
                         && slider.color_channel != event.color_channel
                 })
         {
@@ -197,16 +205,12 @@ fn update_color_input_textures(
 
 fn update_color_input_display(
     mut on_color_changed: EventReader<OnColorInputValueChanged>,
-    mut color_input_display_query: Query<(Entity, &mut BackgroundColor, &ColorInputDisplay)>,
-    parent_query: Query<&Parent>,
+    mut color_input_display_query: Query<(&mut BackgroundColor, &Partial)>,
 ) {
     for event in on_color_changed.read() {
-        for (_, mut background_color, _) in
-            color_input_display_query
-                .iter_mut()
-                .filter(|(entity, _, _)| {
-                    entity_is_descendant_of(&parent_query, *entity, event.color_input_entity())
-                })
+        for (mut background_color, _) in color_input_display_query
+            .iter_mut()
+            .filter(|(_, partial)| partial.main_entity() == event.color_input_entity())
         {
             *background_color = event.new_color.into();
         }
@@ -261,8 +265,9 @@ fn build_color_input_container_node(
     )
 }
 
-fn build_color_display_node(start_color: Color) -> impl Bundle {
+fn build_color_display_node(start_color: Color, main_entity: Entity) -> impl Bundle {
     (
+        Partial::new(main_entity),
         ColorInputDisplay,
         NodeBundle {
             style: Style {

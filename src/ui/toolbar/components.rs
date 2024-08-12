@@ -21,7 +21,7 @@ use crate::{
         buttons::{spawn_reorder_button, ReorderButton, ReorderDirection},
         ListItem,
     },
-    utility::entity_is_descendant_of,
+    utility::{entity_is_descendant_of, partial::Partial},
     GameRunningSet,
 };
 
@@ -149,7 +149,7 @@ fn add_road_component_on_event(
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnRoadComponentAdded>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
+    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
     list_item_query: Query<&ListItem>,
     parent_query: Query<&Parent>,
     active_road: Res<ActiveRoad>,
@@ -228,7 +228,7 @@ fn reorder_road_components_on_event(
 fn update_reorder_buttons_on_reorder_event(
     mut on_reordered: EventReader<OnRoadComponentReordered>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
+    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
     list_item_query: Query<&ListItem>,
     parent_query: Query<&Parent>,
     active_road: Res<ActiveRoad>,
@@ -248,21 +248,20 @@ fn update_reorder_buttons_on_reorder_event(
 }
 
 fn update_visibility_of_component_reorder_buttons(
-    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility)>,
+    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
     parent_query: &Query<&Parent>,
     list_item_query: &Query<&ListItem>,
     component_list_entity: Entity,
     component_count: usize,
 ) {
-    for (_, reorder_button, mut button_visibility) in
-        reorder_button_query
-            .iter_mut()
-            .filter(|(button_entity, _, _)| {
-                entity_is_descendant_of(parent_query, *button_entity, component_list_entity)
-            })
+    for (_, reorder_button, mut button_visibility, reorder_button_partial) in reorder_button_query
+        .iter_mut()
+        .filter(|(button_entity, _, _, _)| {
+            entity_is_descendant_of(parent_query, *button_entity, component_list_entity)
+        })
     {
         let list_item = list_item_query
-            .get(reorder_button.list_item_entity())
+            .get(reorder_button_partial.main_entity())
             .unwrap();
 
         update_reorder_button_visibility(
@@ -318,10 +317,10 @@ fn spawn_road_component(
     road_component: &RoadComponent,
     component_count: usize,
 ) -> Entity {
-    let mut container = components_list.spawn(build_road_components_container_node(ListItem::new(
-        components_list_entity,
+    let mut container = components_list.spawn(build_road_components_container_node(
         index,
-    )));
+        components_list_entity,
+    ));
     let container_entity = container.id();
 
     container.with_children(|container| {
@@ -389,9 +388,10 @@ fn update_component_name(text: &mut Text, road_component: &RoadComponent) {
     text.sections[0].value = road_component.name().to_string();
 }
 
-fn build_road_components_container_node(list_item: ListItem) -> impl Bundle {
+fn build_road_components_container_node(index: usize, list_entity: Entity) -> impl Bundle {
     (
-        list_item,
+        Partial::new(list_entity),
+        ListItem::new(index),
         RoadComponentItem::default(),
         Interaction::default(),
         NodeBundle {

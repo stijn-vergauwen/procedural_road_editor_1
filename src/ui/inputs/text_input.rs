@@ -8,7 +8,7 @@ use bevy::{
     ui::FocusPolicy,
 };
 
-use crate::GameRunningSet;
+use crate::{utility::partial::Partial, GameRunningSet};
 
 pub struct TextInputPlugin;
 
@@ -107,10 +107,7 @@ impl TextInput {
 }
 
 #[derive(Component)]
-pub struct TextDisplay {
-    // TODO: replace with iter_ancestors
-    input_entity: Entity,
-}
+pub struct TextDisplay;
 
 #[derive(Event)]
 pub struct OnTextInputSelected {
@@ -179,13 +176,13 @@ pub fn spawn_text_input_node(
 ) -> Entity {
     let text = text.into();
     let mut text_input = builder.spawn(build_text_input_node(root_components, text.clone()));
-    let text_input_entity = text_input.id();
+    let main_entity = text_input.id();
 
     text_input.with_children(|text_input| {
-        text_input.spawn(build_text_display_node(text, text_input_entity));
+        text_input.spawn(build_text_display_node(text, main_entity));
     });
 
-    text_input_entity
+    main_entity
 }
 
 // Systems
@@ -276,11 +273,11 @@ fn confirm_text_input_on_enter(
 
 fn update_input_display_text(
     mut on_changed: EventReader<OnTextInputDisplayTextChanged>,
-    mut text_display_query: Query<(&TextDisplay, &mut Text)>,
+    mut text_display_query: Query<(&mut Text, &Partial), With<TextDisplay>>,
 ) {
     for event in on_changed.read() {
-        let (_, mut text) = text_display_query.iter_mut()
-        .find(|(text_display, _)| text_display.input_entity == event.text_input_entity)
+        let (mut text, _) = text_display_query.iter_mut()
+        .find(|(_, partial)| partial.main_entity() == event.text_input_entity)
         .expect("TextInputDisplayTextChanged event should always match TextInput entity with a display node.");
 
         text.sections[0].value = event.text.clone();
@@ -325,9 +322,10 @@ fn build_text_input_node(root_components: impl Bundle, text: String) -> impl Bun
     )
 }
 
-fn build_text_display_node(text: String, input_entity: Entity) -> impl Bundle {
+fn build_text_display_node(text: String, main_entity: Entity) -> impl Bundle {
     (
-        TextDisplay { input_entity },
+        Partial::new(main_entity),
+        TextDisplay,
         TextBundle {
             text: Text {
                 sections: vec![TextSection {

@@ -4,7 +4,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     ui::{build_text_node, buttons::spawn_button_node},
-    utility::entity_is_descendant_of,
+    utility::partial::Partial,
     GameRunningSet,
 };
 
@@ -89,18 +89,15 @@ impl OnNumberInputValueChanged {
 
 fn update_number_input_value_on_button_press(
     mut on_changed: EventWriter<OnNumberInputValueChanged>,
-    mut button_query: Query<(Entity, &Interaction, &mut NumberInputButton), Changed<Interaction>>,
+    mut button_query: Query<(&Interaction, &mut NumberInputButton, &Partial), Changed<Interaction>>,
     mut number_input_query: Query<(Entity, &mut NumberInput)>,
-    parent_query: Query<&Parent>,
 ) {
-    for (button_entity, _, number_input_button) in button_query
+    for (_, number_input_button, partial) in button_query
         .iter_mut()
-        .filter(|(_, interaction, _)| **interaction == Interaction::Pressed)
+        .filter(|(interaction, _, _)| **interaction == Interaction::Pressed)
     {
-        let (number_input_entity, mut number_input) = number_input_query
-            .iter_mut()
-            .find(|(entity, _)| entity_is_descendant_of(&parent_query, button_entity, *entity))
-            .unwrap();
+        let (number_input_entity, mut number_input) =
+            number_input_query.get_mut(partial.main_entity()).unwrap();
 
         let delta_value = match number_input_button.direction {
             NumberInputDirection::Up => 0.1,
@@ -118,12 +115,11 @@ fn update_number_input_value_on_button_press(
 
 fn update_number_display(
     mut on_changed: EventReader<OnNumberInputValueChanged>,
-    mut number_display_query: Query<(Entity, &NumberInputDisplay, &mut Text)>,
-    parent_query: Query<&Parent>,
+    mut number_display_query: Query<(&NumberInputDisplay, &mut Text, &Partial)>,
 ) {
     for event in on_changed.read() {
-        let (_, _, mut text) = number_display_query.iter_mut()
-        .find(|(entity, _, _)| entity_is_descendant_of(&parent_query, *entity, event.number_input_entity()))
+        let (_, mut text, _) = number_display_query.iter_mut()
+        .find(|(_, _, partial)| partial.main_entity() == event.number_input_entity())
         .expect("NumberInputValueChanged event should always match NumberInput entity with a display node.");
 
         text.sections[0].value = format_display_value(event.new_value());
@@ -142,7 +138,7 @@ pub fn spawn_number_input_node(
         start_value,
         value_range,
     ));
-    let number_input_entity = number_input.id();
+    let main_entity = number_input.id();
 
     number_input.with_children(|number_input| {
         number_input.spawn(build_text_node(
@@ -158,7 +154,10 @@ pub fn spawn_number_input_node(
             .with_children(|elements_container| {
                 spawn_button_node(
                     elements_container,
-                    NumberInputButton::new(NumberInputDirection::Down),
+                    (
+                        NumberInputButton::new(NumberInputDirection::Down),
+                        Partial::new(main_entity),
+                    ),
                     "<",
                     20.0,
                 );
@@ -171,20 +170,23 @@ pub fn spawn_number_input_node(
                             20.0,
                             Color::WHITE,
                             JustifyText::Center,
-                            NumberInputDisplay,
+                            (NumberInputDisplay, Partial::new(main_entity)),
                         ));
                     });
 
                 spawn_button_node(
                     elements_container,
-                    NumberInputButton::new(NumberInputDirection::Up),
+                    (
+                        NumberInputButton::new(NumberInputDirection::Up),
+                        Partial::new(main_entity),
+                    ),
                     ">",
                     20.0,
                 );
             });
     });
 
-    number_input_entity
+    main_entity
 }
 
 fn format_display_value(value: f32) -> String {
@@ -221,18 +223,15 @@ fn build_number_input_elements_container_node() -> NodeBundle {
 }
 
 fn build_numer_input_display_node() -> impl Bundle {
-    (
-        NumberInputDisplay,
-        NodeBundle {
-            style: Style {
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                padding: UiRect::axes(Val::Px(4.0), Val::Px(2.0)),
-                border: UiRect::all(Val::Px(2.0)),
-                ..default()
-            },
-            border_color: BorderColor(NEUTRAL_900.into()),
+    (NodeBundle {
+        style: Style {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            padding: UiRect::axes(Val::Px(4.0), Val::Px(2.0)),
+            border: UiRect::all(Val::Px(2.0)),
             ..default()
         },
-    )
+        border_color: BorderColor(NEUTRAL_900.into()),
+        ..default()
+    },)
 }

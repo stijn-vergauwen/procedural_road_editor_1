@@ -51,8 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Decide structure for what components should have entity references and what shouldn't
-                - Remove all unwanted entity refs
             - Move List CRUD and reorder logic to list module, move reorder button under list module
             - Give reorder button module it's own plugin
                 - Move button visibility logic from components module to the reorder button module

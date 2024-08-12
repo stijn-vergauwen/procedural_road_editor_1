@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::ui::ListItem;
+use crate::{ui::ListItem, utility::partial::Partial};
 
 #[derive(Event)]
 pub struct OnReorderButtonPressed {
@@ -34,17 +34,11 @@ impl OnReorderButtonPressed {
 #[derive(Component)]
 pub struct ReorderButton {
     direction: ReorderDirection,
-    // TODO: replace with iter_ancestors
-    list_item_entity: Entity,
 }
 
 impl ReorderButton {
     pub fn direction(&self) -> ReorderDirection {
         self.direction
-    }
-    
-    pub fn list_item_entity(&self) -> Entity {
-        self.list_item_entity
     }
 }
 
@@ -56,16 +50,16 @@ pub enum ReorderDirection {
 
 pub fn send_reorder_button_pressed_events(
     mut on_pressed: EventWriter<OnReorderButtonPressed>,
-    button_query: Query<(&ReorderButton, &Interaction), Changed<Interaction>>,
-    list_item_query: Query<&ListItem>,
+    button_query: Query<(&ReorderButton, &Interaction, &Partial), Changed<Interaction>>,
+    list_item_query: Query<&Partial, With<ListItem>>,
 ) {
-    for (button, interaction) in button_query.iter() {
+    for (button, interaction, button_partial) in button_query.iter() {
         if *interaction == Interaction::Pressed {
-            let list_item = list_item_query.get(button.list_item_entity).unwrap();
+            let list_partial = list_item_query.get(button_partial.main_entity()).unwrap();
 
             on_pressed.send(OnReorderButtonPressed::new(
-                list_item.list_entity(),
-                button.list_item_entity,
+                list_partial.main_entity(),
+                button_partial.main_entity(),
                 button.direction,
             ));
         }
@@ -113,14 +107,14 @@ fn build_button_text_node(button_direction: ReorderDirection, size: f32) -> Text
 
 fn build_button_node(
     button_direction: ReorderDirection,
-    list_item_entity: Entity,
+    main_entity: Entity,
     size: f32,
     visibility: Visibility,
-) -> (ReorderButton, ButtonBundle) {
+) -> impl Bundle {
     (
+        Partial::new(main_entity),
         ReorderButton {
             direction: button_direction,
-            list_item_entity,
         },
         ButtonBundle {
             style: Style {
