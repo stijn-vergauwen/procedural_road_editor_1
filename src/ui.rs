@@ -3,7 +3,7 @@ mod inputs;
 mod list;
 mod modal;
 mod sidebar;
-mod toolbar;
+pub mod toolbar;
 
 pub use list::{List, ListItem};
 

@@ -6,7 +6,7 @@ use crate::{
             road_component_change::OnRoadComponentChangeRequested,
             road_component_deletion::OnRoadComponentDeletionRequested,
         },
-        ActiveRoad,
+        ActiveRoad, RoadComponent,
     },
     ui::{
         buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
@@ -15,11 +15,9 @@ use crate::{
             number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},
             text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
         },
-        toolbar::components::{
-            selected_road_component::{OnRoadComponentDeselected, OnRoadComponentSelected},
-            RoadComponentItem,
+        toolbar::components::selected_road_component::{
+            OnRoadComponentDeselected, OnRoadComponentSelected,
         },
-        ListItem,
     },
     GameRunningSet,
 };
@@ -142,35 +140,33 @@ fn handle_number_input_changed_events(
     mut on_input_changed: EventReader<OnNumberInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
     number_input_query: Query<&ComponentConfigAction, With<NumberInput>>,
-    active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.number_input_entity();
         let config_action = number_input_query.get(event_entity).unwrap();
 
         let component_config = component_config_query.single();
-        let component_index =
-            get_index_of_component_item(&component_item_query, component_config.component_entity);
-        let current_component_data = active_road.component_at_index(component_index);
+        let new_value = event.new_value();
 
-        let new_size = match config_action {
-            ComponentConfigAction::SetWidth => {
-                Vec2::new(event.new_value(), current_component_data.size().y)
-            }
-            ComponentConfigAction::SetHeight => {
-                Vec2::new(current_component_data.size().x, event.new_value())
-            }
-            _ => continue,
-        };
-
-        let requested_data = current_component_data.clone().with_size(new_size);
+        let requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync> =
+            match config_action {
+                ComponentConfigAction::SetWidth => {
+                    Box::new(move |road_component: RoadComponent| -> RoadComponent {
+                        road_component.with_x(new_value)
+                    })
+                }
+                ComponentConfigAction::SetHeight => {
+                    Box::new(move |road_component: RoadComponent| -> RoadComponent {
+                        road_component.with_y(new_value)
+                    })
+                }
+                _ => continue,
+            };
 
         on_change_request.send(OnRoadComponentChangeRequested::new(
-            requested_data,
+            requested_change,
             component_config.component_entity,
-            component_index,
         ));
     }
 }
@@ -179,9 +175,7 @@ fn handle_text_input_changed_events(
     mut on_input_changed: EventReader<OnTextInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
     text_input_query: Query<&ComponentConfigAction, With<TextInput>>,
-    active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.text_input_entity();
@@ -192,18 +186,12 @@ fn handle_text_input_changed_events(
         };
 
         let component_config = component_config_query.single();
-        let component_index =
-            get_index_of_component_item(&component_item_query, component_config.component_entity);
-        let current_component_data = active_road.component_at_index(component_index);
 
-        let requested_data = current_component_data
-            .clone()
-            .with_name(event.text().to_string());
+        let name = event.text().to_string();
 
         on_change_request.send(OnRoadComponentChangeRequested::new(
-            requested_data,
+            Box::new(move |road_component| road_component.with_name(name.clone())),
             component_config.component_entity,
-            component_index,
         ));
     }
 }
@@ -212,9 +200,7 @@ fn handle_color_input_changed_events(
     mut on_input_changed: EventReader<OnColorInputValueChanged>,
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
     color_input_query: Query<&ComponentConfigAction, With<ColorInput>>,
-    active_road: Res<ActiveRoad>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.color_input_entity();
@@ -225,16 +211,11 @@ fn handle_color_input_changed_events(
         };
 
         let component_config = component_config_query.single();
-        let component_index =
-            get_index_of_component_item(&component_item_query, component_config.component_entity);
-        let current_component_data = active_road.component_at_index(component_index);
-
-        let requested_data = current_component_data.clone().with_color(event.new_color());
+        let color = event.new_color();
 
         on_change_request.send(OnRoadComponentChangeRequested::new(
-            requested_data,
+            Box::new(move |road_component| road_component.with_color(color)),
             component_config.component_entity,
-            component_index,
         ));
     }
 }
@@ -244,33 +225,19 @@ fn handle_delete_button_pressed_events(
     mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
     mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
-    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
 ) {
     for _ in on_pressed
         .read()
         .filter(|event| event.is_action(ButtonAction::DeleteComponent))
     {
         let component_config = component_config_query.single();
-        let component_index =
-            get_index_of_component_item(&component_item_query, component_config.component_entity);
 
         on_deletion_request.send(OnRoadComponentDeletionRequested::new(
             component_config.component_entity,
-            component_index,
         ));
 
         on_deselect.send(OnRoadComponentDeselected);
     }
-}
-
-fn get_index_of_component_item(
-    component_item_query: &Query<&ListItem, With<RoadComponentItem>>,
-    component_item_entity: Entity,
-) -> usize {
-    component_item_query
-        .get(component_item_entity)
-        .unwrap()
-        .index()
 }
 
 fn build_config_container_node(component_entity: Entity) -> impl Bundle {

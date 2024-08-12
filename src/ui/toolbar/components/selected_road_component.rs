@@ -68,8 +68,6 @@ fn send_road_component_selected_events(
                 **interaction == Interaction::Pressed && !road_component_item.is_selected
             })
     {
-        println!("Index of component selected: {}", list_item.index());
-
         on_selected.send(OnRoadComponentSelected::new(list_item.index(), entity));
     }
 }

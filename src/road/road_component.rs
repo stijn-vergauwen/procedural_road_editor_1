@@ -18,21 +18,23 @@ impl RoadComponent {
         }
     }
 
-    pub fn with_size(mut self, size: Vec2) -> Self {
-        self.size = size;
+    pub fn with_x(mut self, x: f32) -> Self {
+        self.size = self.size.with_x(x);
+        self
+    }
 
+    pub fn with_y(mut self, y: f32) -> Self {
+        self.size = self.size.with_y(y);
         self
     }
 
     pub fn with_name(mut self, name: String) -> Self {
         self.name = name;
-
         self
     }
 
     pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
-
         self
     }
 

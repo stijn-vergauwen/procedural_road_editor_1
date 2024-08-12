@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 
-use crate::{road::RoadComponent, GameRunningSet};
+use crate::{
+    road::RoadComponent,
+    ui::{toolbar::components::RoadComponentItem, ListItem},
+    GameRunningSet,
+};
 
-use super::{ActiveRoad, OnActiveRoadModified};
+use super::{get_index_of_component_item, ActiveRoad, OnActiveRoadModified};
 
 pub struct RoadComponentChangePlugin;
 
@@ -19,21 +23,18 @@ impl Plugin for RoadComponentChangePlugin {
 
 #[derive(Event)]
 pub struct OnRoadComponentChangeRequested {
-    requested_data: RoadComponent,
+    requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync>,
     component_entity: Entity,
-    component_index: usize,
 }
 
 impl OnRoadComponentChangeRequested {
     pub fn new(
-        requested_data: RoadComponent,
+        requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync>,
         component_entity: Entity,
-        component_index: usize,
     ) -> Self {
         Self {
-            requested_data,
+            requested_change: Box::new(requested_change),
             component_entity,
-            component_index,
         }
     }
 }
@@ -42,6 +43,7 @@ impl OnRoadComponentChangeRequested {
 pub struct OnRoadComponentChanged {
     component_data: RoadComponent,
     component_entity: Entity,
+    // TODO: check if index is needed
     component_index: usize,
 }
 
@@ -76,16 +78,22 @@ fn handle_change_requests(
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
     mut on_changed: EventWriter<OnRoadComponentChanged>,
     mut active_road: ResMut<ActiveRoad>,
+    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
 ) {
     for request in requests.read() {
-        // TODO: get component index here from the ListItem components, then road config doesn't need to pass it
-        active_road.set_road_component(request.component_index, request.requested_data.clone());
+        let component_index =
+            get_index_of_component_item(&component_item_query, request.component_entity);
+
+        let current_data = active_road.component_at_index(component_index);
+        let changed_data = (request.requested_change)(current_data.clone());
+
+        active_road.set_road_component(component_index, changed_data.clone());
         active_road.send_road_modified_event(&mut on_road_modified);
 
         on_changed.send(OnRoadComponentChanged::new(
-            request.requested_data.clone(),
+            changed_data,
             request.component_entity,
-            request.component_index,
+            component_index,
         ));
     }
 }
