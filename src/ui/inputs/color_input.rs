@@ -1,6 +1,10 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::{ui::build_text_node, utility::texture_builder::TextureBuilder, GameRunningSet};
+use crate::{
+    ui::build_text_node,
+    utility::{entity_is_descendant_of, texture_builder::TextureBuilder},
+    GameRunningSet,
+};
 
 use super::slider_input::{spawn_slider_input_with_image, OnSliderInputValueChanged};
 
@@ -32,17 +36,12 @@ impl ColorInput {
 
 #[derive(Component)]
 struct ColorInputSlider {
-    // TODO: replace with iter_ancestors
-    color_input_entity: Entity,
     color_channel: ColorChannel,
 }
 
 impl ColorInputSlider {
-    fn new(color_input_entity: Entity, color_channel: ColorChannel) -> Self {
-        Self {
-            color_input_entity,
-            color_channel,
-        }
+    fn new(color_channel: ColorChannel) -> Self {
+        Self { color_channel }
     }
 }
 
@@ -56,16 +55,7 @@ enum ColorChannel {
 }
 
 #[derive(Component)]
-struct ColorInputDisplay {
-    // TODO: replace with iter_ancestors
-    color_input_entity: Entity,
-}
-
-impl ColorInputDisplay {
-    fn new(color_input_entity: Entity) -> Self {
-        Self { color_input_entity }
-    }
-}
+struct ColorInputDisplay;
 
 #[derive(Event)]
 pub struct OnColorInputValueChanged {
@@ -116,31 +106,10 @@ pub fn spawn_color_input(
             ));
         }
 
-        color_input.spawn(build_color_display_node(color_input_entity, start_color));
-
-        spawn_color_input_slider(
-            color_input,
-            images,
-            color_input_entity,
-            start_color,
-            ColorChannel::A,
-        );
-
-        spawn_color_input_slider(
-            color_input,
-            images,
-            color_input_entity,
-            start_color,
-            ColorChannel::B,
-        );
-
-        spawn_color_input_slider(
-            color_input,
-            images,
-            color_input_entity,
-            start_color,
-            ColorChannel::C,
-        );
+        color_input.spawn(build_color_display_node(start_color));
+        spawn_color_input_slider(color_input, images, start_color, ColorChannel::A);
+        spawn_color_input_slider(color_input, images, start_color, ColorChannel::B);
+        spawn_color_input_slider(color_input, images, start_color, ColorChannel::C);
     });
 
     color_input_entity
@@ -149,7 +118,6 @@ pub fn spawn_color_input(
 fn spawn_color_input_slider(
     builder: &mut ChildBuilder,
     images: &mut Assets<Image>,
-    color_input_entity: Entity,
     start_color: Color,
     color_channel: ColorChannel,
 ) -> Entity {
@@ -157,17 +125,18 @@ fn spawn_color_input_slider(
 
     spawn_slider_input_with_image(
         builder,
-        ColorInputSlider::new(color_input_entity, color_channel),
+        ColorInputSlider::new(color_channel),
         get_rgba_color_channel(start_color, color_channel),
         image,
     )
 }
 
 fn send_color_input_changed_events(
-    mut on_color_changed: EventWriter<OnColorInputValueChanged>,
     mut on_slider_changed: EventReader<OnSliderInputValueChanged>,
+    mut on_color_changed: EventWriter<OnColorInputValueChanged>,
     color_input_slider_query: Query<&ColorInputSlider>,
-    mut color_input_query: Query<&mut ColorInput>,
+    mut color_input_query: Query<(Entity, &mut ColorInput)>,
+    parent_query: Query<&Parent>,
 ) {
     for event in on_slider_changed.read() {
         let Ok(color_input_slider) = color_input_slider_query.get(event.slider_input_entity())
@@ -175,10 +144,19 @@ fn send_color_input_changed_events(
             continue;
         };
 
-        let color_input_entity = color_input_slider.color_input_entity;
         let color_channel = color_input_slider.color_channel;
 
-        let Ok(mut color_input) = color_input_query.get_mut(color_input_entity) else {
+        let Some((color_input_entity, mut color_input)) =
+            color_input_query
+                .iter_mut()
+                .find(|(color_input_entity, _)| {
+                    entity_is_descendant_of(
+                        &parent_query,
+                        event.slider_input_entity(),
+                        *color_input_entity,
+                    )
+                })
+        else {
             continue;
         };
 
@@ -198,13 +176,18 @@ fn send_color_input_changed_events(
 fn update_color_input_textures(
     mut on_color_changed: EventReader<OnColorInputValueChanged>,
     mut images: ResMut<Assets<Image>>,
-    color_input_slider_query: Query<(&UiImage, &ColorInputSlider)>,
+    color_input_slider_query: Query<(Entity, &UiImage, &ColorInputSlider)>,
+    parent_query: Query<&Parent>,
 ) {
     for event in on_color_changed.read() {
-        for (ui_image, slider) in color_input_slider_query.iter().filter(|(_, slider)| {
-            slider.color_input_entity == event.color_input_entity
-                && slider.color_channel != event.color_channel
-        }) {
+        for (_, ui_image, slider) in
+            color_input_slider_query
+                .iter()
+                .filter(|(entity, _, slider)| {
+                    entity_is_descendant_of(&parent_query, *entity, event.color_input_entity())
+                        && slider.color_channel != event.color_channel
+                })
+        {
             let image = images.get_mut(&ui_image.texture).unwrap();
 
             *image = generate_slider_image(event.new_color, slider.color_channel);
@@ -214,12 +197,16 @@ fn update_color_input_textures(
 
 fn update_color_input_display(
     mut on_color_changed: EventReader<OnColorInputValueChanged>,
-    mut color_input_display_query: Query<(&mut BackgroundColor, &ColorInputDisplay)>,
+    mut color_input_display_query: Query<(Entity, &mut BackgroundColor, &ColorInputDisplay)>,
+    parent_query: Query<&Parent>,
 ) {
     for event in on_color_changed.read() {
-        for (mut background_color, _) in color_input_display_query
-            .iter_mut()
-            .filter(|(_, display)| display.color_input_entity == event.color_input_entity)
+        for (_, mut background_color, _) in
+            color_input_display_query
+                .iter_mut()
+                .filter(|(entity, _, _)| {
+                    entity_is_descendant_of(&parent_query, *entity, event.color_input_entity())
+                })
         {
             *background_color = event.new_color.into();
         }
@@ -274,9 +261,9 @@ fn build_color_input_container_node(
     )
 }
 
-fn build_color_display_node(color_input_entity: Entity, start_color: Color) -> impl Bundle {
+fn build_color_display_node(start_color: Color) -> impl Bundle {
     (
-        ColorInputDisplay::new(color_input_entity),
+        ColorInputDisplay,
         NodeBundle {
             style: Style {
                 width: Val::Px(40.0),
