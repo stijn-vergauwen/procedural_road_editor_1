@@ -1,4 +1,3 @@
-// TODO: move the save, load, and delete buttons to the code that actually uses them (right now I'm splitting it in horizontal layers instead of vertical sections)
 mod reorder_button;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
@@ -15,18 +14,55 @@ impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnReorderButtonPressed>().add_systems(
             Update,
-            send_reorder_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+            (
+                send_button_pressed_events,
+                send_reorder_button_pressed_events,
+            )
+                .in_set(GameRunningSet::GetUserInput),
         );
+    }
+}
+
+#[derive(Event)]
+pub struct OnButtonPressed {
+    action: ButtonAction,
+}
+
+impl OnButtonPressed {
+    pub fn new(action: ButtonAction) -> Self {
+        Self { action }
+    }
+
+    pub fn is_action(&self, action: ButtonAction) -> bool {
+        self.action == action
+    }
+}
+
+#[derive(Component, PartialEq, Clone, Copy)]
+pub enum ButtonAction {
+    SaveRoad,
+    LoadRoad,
+    AddComponent,
+}
+
+fn send_button_pressed_events(
+    mut on_pressed: EventWriter<OnButtonPressed>,
+    button_query: Query<(&Interaction, &ButtonAction), Changed<Interaction>>,
+) {
+    for (interaction, action) in button_query.iter() {
+        if *interaction == Interaction::Pressed {
+            on_pressed.send(OnButtonPressed::new(*action));
+        }
     }
 }
 
 pub fn spawn_button_node(
     builder: &mut ChildBuilder,
-    button_components: impl Bundle,
+    root_components: impl Bundle,
     text: &str,
     font_size: f32,
 ) -> Entity {
-    let button_node = build_button_node(button_components);
+    let button_node = build_button_node(root_components);
 
     builder
         .spawn(button_node)
@@ -36,9 +72,9 @@ pub fn spawn_button_node(
         .id()
 }
 
-fn build_button_node(button_components: impl Bundle) -> impl Bundle {
+fn build_button_node(root_components: impl Bundle) -> impl Bundle {
     (
-        button_components,
+        root_components,
         ButtonBundle {
             style: Style {
                 justify_content: JustifyContent::Center,

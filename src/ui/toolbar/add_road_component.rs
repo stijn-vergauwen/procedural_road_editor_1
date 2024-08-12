@@ -2,10 +2,9 @@ use bevy::prelude::*;
 
 use crate::{
     road::{active_road::new_road_component::OnNewRoadComponentRequested, RoadComponent},
+    ui::buttons::{ButtonAction, OnButtonPressed},
     GameRunningSet,
 };
-
-use super::ToolbarAction;
 
 pub struct AddRoadComponentPlugin;
 
@@ -19,12 +18,13 @@ impl Plugin for AddRoadComponentPlugin {
 }
 
 pub fn handle_add_road_component_button_pressed(
+    mut on_pressed: EventReader<OnButtonPressed>,
     mut on_request: EventWriter<OnNewRoadComponentRequested>,
-    button_query: Query<(&Interaction, &ToolbarAction), Changed<Interaction>>,
 ) {
-    for (interaction, action) in button_query.iter() {
-        if *interaction == Interaction::Pressed && *action == ToolbarAction::AddComponent {
-            on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
-        }
+    for _ in on_pressed
+        .read()
+        .filter(|event| event.is_action(ButtonAction::AddComponent))
+    {
+        on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
     }
 }

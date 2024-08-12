@@ -10,7 +10,7 @@ use load::LoadPlugin;
 use save::SavePlugin;
 
 use super::{
-    buttons::spawn_button_node,
+    buttons::{spawn_button_node, ButtonAction},
     List,
 };
 
@@ -34,13 +34,6 @@ struct Toolbar;
 #[derive(Component)]
 struct RoadComponentsList;
 
-#[derive(Component, PartialEq, Clone, Copy)]
-enum ToolbarAction {
-    SaveRoad,
-    LoadRoad,
-    AddComponent,
-}
-
 pub fn spawn_toolbar(mut commands: Commands) {
     commands
         .spawn(build_container_node())
@@ -55,7 +48,7 @@ pub fn spawn_toolbar(mut commands: Commands) {
                     toolbar
                         .spawn(build_content_centered_container_node())
                         .with_children(|container| {
-                            spawn_button_node(container, ToolbarAction::AddComponent, "+", 30.0);
+                            spawn_button_node(container, ButtonAction::AddComponent, "+", 30.0);
                         });
                 });
         });
@@ -65,8 +58,8 @@ fn spawn_action_buttons(builder: &mut ChildBuilder) {
     builder
         .spawn(build_action_buttons_container_node())
         .with_children(|container| {
-            spawn_button_node(container, ToolbarAction::SaveRoad, "Save", 24.0);
-            spawn_button_node(container, ToolbarAction::LoadRoad, "Load", 24.0);
+            spawn_button_node(container, ButtonAction::SaveRoad, "Save", 24.0);
+            spawn_button_node(container, ButtonAction::LoadRoad, "Load", 24.0);
         });
 }
 

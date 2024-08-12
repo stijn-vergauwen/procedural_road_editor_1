@@ -7,23 +7,21 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     road::OnLoadRoadRequested,
-    ui::modal::{OnHideModalRequested, OnShowModalRequested},
+    ui::{
+        buttons::{ButtonAction, OnButtonPressed},
+        modal::{OnHideModalRequested, OnShowModalRequested},
+    },
     GameRunningSet,
 };
-
-use super::ToolbarAction;
 
 pub struct LoadPlugin;
 
 impl Plugin for LoadPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnLoadButtonPressed>().add_systems(
+        app.add_systems(
             Update,
-            (
-                send_load_button_pressed_events.in_set(GameRunningSet::GetUserInput),
-                (send_load_requests, show_modal_on_load_button_pressed)
-                    .in_set(GameRunningSet::SendCommands),
-            ),
+            (send_load_requests, show_modal_on_load_button_pressed)
+                .in_set(GameRunningSet::SendCommands),
         );
     }
 }
@@ -31,27 +29,15 @@ impl Plugin for LoadPlugin {
 #[derive(Component)]
 struct RoadNameItem;
 
-#[derive(Event)]
-struct OnLoadButtonPressed;
-
-// TODO: replace with generic system
-fn send_load_button_pressed_events(
-    mut on_pressed: EventWriter<OnLoadButtonPressed>,
-    button_query: Query<(&Interaction, &ToolbarAction), Changed<Interaction>>,
-) {
-    for (interaction, action) in button_query.iter() {
-        if *interaction == Interaction::Pressed && *action == ToolbarAction::LoadRoad {
-            on_pressed.send(OnLoadButtonPressed);
-        }
-    }
-}
-
 fn show_modal_on_load_button_pressed(
-    mut events: EventReader<OnLoadButtonPressed>,
+    mut on_pressed: EventReader<OnButtonPressed>,
     mut on_request: EventWriter<OnShowModalRequested>,
     mut commands: Commands,
 ) {
-    for _ in events.read() {
+    for _ in on_pressed
+        .read()
+        .filter(|event| event.is_action(ButtonAction::LoadRoad))
+    {
         let mut modal_content_container = commands.spawn(build_load_content_container_node());
         let modal_content_entity = modal_content_container.id();
 
