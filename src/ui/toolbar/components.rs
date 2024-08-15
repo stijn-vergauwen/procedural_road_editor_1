@@ -18,7 +18,7 @@ use crate::{
         ActiveRoad, RoadComponent,
     },
     ui::{
-        buttons::{spawn_reorder_button, ReorderButton, ReorderDirection},
+        list::reorder_button::{spawn_reorder_button, ReorderButton, ReorderDirection},
         ListItem,
     },
     utility::{entity_is_descendant_of, partial::Partial},
@@ -121,31 +121,26 @@ fn add_road_component_on_event(
     for event in on_added.read() {
         let components_list_entity = components_list_query.single();
 
-        // TODO: refactor out this entity
-        let mut component_item_entity = None;
-
         commands
             .entity(components_list_entity)
             .with_children(|components_list| {
-                component_item_entity = Some(spawn_road_component(
+                let component_item_entity = spawn_road_component(
                     components_list,
                     event.component_index(),
                     components_list_entity,
                     event.component_data(),
                     event.component_count(),
+                );
+
+                on_component_selected.send(OnRoadComponentSelected::new(
+                    event.component_index(),
+                    component_item_entity,
                 ));
             });
-
-        // TODO: refactor out this if let
-        if let Some(component_item_entity) = component_item_entity {
-            on_component_selected.send(OnRoadComponentSelected::new(
-                event.component_index(),
-                component_item_entity,
-            ));
-        }
     }
 }
 
+// TODO: move to list module
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnRoadComponentAdded>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
@@ -199,6 +194,7 @@ fn update_road_component_on_change(
     }
 }
 
+// TODO: move to list module
 fn reorder_road_components_on_event(
     mut on_reordered: EventReader<OnRoadComponentReordered>,
     mut components_list_query: Query<&mut Children, With<RoadComponentsList>>,
@@ -225,6 +221,7 @@ fn reorder_road_components_on_event(
     }
 }
 
+// TODO: move to list module
 fn update_reorder_buttons_on_reorder_event(
     mut on_reordered: EventReader<OnRoadComponentReordered>,
     components_list_query: Query<Entity, With<RoadComponentsList>>,
@@ -247,6 +244,7 @@ fn update_reorder_buttons_on_reorder_event(
     }
 }
 
+// TODO: move to list module
 fn update_visibility_of_component_reorder_buttons(
     reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
     parent_query: &Query<&Parent>,
@@ -287,6 +285,7 @@ fn update_reorder_button_visibility(
     }
 }
 
+// TODO: move to list module
 fn delete_road_component_on_event(
     mut on_deleted: EventReader<OnRoadComponentDeleted>,
     mut commands: Commands,

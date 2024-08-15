@@ -28,6 +28,7 @@ impl Plugin for SelectedRoadComponentPlugin {
     }
 }
 
+// TODO: replace entity of selected item with entity of list
 #[derive(Event, Clone)]
 pub struct OnRoadComponentSelected {
     component_index: usize,

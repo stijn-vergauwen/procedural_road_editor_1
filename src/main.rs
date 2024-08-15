@@ -19,7 +19,7 @@ use world::WorldPlugin;
         A 3d road editor where you can create custom road designs from basic building blocks like:
         - Lanes, medians, sidewalks
         - Lines & other markings
-        Widths, heights, colors are configurable. With support for spaced elements like gutters or trees.
+        Widths, heights, colors are configurable. With support for spaced elements like drains or trees.
         These designs can then be saved as files, and loaded back in.
 
         The app has 2 sides:

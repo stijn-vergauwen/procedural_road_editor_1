@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     road::active_road::road_component_reorder::OnRoadComponentReorderRequested,
     ui::{
-        buttons::{OnReorderButtonPressed, ReorderDirection},
+        list::reorder_button::{OnReorderButtonPressed, ReorderDirection},
         toolbar::RoadComponentsList,
         ListItem,
     },

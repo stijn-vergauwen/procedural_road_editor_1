@@ -1,3 +1,5 @@
+pub mod reorder_button;
+
 use bevy::prelude::*;
 
 #[derive(Component, Clone, Copy)]

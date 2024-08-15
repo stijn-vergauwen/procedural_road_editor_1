@@ -1,70 +1,8 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::{ui::ListItem, utility::partial::Partial};
+use crate::utility::partial::Partial;
 
-#[derive(Event)]
-pub struct OnReorderButtonPressed {
-    list_entity: Entity,
-    list_item_entity: Entity,
-    direction: ReorderDirection,
-}
-
-impl OnReorderButtonPressed {
-    pub fn new(list_entity: Entity, list_item_entity: Entity, direction: ReorderDirection) -> Self {
-        Self {
-            list_entity,
-            list_item_entity,
-            direction,
-        }
-    }
-
-    pub fn list_entity(&self) -> Entity {
-        self.list_entity
-    }
-
-    pub fn list_item_entity(&self) -> Entity {
-        self.list_item_entity
-    }
-
-    pub fn direction(&self) -> ReorderDirection {
-        self.direction
-    }
-}
-
-#[derive(Component)]
-pub struct ReorderButton {
-    direction: ReorderDirection,
-}
-
-impl ReorderButton {
-    pub fn direction(&self) -> ReorderDirection {
-        self.direction
-    }
-}
-
-#[derive(Clone, Copy)]
-pub enum ReorderDirection {
-    Next,
-    Previous,
-}
-
-pub fn send_reorder_button_pressed_events(
-    mut on_pressed: EventWriter<OnReorderButtonPressed>,
-    button_query: Query<(&ReorderButton, &Interaction, &Partial), Changed<Interaction>>,
-    list_item_query: Query<&Partial, With<ListItem>>,
-) {
-    for (button, interaction, button_partial) in button_query.iter() {
-        if *interaction == Interaction::Pressed {
-            let list_partial = list_item_query.get(button_partial.main_entity()).unwrap();
-
-            on_pressed.send(OnReorderButtonPressed::new(
-                list_partial.main_entity(),
-                button_partial.main_entity(),
-                button.direction,
-            ));
-        }
-    }
-}
+use super::{ReorderButton, ReorderDirection};
 
 pub fn spawn_reorder_button(
     builder: &mut ChildBuilder,

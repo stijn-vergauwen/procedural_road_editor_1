@@ -1,10 +1,4 @@
-mod reorder_button;
-
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use reorder_button::send_reorder_button_pressed_events;
-pub use reorder_button::{
-    spawn_reorder_button, OnReorderButtonPressed, ReorderButton, ReorderDirection,
-};
 
 use crate::GameRunningSet;
 
@@ -12,16 +6,10 @@ pub struct ButtonsPlugin;
 
 impl Plugin for ButtonsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnButtonPressed>()
-            .add_event::<OnReorderButtonPressed>()
-            .add_systems(
-                Update,
-                (
-                    send_button_pressed_events,
-                    send_reorder_button_pressed_events,
-                )
-                    .in_set(GameRunningSet::GetUserInput),
-            );
+        app.add_event::<OnButtonPressed>().add_systems(
+            Update,
+            send_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+        );
     }
 }
 
