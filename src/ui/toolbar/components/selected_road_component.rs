@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::NEUTRAL_200, prelude::*};
 
-use crate::{ui::ListItem, GameRunningSet};
+use crate::{ui::list::ListItem, GameRunningSet};
 
 use super::RoadComponentItem;
 

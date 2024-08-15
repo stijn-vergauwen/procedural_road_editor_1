@@ -1,15 +1,14 @@
 mod buttons;
 mod inputs;
-mod list;
+pub mod list;
 mod modal;
 mod sidebar;
 pub mod toolbar;
 
-pub use list::{List, ListItem};
-
 use bevy::prelude::*;
 use buttons::ButtonsPlugin;
 use inputs::UiInputsPlugin;
+use list::ListPlugin;
 use modal::ModalPlugin;
 use sidebar::SidebarPlugin;
 use toolbar::ToolbarPlugin;
@@ -24,6 +23,7 @@ impl Plugin for UiPlugin {
             SidebarPlugin,
             UiInputsPlugin,
             ModalPlugin,
+            ListPlugin,
         ));
     }
 }

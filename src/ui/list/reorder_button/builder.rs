@@ -9,14 +9,12 @@ pub fn spawn_reorder_button(
     button_direction: ReorderDirection,
     list_item_entity: Entity,
     size: f32,
-    visibility: Visibility,
 ) {
     builder
         .spawn(build_button_node(
             button_direction,
             list_item_entity,
             size,
-            visibility,
         ))
         .with_children(|button| {
             button.spawn(build_button_text_node(button_direction, size));
@@ -47,7 +45,6 @@ fn build_button_node(
     button_direction: ReorderDirection,
     main_entity: Entity,
     size: f32,
-    visibility: Visibility,
 ) -> impl Bundle {
     (
         Partial::new(main_entity),
@@ -64,7 +61,6 @@ fn build_button_node(
                 ..default()
             },
             border_color: BorderColor(NEUTRAL_900.into()),
-            visibility,
             ..default()
         },
     )

@@ -15,11 +15,11 @@ use crate::{
             road_component_deletion::OnRoadComponentDeleted,
             road_component_reorder::OnRoadComponentReordered, OnActiveRoadSet,
         },
-        ActiveRoad, RoadComponent,
+        RoadComponent,
     },
     ui::{
-        list::reorder_button::{spawn_reorder_button, ReorderButton, ReorderDirection},
-        ListItem,
+        list::reorder_button::{spawn_reorder_button, ReorderDirection},
+        list::ListItem,
     },
     utility::{entity_is_descendant_of, partial::Partial},
     GameRunningSet,
@@ -38,17 +38,9 @@ impl Plugin for ToolbarComponentsPlugin {
                 Update,
                 (
                     (
-                        (
-                            add_road_component_on_event,
-                            update_reorder_buttons_on_add_event,
-                        )
-                            .chain(),
+                        add_road_component_on_event,
                         update_road_component_on_change,
-                        (
-                            reorder_road_components_on_event,
-                            update_reorder_buttons_on_reorder_event,
-                        )
-                            .chain(),
+                        reorder_road_components_on_event,
                     )
                         .in_set(GameRunningSet::UpdateEntities),
                     (
@@ -91,7 +83,6 @@ fn rebuild_road_components_on_active_road_set(
     for event in on_road_set.read() {
         let components_list_entity = components_list_query.single();
         let road_components = event.road_data().components();
-        let component_count = road_components.len();
 
         commands
             .entity(components_list_entity)
@@ -103,7 +94,6 @@ fn rebuild_road_components_on_active_road_set(
                         index,
                         components_list_entity,
                         road_component,
-                        component_count,
                     );
                 }
             });
@@ -129,7 +119,6 @@ fn add_road_component_on_event(
                     event.component_index(),
                     components_list_entity,
                     event.component_data(),
-                    event.component_count(),
                 );
 
                 on_component_selected.send(OnRoadComponentSelected::new(
@@ -137,29 +126,6 @@ fn add_road_component_on_event(
                     component_item_entity,
                 ));
             });
-    }
-}
-
-// TODO: move to list module
-fn update_reorder_buttons_on_add_event(
-    mut on_added: EventReader<OnRoadComponentAdded>,
-    components_list_query: Query<Entity, With<RoadComponentsList>>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
-    list_item_query: Query<&ListItem>,
-    parent_query: Query<&Parent>,
-    active_road: Res<ActiveRoad>,
-) {
-    for _ in on_added.read() {
-        let component_list_entity = components_list_query.single();
-        let component_count = active_road.component_count();
-
-        update_visibility_of_component_reorder_buttons(
-            &mut reorder_button_query,
-            &parent_query,
-            &list_item_query,
-            component_list_entity,
-            component_count,
-        );
     }
 }
 
@@ -222,70 +188,6 @@ fn reorder_road_components_on_event(
 }
 
 // TODO: move to list module
-fn update_reorder_buttons_on_reorder_event(
-    mut on_reordered: EventReader<OnRoadComponentReordered>,
-    components_list_query: Query<Entity, With<RoadComponentsList>>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
-    list_item_query: Query<&ListItem>,
-    parent_query: Query<&Parent>,
-    active_road: Res<ActiveRoad>,
-) {
-    for _ in on_reordered.read() {
-        let component_list_entity = components_list_query.single();
-        let component_count = active_road.component_count();
-
-        update_visibility_of_component_reorder_buttons(
-            &mut reorder_button_query,
-            &parent_query,
-            &list_item_query,
-            component_list_entity,
-            component_count,
-        );
-    }
-}
-
-// TODO: move to list module
-fn update_visibility_of_component_reorder_buttons(
-    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
-    parent_query: &Query<&Parent>,
-    list_item_query: &Query<&ListItem>,
-    component_list_entity: Entity,
-    component_count: usize,
-) {
-    for (_, reorder_button, mut button_visibility, reorder_button_partial) in reorder_button_query
-        .iter_mut()
-        .filter(|(button_entity, _, _, _)| {
-            entity_is_descendant_of(parent_query, *button_entity, component_list_entity)
-        })
-    {
-        let list_item = list_item_query
-            .get(reorder_button_partial.main_entity())
-            .unwrap();
-
-        update_reorder_button_visibility(
-            reorder_button,
-            &mut button_visibility,
-            component_count,
-            list_item.index(),
-        );
-    }
-}
-
-fn update_reorder_button_visibility(
-    reorder_button: &ReorderButton,
-    button_visibility: &mut Visibility,
-    component_count: usize,
-    index: usize,
-) {
-    let target_visibility =
-        get_button_target_visibility(reorder_button.direction(), index, component_count);
-
-    if *button_visibility != target_visibility {
-        *button_visibility = target_visibility;
-    }
-}
-
-// TODO: move to list module
 fn delete_road_component_on_event(
     mut on_deleted: EventReader<OnRoadComponentDeleted>,
     mut commands: Commands,
@@ -314,7 +216,6 @@ fn spawn_road_component(
     index: usize,
     components_list_entity: Entity,
     road_component: &RoadComponent,
-    component_count: usize,
 ) -> Entity {
     let mut container = components_list.spawn(build_road_components_container_node(
         index,
@@ -334,11 +235,6 @@ fn spawn_road_component(
                     ReorderDirection::Previous,
                     container_entity,
                     26.0,
-                    get_button_target_visibility(
-                        ReorderDirection::Previous,
-                        index,
-                        component_count,
-                    ),
                 );
 
                 spawn_reorder_button(
@@ -346,32 +242,11 @@ fn spawn_road_component(
                     ReorderDirection::Next,
                     container_entity,
                     26.0,
-                    get_button_target_visibility(ReorderDirection::Next, index, component_count),
                 );
             });
     });
 
     container_entity
-}
-
-fn get_button_target_visibility(
-    reorder_direction: ReorderDirection,
-    index: usize,
-    component_count: usize,
-) -> Visibility {
-    let should_be_visible = match reorder_direction {
-        ReorderDirection::Next => index < component_count - 1,
-        ReorderDirection::Previous => index > 0,
-    };
-
-    get_visibility(should_be_visible)
-}
-
-fn get_visibility(visible: bool) -> Visibility {
-    match visible {
-        true => Visibility::default(),
-        false => Visibility::Hidden,
-    }
 }
 
 fn update_component_display(

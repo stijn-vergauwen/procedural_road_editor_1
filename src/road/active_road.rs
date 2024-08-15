@@ -9,7 +9,7 @@ use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
 
-use crate::ui::{toolbar::components::RoadComponentItem, ListItem};
+use crate::ui::{toolbar::components::RoadComponentItem, list::ListItem};
 
 use super::{road_data::RoadData, RoadComponent};
 
@@ -124,6 +124,7 @@ impl OnActiveRoadSet {
     }
 }
 
+// TODO: remove event, use the more specific events instead
 #[derive(Event, Clone)]
 pub struct OnActiveRoadModified {
     road_data: RoadData,

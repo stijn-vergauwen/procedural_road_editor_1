@@ -11,7 +11,7 @@ use save::SavePlugin;
 
 use super::{
     buttons::{spawn_button_node, ButtonAction},
-    List,
+    list::List,
 };
 
 pub struct ToolbarPlugin;

@@ -4,8 +4,8 @@ use crate::{
     road::active_road::road_component_reorder::OnRoadComponentReorderRequested,
     ui::{
         list::reorder_button::{OnReorderButtonPressed, ReorderDirection},
+        list::ListItem,
         toolbar::RoadComponentsList,
-        ListItem,
     },
     GameRunningSet,
 };
@@ -41,6 +41,7 @@ fn send_reorder_requests(
         requests.send(OnRoadComponentReorderRequested::new(
             list_item.index(),
             requested_index,
+            event.list_entity(),
         ));
     }
 }

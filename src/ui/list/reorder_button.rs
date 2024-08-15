@@ -1,18 +1,22 @@
 mod builder;
+mod visibility;
 
 use bevy::prelude::*;
+use visibility::ReorderButtonVisibilityPlugin;
 
-use crate::{ui::ListItem, utility::partial::Partial, GameRunningSet};
+use crate::{ui::list::ListItem, utility::partial::Partial, GameRunningSet};
 pub use builder::spawn_reorder_button;
 
 pub struct ReorderButtonPlugin;
 
 impl Plugin for ReorderButtonPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnReorderButtonPressed>().add_systems(
-            Update,
-            send_reorder_button_pressed_events.in_set(GameRunningSet::GetUserInput),
-        );
+        app.add_plugins(ReorderButtonVisibilityPlugin)
+            .add_event::<OnReorderButtonPressed>()
+            .add_systems(
+                Update,
+                send_reorder_button_pressed_events.in_set(GameRunningSet::GetUserInput),
+            );
     }
 }
 

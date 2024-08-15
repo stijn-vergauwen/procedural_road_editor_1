@@ -6,6 +6,8 @@ use crate::{
     GameRunningSet,
 };
 
+use super::RoadComponentsList;
+
 pub struct AddRoadComponentPlugin;
 
 impl Plugin for AddRoadComponentPlugin {
@@ -20,11 +22,16 @@ impl Plugin for AddRoadComponentPlugin {
 pub fn handle_add_road_component_button_pressed(
     mut on_pressed: EventReader<OnButtonPressed>,
     mut on_request: EventWriter<OnNewRoadComponentRequested>,
+    component_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
     for _ in on_pressed
         .read()
         .filter(|event| event.is_action(ButtonAction::AddComponent))
     {
-        on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
+        let component_list_entity = component_list_query.single();
+        on_request.send(OnNewRoadComponentRequested::new(
+            RoadComponent::default(),
+            component_list_entity,
+        ));
     }
 }

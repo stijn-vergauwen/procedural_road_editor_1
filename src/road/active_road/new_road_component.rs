@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{road::RoadComponent, GameRunningSet};
+use crate::{road::RoadComponent, ui::list::add_list_item::OnListItemAdded, GameRunningSet};
 
 use super::{ActiveRoad, OnActiveRoadModified};
 
@@ -20,18 +20,24 @@ impl Plugin for NewRoadComponentPlugin {
 #[derive(Event)]
 pub struct OnNewRoadComponentRequested {
     component_data: RoadComponent,
+    component_list_entity: Entity,
 }
 
 impl OnNewRoadComponentRequested {
-    pub fn new(component_data: RoadComponent) -> Self {
-        Self { component_data }
+    pub fn new(component_data: RoadComponent, component_list_entity: Entity) -> Self {
+        Self {
+            component_data,
+            component_list_entity,
+        }
     }
 }
 
 #[derive(Event)]
 pub struct OnRoadComponentAdded {
     component_data: RoadComponent,
+    // TODO: check if field is needed
     component_index: usize,
+    // TODO: check if field is needed
     component_count: usize,
 }
 
@@ -62,9 +68,10 @@ impl OnRoadComponentAdded {
 }
 
 fn handle_change_requests(
+    mut requests: EventReader<OnNewRoadComponentRequested>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
     mut on_component_added: EventWriter<OnRoadComponentAdded>,
-    mut requests: EventReader<OnNewRoadComponentRequested>,
+    mut on_list_item_added: EventWriter<OnListItemAdded>,
     mut active_road: ResMut<ActiveRoad>,
 ) {
     for request in requests.read() {
@@ -76,5 +83,7 @@ fn handle_change_requests(
             component_index,
             active_road.component_count(),
         ));
+
+        on_list_item_added.send(OnListItemAdded::new(request.component_list_entity));
     }
 }
