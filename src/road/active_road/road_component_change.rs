@@ -1,12 +1,8 @@
 use bevy::prelude::*;
 
-use crate::{
-    road::RoadComponent,
-    ui::{list::ListItem, toolbar::components::RoadComponentItem},
-    GameRunningSet,
-};
+use crate::{road::RoadComponent, GameRunningSet};
 
-use super::{get_index_of_component_item, ActiveRoad, OnActiveRoadModified};
+use super::{ActiveRoad, OnActiveRoadModified};
 
 pub struct RoadComponentChangePlugin;
 
@@ -25,16 +21,19 @@ impl Plugin for RoadComponentChangePlugin {
 pub struct OnRoadComponentChangeRequested {
     requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync>,
     component_entity: Entity,
+    component_index: usize,
 }
 
 impl OnRoadComponentChangeRequested {
     pub fn new(
         requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync>,
         component_entity: Entity,
+        component_index: usize,
     ) -> Self {
         Self {
             requested_change: Box::new(requested_change),
             component_entity,
+            component_index,
         }
     }
 }
@@ -78,22 +77,18 @@ fn handle_change_requests(
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
     mut on_changed: EventWriter<OnRoadComponentChanged>,
     mut active_road: ResMut<ActiveRoad>,
-    component_item_query: Query<&ListItem, With<RoadComponentItem>>,
 ) {
     for request in requests.read() {
-        let component_index =
-            get_index_of_component_item(&component_item_query, request.component_entity);
-
-        let current_data = active_road.component_at_index(component_index);
+        let current_data = active_road.component_at_index(request.component_index);
         let changed_data = (request.requested_change)(current_data.clone());
 
-        active_road.set_road_component(component_index, changed_data.clone());
+        active_road.set_road_component(request.component_index, changed_data.clone());
         active_road.send_road_modified_event(&mut on_road_modified);
 
         on_changed.send(OnRoadComponentChanged::new(
             changed_data,
             request.component_entity,
-            component_index,
+            request.component_index,
         ));
     }
 }

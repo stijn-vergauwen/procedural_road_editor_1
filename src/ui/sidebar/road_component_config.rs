@@ -15,10 +15,12 @@ use crate::{
             number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},
             text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
         },
+        list::ListItem,
         toolbar::components::selected_road_component::{
             OnRoadComponentDeselected, OnRoadComponentSelected,
         },
     },
+    utility::partial::Partial,
     GameRunningSet,
 };
 
@@ -141,6 +143,7 @@ fn handle_number_input_changed_events(
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     number_input_query: Query<&ComponentConfigAction, With<NumberInput>>,
+    list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.number_input_entity();
@@ -167,6 +170,7 @@ fn handle_number_input_changed_events(
         on_change_request.send(OnRoadComponentChangeRequested::new(
             requested_change,
             component_config.component_entity,
+            list_item_index_from_entity(&list_item_query, component_config.component_entity),
         ));
     }
 }
@@ -176,6 +180,7 @@ fn handle_text_input_changed_events(
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     text_input_query: Query<&ComponentConfigAction, With<TextInput>>,
+    list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.text_input_entity();
@@ -192,6 +197,7 @@ fn handle_text_input_changed_events(
         on_change_request.send(OnRoadComponentChangeRequested::new(
             Box::new(move |road_component| road_component.with_name(name.clone())),
             component_config.component_entity,
+            list_item_index_from_entity(&list_item_query, component_config.component_entity),
         ));
     }
 }
@@ -201,6 +207,7 @@ fn handle_color_input_changed_events(
     mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     color_input_query: Query<&ComponentConfigAction, With<ColorInput>>,
+    list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.color_input_entity();
@@ -216,6 +223,7 @@ fn handle_color_input_changed_events(
         on_change_request.send(OnRoadComponentChangeRequested::new(
             Box::new(move |road_component| road_component.with_color(color)),
             component_config.component_entity,
+            list_item_index_from_entity(&list_item_query, component_config.component_entity),
         ));
     }
 }
@@ -225,19 +233,29 @@ fn handle_delete_button_pressed_events(
     mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
     mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
+    list_item_query: Query<(&ListItem, &Partial)>,
 ) {
     for _ in on_pressed
         .read()
         .filter(|event| event.is_action(ButtonAction::DeleteComponent))
     {
         let component_config = component_config_query.single();
+        let (list_item, list_item_partial) = list_item_query
+            .get(component_config.component_entity)
+            .unwrap();
 
         on_deletion_request.send(OnRoadComponentDeletionRequested::new(
+            list_item_partial.main_entity(),
             component_config.component_entity,
+            list_item.index(),
         ));
 
         on_deselect.send(OnRoadComponentDeselected);
     }
+}
+
+fn list_item_index_from_entity(list_item_query: &Query<&ListItem>, entity: Entity) -> usize {
+    list_item_query.get(entity).unwrap().index()
 }
 
 fn build_config_container_node(component_entity: Entity) -> impl Bundle {

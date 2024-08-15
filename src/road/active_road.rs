@@ -9,8 +9,6 @@ use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
 
-use crate::ui::{toolbar::components::RoadComponentItem, list::ListItem};
-
 use super::{road_data::RoadData, RoadComponent};
 
 pub struct ActiveRoadPlugin;
@@ -138,17 +136,4 @@ impl OnActiveRoadModified {
     pub fn road_data(&self) -> &RoadData {
         &self.road_data
     }
-}
-
-// Thought: Having this logic here feels wrong because "it should be on the UI side of the code".
-//          But I think the actual problem is that I split the UI code to it's own folder instead of keeping it close to the related functionality,
-//          if I had organized it differently this logic here probably wouldn't feel out of place.
-fn get_index_of_component_item(
-    component_item_query: &Query<&ListItem, With<RoadComponentItem>>,
-    component_item_entity: Entity,
-) -> usize {
-    component_item_query
-        .get(component_item_entity)
-        .unwrap()
-        .index()
 }

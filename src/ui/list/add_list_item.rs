@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 
-// TODO: move to "events" module if this module won't have systems
 pub struct AddListItemPlugin;
 
 impl Plugin for AddListItemPlugin {

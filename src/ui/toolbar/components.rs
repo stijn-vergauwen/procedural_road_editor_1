@@ -11,8 +11,7 @@ use crate::{
     road::{
         active_road::{
             new_road_component::OnRoadComponentAdded,
-            road_component_change::OnRoadComponentChanged,
-            road_component_deletion::OnRoadComponentDeleted, OnActiveRoadSet,
+            road_component_change::OnRoadComponentChanged, OnActiveRoadSet,
         },
         RoadComponent,
     },
@@ -38,10 +37,7 @@ impl Plugin for ToolbarComponentsPlugin {
                 (
                     (add_road_component_on_event, update_road_component_on_change)
                         .in_set(GameRunningSet::UpdateEntities),
-                    (
-                        rebuild_road_components_on_active_road_set,
-                        delete_road_component_on_event,
-                    )
+                    (rebuild_road_components_on_active_road_set,)
                         .in_set(GameRunningSet::DespawnEntities),
                 ),
             );
@@ -154,29 +150,6 @@ fn update_road_component_on_change(
         }
     }
 }
-
-// TODO: move to list module
-fn delete_road_component_on_event(
-    mut on_deleted: EventReader<OnRoadComponentDeleted>,
-    mut commands: Commands,
-    mut component_item_query: Query<&mut ListItem, With<RoadComponentItem>>,
-) {
-    for event in on_deleted.read() {
-        let mut component_item_commands = commands.entity(event.component_entity());
-
-        component_item_commands.remove_parent();
-        component_item_commands.despawn_recursive();
-
-        for mut item in component_item_query
-            .iter_mut()
-            .filter(|item| item.index() > event.component_index())
-        {
-            let new_index = item.index() - 1;
-            item.set_index(new_index);
-        }
-    }
-}
-
 // Utility
 
 fn spawn_road_component(
