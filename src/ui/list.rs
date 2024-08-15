@@ -1,21 +1,17 @@
 pub mod add_list_item;
 pub mod reorder_button;
-pub mod reorder_list_item;
+pub mod reorder_list;
 
 use add_list_item::AddListItemPlugin;
 use bevy::prelude::*;
 use reorder_button::ReorderButtonPlugin;
-use reorder_list_item::ReorderListItemPlugin;
+use reorder_list::ReorderListPlugin;
 
 pub struct ListPlugin;
 
 impl Plugin for ListPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            ReorderButtonPlugin,
-            AddListItemPlugin,
-            ReorderListItemPlugin,
-        ));
+        app.add_plugins((ReorderButtonPlugin, AddListItemPlugin, ReorderListPlugin));
     }
 }
 

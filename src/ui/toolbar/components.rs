@@ -12,8 +12,7 @@ use crate::{
         active_road::{
             new_road_component::OnRoadComponentAdded,
             road_component_change::OnRoadComponentChanged,
-            road_component_deletion::OnRoadComponentDeleted,
-            road_component_reorder::OnRoadComponentReordered, OnActiveRoadSet,
+            road_component_deletion::OnRoadComponentDeleted, OnActiveRoadSet,
         },
         RoadComponent,
     },
@@ -37,11 +36,7 @@ impl Plugin for ToolbarComponentsPlugin {
             .add_systems(
                 Update,
                 (
-                    (
-                        add_road_component_on_event,
-                        update_road_component_on_change,
-                        reorder_road_components_on_event,
-                    )
+                    (add_road_component_on_event, update_road_component_on_change)
                         .in_set(GameRunningSet::UpdateEntities),
                     (
                         rebuild_road_components_on_active_road_set,
@@ -156,33 +151,6 @@ fn update_road_component_on_change(
             entity_is_descendant_of(&parent_query, *name_entity, component_entity)
         }) {
             update_component_name(&mut text, road_component);
-        }
-    }
-}
-
-// TODO: move to list module
-fn reorder_road_components_on_event(
-    mut on_reordered: EventReader<OnRoadComponentReordered>,
-    mut components_list_query: Query<&mut Children, With<RoadComponentsList>>,
-    mut component_item_query: Query<&mut ListItem, With<RoadComponentItem>>,
-) {
-    for event in on_reordered.read() {
-        let mut component_list_children = components_list_query.single_mut();
-        let previous_index = event.previous_index();
-        let component_index = event.component_index();
-
-        // TODO: move this reordering functionality to list module (send onListReorderRequested event)
-        component_list_children.swap(previous_index, component_index);
-
-        for child in component_list_children.iter() {
-            let mut component_item = component_item_query.get_mut(*child).unwrap();
-            let item_index = component_item.index();
-
-            if item_index == previous_index {
-                component_item.set_index(component_index);
-            } else if item_index == component_index {
-                component_item.set_index(previous_index);
-            }
         }
     }
 }

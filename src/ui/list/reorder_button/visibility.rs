@@ -1,9 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    ui::list::{
-        add_list_item::OnListItemAdded, reorder_list_item::OnListItemReordered, List, ListItem,
-    },
+    ui::list::{add_list_item::OnListItemAdded, reorder_list::OnListReordered, List, ListItem},
     utility::{entity_is_descendant_of, partial::Partial},
     GameRunningSet,
 };
@@ -26,8 +24,13 @@ impl Plugin for ReorderButtonVisibilityPlugin {
 }
 
 // TODO: refactor this module
-// TODO: add OnListReplaced event (when all list items are replaced)
-// TODO: update reorder button on list items set event
+
+/*
+    TODO: I have a question related to event architecture:
+    Logic like recalculating these reorder buttons or redrawing the preview road should respond to more than 1 event in the same way,
+    The nice thing about events is that many systems can respond to 1 event, but in this case 1 system should respond to many events.
+    It's the other way around, What is a clean way to handle these cases? This is something I'm struggling to find a good answer for atm.
+*/
 
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnListItemAdded>,
@@ -51,7 +54,7 @@ fn update_reorder_buttons_on_add_event(
 }
 
 fn update_reorder_buttons_on_reorder_event(
-    mut on_reordered: EventReader<OnListItemReordered>,
+    mut on_reordered: EventReader<OnListReordered>,
     mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
     list_query: Query<&Children, With<List>>,
     list_item_query: Query<&ListItem>,
