@@ -10,7 +10,7 @@ use load::LoadPlugin;
 use save::SavePlugin;
 
 use super::{
-    buttons::{spawn_button_node, ButtonAction},
+    components::buttons::{spawn_button_node, ButtonAction},
     list::List,
 };
 

@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     road::{active_road::new_road_component::OnNewRoadComponentRequested, RoadComponent},
-    ui::buttons::{ButtonAction, OnButtonPressed},
+    ui::components::buttons::{ButtonAction, OnButtonPressed},
     GameRunningSet,
 };
 

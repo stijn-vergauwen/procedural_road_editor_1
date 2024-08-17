@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     road::{ActiveRoad, OnSaveRoadRequested},
     ui::{
-        buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
+        components::buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
         inputs::text_input::{spawn_text_input_node, TextInput},
         modal::{OnHideModalRequested, OnShowModalRequested},
     },

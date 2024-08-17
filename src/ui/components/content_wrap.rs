@@ -2,6 +2,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use super::UiComponentWithChildren;
 
+#[derive(Clone, Copy)]
 pub struct ContentWrapConfig {
     pub padding: UiRect,
     pub background_color: BackgroundColor,
@@ -34,6 +35,8 @@ impl ContentWrapConfig {
         self.with_border_radius(BorderRadius::all(Val::Px(border_radius)))
     }
 }
+
+// TODO: zero border radius for default
 
 impl Default for ContentWrapConfig {
     fn default() -> Self {

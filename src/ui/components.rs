@@ -1,8 +1,19 @@
+pub mod buttons;
 pub mod content_wrap;
 pub mod flexbox;
 pub mod section;
+pub mod text;
 
 use bevy::prelude::*;
+use buttons::ButtonsPlugin;
+
+pub struct UiComponentsPlugin;
+
+impl Plugin for UiComponentsPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(ButtonsPlugin);
+    }
+}
 
 pub trait UiComponent: Default {
     /// Spawn this component with the current config.

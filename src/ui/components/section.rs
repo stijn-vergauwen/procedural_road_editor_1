@@ -7,6 +7,8 @@ pub struct SectionConfig {
     pub flexbox: FlexboxConfig,
 }
 
+// TODO: add border radius for default
+
 impl Default for SectionConfig {
     fn default() -> Self {
         Self {

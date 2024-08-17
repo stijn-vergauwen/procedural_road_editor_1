@@ -3,7 +3,7 @@ use std::ops::Range;
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
-    ui::{build_text_node, buttons::spawn_button_node},
+    ui::{build_text_node, components::buttons::spawn_button_node},
     utility::partial::Partial,
     GameRunningSet,
 };

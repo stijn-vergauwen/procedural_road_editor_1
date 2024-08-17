@@ -8,7 +8,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::{
     road::OnLoadRoadRequested,
     ui::{
-        buttons::{ButtonAction, OnButtonPressed},
+        components::buttons::{ButtonAction, OnButtonPressed},
         modal::{OnHideModalRequested, OnShowModalRequested},
     },
     GameRunningSet,

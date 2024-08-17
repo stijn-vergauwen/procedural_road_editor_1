@@ -9,7 +9,7 @@ use crate::{
         ActiveRoad, RoadComponent,
     },
     ui::{
-        buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
+        components::buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
         inputs::{
             color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
             number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},

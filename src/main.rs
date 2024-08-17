@@ -51,8 +51,9 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Make UI utility modules
-                - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
+            - Make UiComponent for number input
+            - Make UiComponent for slider input
+            - Make UiComponent for color input
             - Rework layout & colors etc, more web-devvy
 
         - Lane lines support

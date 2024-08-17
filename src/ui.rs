@@ -1,4 +1,3 @@
-mod buttons;
 pub mod components;
 mod inputs;
 pub mod list;
@@ -7,8 +6,10 @@ mod sidebar;
 pub mod toolbar;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use buttons::ButtonsPlugin;
-use components::{section::Section, UiComponentWithChildren};
+use components::{
+    buttons::Button, section::Section, text::SimpleText, UiComponent, UiComponentWithChildren,
+    UiComponentsPlugin,
+};
 use inputs::UiInputsPlugin;
 use list::ListPlugin;
 use modal::ModalPlugin;
@@ -20,7 +21,7 @@ pub struct UiPlugin;
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
-            ButtonsPlugin,
+            UiComponentsPlugin,
             ToolbarPlugin,
             SidebarPlugin,
             UiInputsPlugin,
@@ -66,7 +67,15 @@ fn spawn_template_test_thing(mut commands: Commands) {
         .with_children(|container| {
             Section::default().spawn(container, (), |section| {
                 section.spawn(build_test_content_node());
-                section.spawn(build_test_content_node());
+
+                Button::default()
+                    .with_background_color(BLUE_400)
+                    .spawn(section, (), |button| {
+                        SimpleText::default()
+                            .with_text("Test text")
+                            .spawn(button, ());
+                    });
+
                 section.spawn(build_test_content_node());
             });
         });

@@ -2,6 +2,11 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::GameRunningSet;
 
+use super::{
+    content_wrap::{ContentWrap, ContentWrapConfig},
+    UiComponentWithChildren,
+};
+
 pub struct ButtonsPlugin;
 
 impl Plugin for ButtonsPlugin {
@@ -12,6 +17,67 @@ impl Plugin for ButtonsPlugin {
         );
     }
 }
+
+// Start of new UiComponent code
+
+// TODO: make ButtonsConfig struct with presets (like FlexboxConfig has)
+
+/// A button UiComponent with text as content.
+#[derive(Default)]
+pub struct Button {
+    config: ContentWrapConfig,
+}
+
+impl Button {
+    pub fn new(config: ContentWrapConfig) -> Self {
+        Self { config }
+    }
+
+    pub fn with_padding(&mut self, padding: UiRect) -> &mut Self {
+        self.config.padding = padding;
+        self
+    }
+
+    pub fn with_background_color(
+        &mut self,
+        background_color: impl Into<BackgroundColor>,
+    ) -> &mut Self {
+        self.config.background_color = background_color.into();
+        self
+    }
+
+    pub fn with_border_size(&mut self, border_size: UiRect) -> &mut Self {
+        self.config.border_size = border_size;
+        self
+    }
+
+    pub fn with_border_color(&mut self, border_color: impl Into<BorderColor>) -> &mut Self {
+        self.config.border_color = border_color.into();
+        self
+    }
+
+    pub fn with_border_radius(&mut self, border_radius: BorderRadius) -> &mut Self {
+        self.config.border_radius = border_radius;
+        self
+    }
+}
+
+impl UiComponentWithChildren for Button {
+    fn spawn(
+        &self,
+        builder: &mut ChildBuilder,
+        components: impl Bundle,
+        children: impl FnOnce(&mut ChildBuilder),
+    ) -> Entity {
+        ContentWrap::new(self.config).spawn(builder, (components, self.build()), children)
+    }
+
+    fn build(&self) -> impl Bundle {
+        (Button, Interaction::default())
+    }
+}
+
+// End of new UiComponent code
 
 #[derive(Event)]
 pub struct OnButtonPressed {
