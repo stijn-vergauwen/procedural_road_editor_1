@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use super::UiComponentWithChildren;
+
 pub struct FlexboxConfig {
     pub flex_direction: FlexDirection,
     pub justify_content: JustifyContent,
@@ -92,25 +94,10 @@ impl Flexbox {
     pub fn new(config: FlexboxConfig) -> Self {
         Self { config }
     }
+}
 
-    // TODO: split spawn & spawn_default to UiComponentWithChildren trait
-    pub fn spawn(
-        &self,
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        builder.spawn(self.build()).with_children(children).id()
-    }
-
-    /// Shorthand for spawning this component with default config.
-    pub fn spawn_default(
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        Self::default().spawn(builder, children)
-    }
-
-    pub fn build(&self) -> impl Bundle {
+impl UiComponentWithChildren for Flexbox {
+    fn build(&self) -> impl Bundle {
         let conf = &self.config;
 
         NodeBundle {

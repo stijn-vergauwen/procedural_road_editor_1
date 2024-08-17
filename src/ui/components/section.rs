@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::{content_wrap::ContentWrapConfig, flexbox::FlexboxConfig};
+use super::{content_wrap::ContentWrapConfig, flexbox::FlexboxConfig, UiComponentWithChildren};
 
 pub struct SectionConfig {
     pub wrap: ContentWrapConfig,
@@ -39,25 +39,10 @@ impl Section {
         self.config.flexbox = flexbox_config;
         self
     }
+}
 
-    // TODO: split spawn & spawn_default to UiComponentWithChildren trait
-    pub fn spawn(
-        &self,
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        builder.spawn(self.build()).with_children(children).id()
-    }
-
-    /// Shorthand for spawning this component with default config.
-    pub fn spawn_default(
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        Self::default().spawn(builder, children)
-    }
-
-    pub fn build(&self) -> impl Bundle {
+impl UiComponentWithChildren for Section {
+    fn build(&self) -> impl Bundle {
         NodeBundle {
             style: Style {
                 flex_direction: self.config.flexbox.flex_direction,

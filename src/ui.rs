@@ -8,7 +8,7 @@ pub mod toolbar;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use buttons::ButtonsPlugin;
-use components::section::Section;
+use components::{section::Section, UiComponentWithChildren};
 use inputs::UiInputsPlugin;
 use list::ListPlugin;
 use modal::ModalPlugin;
@@ -64,7 +64,7 @@ fn spawn_template_test_thing(mut commands: Commands) {
     commands
         .spawn(centered_container_node())
         .with_children(|container| {
-            Section::default().spawn(container, |section| {
+            Section::default().spawn(container, (), |section| {
                 section.spawn(build_test_content_node());
                 section.spawn(build_test_content_node());
                 section.spawn(build_test_content_node());

@@ -1,5 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
+use super::UiComponentWithChildren;
+
 pub struct ContentWrapConfig {
     pub padding: UiRect,
     pub background_color: BackgroundColor,
@@ -83,25 +85,10 @@ impl ContentWrap {
         self.config.border_radius = border_radius;
         self
     }
+}
 
-    // TODO: split spawn & spawn_default to UiComponentWithChildren trait
-    pub fn spawn(
-        &self,
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        builder.spawn(self.build()).with_children(children).id()
-    }
-
-    /// Shorthand for spawning this component with default config.
-    pub fn spawn_default(
-        builder: &mut ChildBuilder,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        Self::default().spawn(builder, children)
-    }
-
-    pub fn build(&self) -> impl Bundle {
+impl UiComponentWithChildren for ContentWrap {
+    fn build(&self) -> impl Bundle {
         NodeBundle {
             style: Style {
                 padding: self.config.padding,
