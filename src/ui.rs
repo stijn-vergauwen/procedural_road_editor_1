@@ -1,12 +1,14 @@
 mod buttons;
+pub mod components;
 mod inputs;
 pub mod list;
 mod modal;
 mod sidebar;
 pub mod toolbar;
 
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::*, prelude::*};
 use buttons::ButtonsPlugin;
+use components::section::Section;
 use inputs::UiInputsPlugin;
 use list::ListPlugin;
 use modal::ModalPlugin;
@@ -24,7 +26,8 @@ impl Plugin for UiPlugin {
             UiInputsPlugin,
             ModalPlugin,
             ListPlugin,
-        ));
+        ))
+        .add_systems(Startup, spawn_template_test_thing);
     }
 }
 
@@ -53,4 +56,43 @@ fn build_text_node(
             ..default()
         },
     )
+}
+
+// TEST
+
+fn spawn_template_test_thing(mut commands: Commands) {
+    commands
+        .spawn(centered_container_node())
+        .with_children(|container| {
+            Section::default().spawn(container, |section| {
+                section.spawn(build_test_content_node());
+                section.spawn(build_test_content_node());
+                section.spawn(build_test_content_node());
+            });
+        });
+}
+
+pub fn centered_container_node() -> impl Bundle {
+    NodeBundle {
+        style: Style {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        ..default()
+    }
+}
+
+fn build_test_content_node() -> impl Bundle {
+    NodeBundle {
+        style: Style {
+            width: Val::Px(150.0),
+            height: Val::Px(40.0),
+            ..default()
+        },
+        background_color: BLUE_500.into(),
+        ..default()
+    }
 }

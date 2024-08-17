@@ -51,9 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Move List CRUD and reorder logic to list module, move reorder button under list module
-            - Give reorder button module it's own plugin
-                - Move button visibility logic from components module to the reorder button module
             - Make UI utility modules
                 - Node style templates (consts with presets for Style values, pretty sure this way you can overwrite what you want and fill the other values in the same way as "Default")
             - Rework layout & colors etc, more web-devvy
