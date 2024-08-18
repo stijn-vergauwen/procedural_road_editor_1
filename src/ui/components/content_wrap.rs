@@ -12,10 +12,9 @@ pub struct ContentWrapConfig {
 }
 
 impl ContentWrapConfig {
-    // TODO: "wide_element" preset for buttons
     pub fn wide_element() -> Self {
         Self {
-            padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
+            padding: UiRect::axes(Val::Px(12.0), Val::Px(4.0)),
             ..default()
         }
     }
@@ -73,34 +72,6 @@ pub struct ContentWrapBuilder {
 impl ContentWrapBuilder {
     pub fn new(config: ContentWrapConfig) -> Self {
         Self { config }
-    }
-
-    pub fn with_padding(&mut self, padding: UiRect) -> &mut Self {
-        self.config.padding = padding;
-        self
-    }
-
-    pub fn with_background_color(
-        &mut self,
-        background_color: impl Into<BackgroundColor>,
-    ) -> &mut Self {
-        self.config.background_color = background_color.into();
-        self
-    }
-
-    pub fn with_border_size(&mut self, border_size: UiRect) -> &mut Self {
-        self.config.border_size = border_size;
-        self
-    }
-
-    pub fn with_border_color(&mut self, border_color: impl Into<BorderColor>) -> &mut Self {
-        self.config.border_color = border_color.into();
-        self
-    }
-
-    pub fn with_border_radius(&mut self, border_radius: BorderRadius) -> &mut Self {
-        self.config.border_radius = border_radius;
-        self
     }
 }
 

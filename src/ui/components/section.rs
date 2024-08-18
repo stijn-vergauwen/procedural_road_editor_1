@@ -4,9 +4,27 @@ use super::{
     content_wrap::ContentWrapConfig, flexbox::FlexboxConfig, UiComponentWithChildrenBuilder,
 };
 
+#[derive(Clone, Copy)]
 pub struct SectionConfig {
     pub wrap: ContentWrapConfig,
     pub flexbox: FlexboxConfig,
+}
+
+impl SectionConfig {
+    pub fn with_content_wrap_config(mut self, content_wrap_config: ContentWrapConfig) -> Self {
+        self.wrap = content_wrap_config;
+        self
+    }
+
+    pub fn with_flexbox_config(mut self, flexbox_config: FlexboxConfig) -> Self {
+        self.flexbox = flexbox_config;
+        self
+    }
+
+    pub fn with_background_color(self, background_color: impl Into<BackgroundColor>) -> Self {
+        self.wrap.with_background_color(background_color);
+        self
+    }
 }
 
 impl Default for SectionConfig {
@@ -29,19 +47,6 @@ pub struct SectionBuilder {
 impl SectionBuilder {
     pub fn new(config: SectionConfig) -> Self {
         Self { config }
-    }
-
-    pub fn with_content_wrap_config(
-        &mut self,
-        content_wrap_config: ContentWrapConfig,
-    ) -> &mut Self {
-        self.config.wrap = content_wrap_config;
-        self
-    }
-
-    pub fn with_flexbox_config(&mut self, flexbox_config: FlexboxConfig) -> &mut Self {
-        self.config.flexbox = flexbox_config;
-        self
     }
 }
 

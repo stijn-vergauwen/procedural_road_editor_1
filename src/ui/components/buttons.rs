@@ -21,9 +21,6 @@ impl Plugin for ButtonsPlugin {
 
 // Start of new UiComponent code
 
-// TODO: make ButtonsConfig struct with presets (like FlexboxConfig has)
-// TODO: make default config a wide_element wrapper
-
 #[derive(Clone, Copy)]
 pub struct ButtonConfig {
     wrap: ContentWrapConfig,
@@ -32,7 +29,7 @@ pub struct ButtonConfig {
 impl Default for ButtonConfig {
     fn default() -> Self {
         Self {
-            wrap: ContentWrapConfig::wide_element(),
+            wrap: ContentWrapConfig::wide_element().with_background_color(NEUTRAL_500),
         }
     }
 }
@@ -85,8 +82,6 @@ impl UiComponentWithChildrenBuilder for ButtonBuilder {
 }
 
 // -- TextButton --
-
-// TODO: LEFT OFF HERE: I think this text button builder is done, test it out in toolbar!
 
 #[derive(Clone)]
 pub struct TextButtonConfig {

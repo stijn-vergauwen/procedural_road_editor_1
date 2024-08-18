@@ -2,6 +2,7 @@ use bevy::prelude::*;
 
 use super::UiComponentWithChildrenBuilder;
 
+#[derive(Clone, Copy)]
 pub struct FlexboxConfig {
     pub flex_direction: FlexDirection,
     pub justify_content: JustifyContent,

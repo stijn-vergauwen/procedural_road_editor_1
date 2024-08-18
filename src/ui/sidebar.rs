@@ -1,9 +1,11 @@
 mod road_component_config;
 
-use bevy::{color::palettes::tailwind::*, prelude::*};
+use bevy::prelude::*;
 use road_component_config::RoadComponentConfigPlugin;
 
 use crate::GameRunningSet;
+
+use super::components::{section::SectionBuilder, UiComponentWithChildrenBuilder};
 
 pub struct SidebarPlugin;
 
@@ -25,7 +27,7 @@ fn spawn_sidebar(mut commands: Commands) {
     commands
         .spawn(build_container_node())
         .with_children(|container| {
-            container.spawn(build_sidebar_node());
+            SectionBuilder::spawn_default(container, Sidebar, |_| {});
         });
 }
 
@@ -57,18 +59,4 @@ fn build_container_node() -> impl Bundle {
         },
         ..default()
     }
-}
-
-fn build_sidebar_node() -> impl Bundle {
-    (
-        Sidebar,
-        NodeBundle {
-            style: Style {
-                padding: UiRect::all(Val::Px(20.0)),
-                ..default()
-            },
-            background_color: BackgroundColor(CYAN_800.with_alpha(0.4).into()),
-            ..default()
-        },
-    )
 }
