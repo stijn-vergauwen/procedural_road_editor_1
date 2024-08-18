@@ -13,6 +13,12 @@ pub struct ContentWrapConfig {
 
 impl ContentWrapConfig {
     // TODO: "wide_element" preset for buttons
+    pub fn wide_element() -> Self {
+        Self {
+            padding: UiRect::axes(Val::Px(8.0), Val::Px(4.0)),
+            ..default()
+        }
+    }
 
     pub fn with_padding(mut self, padding: UiRect) -> Self {
         self.padding = padding;

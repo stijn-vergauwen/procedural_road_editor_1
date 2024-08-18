@@ -2,12 +2,26 @@ use bevy::{prelude::*, text::BreakLineOn};
 
 use super::UiComponentBuilder;
 
+#[derive(Clone)]
 pub struct TextConfig {
     pub text: String,
     pub color: Color,
     pub font_size: f32,
     pub justify: JustifyText,
     pub linebreak_behavior: BreakLineOn,
+}
+
+impl TextConfig {
+    pub fn default_with_text(text: impl Into<String>) -> Self {
+        let mut config = Self::default();
+        config.with_text(text);
+        config
+    }
+
+    pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
+        self.text = text.into();
+        self
+    }
 }
 
 impl Default for TextConfig {
@@ -34,14 +48,11 @@ impl TextBuilder {
     }
 
     pub fn default_with_text(text: impl Into<String>) -> Self {
-        Self::new(TextConfig {
-            text: text.into(),
-            ..default()
-        })
+        Self::new(TextConfig::default_with_text(text))
     }
 
     pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
-        self.config.text = text.into();
+        self.config.with_text(text);
         self
     }
 }

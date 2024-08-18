@@ -4,7 +4,8 @@ use crate::GameRunningSet;
 
 use super::{
     content_wrap::{ContentWrapBuilder, ContentWrapConfig},
-    UiComponentWithChildrenBuilder,
+    text::{TextBuilder, TextConfig},
+    UiComponentBuilder, UiComponentWithChildrenBuilder,
 };
 
 pub struct ButtonsPlugin;
@@ -23,19 +24,35 @@ impl Plugin for ButtonsPlugin {
 // TODO: make ButtonsConfig struct with presets (like FlexboxConfig has)
 // TODO: make default config a wide_element wrapper
 
+#[derive(Clone, Copy)]
+pub struct ButtonConfig {
+    wrap: ContentWrapConfig,
+}
+
+impl Default for ButtonConfig {
+    fn default() -> Self {
+        Self {
+            wrap: ContentWrapConfig::wide_element(),
+        }
+    }
+}
+
 /// A button UiComponent without default content.
 #[derive(Default)]
 pub struct ButtonBuilder {
-    config: ContentWrapConfig,
+    config: ButtonConfig,
 }
 
 impl ButtonBuilder {
-    pub fn new(config: ContentWrapConfig) -> Self {
+    pub fn new(config: ButtonConfig) -> Self {
         Self { config }
     }
 
-    pub fn with_padding(&mut self, padding: UiRect) -> &mut Self {
-        self.config.padding = padding;
+    pub fn with_content_wrap_config(
+        &mut self,
+        content_wrap_config: ContentWrapConfig,
+    ) -> &mut Self {
+        self.config.wrap = content_wrap_config;
         self
     }
 
@@ -43,22 +60,7 @@ impl ButtonBuilder {
         &mut self,
         background_color: impl Into<BackgroundColor>,
     ) -> &mut Self {
-        self.config.background_color = background_color.into();
-        self
-    }
-
-    pub fn with_border_size(&mut self, border_size: UiRect) -> &mut Self {
-        self.config.border_size = border_size;
-        self
-    }
-
-    pub fn with_border_color(&mut self, border_color: impl Into<BorderColor>) -> &mut Self {
-        self.config.border_color = border_color.into();
-        self
-    }
-
-    pub fn with_border_radius(&mut self, border_radius: BorderRadius) -> &mut Self {
-        self.config.border_radius = border_radius;
+        self.config.wrap.background_color = background_color.into();
         self
     }
 }
@@ -70,7 +72,81 @@ impl UiComponentWithChildrenBuilder for ButtonBuilder {
         components: impl Bundle,
         children: impl FnOnce(&mut ChildBuilder),
     ) -> Entity {
-        ContentWrapBuilder::new(self.config).spawn(builder, (components, self.build()), children)
+        ContentWrapBuilder::new(self.config.wrap).spawn(
+            builder,
+            (components, self.build()),
+            children,
+        )
+    }
+
+    fn build(&self) -> impl Bundle {
+        (Button, Interaction::default())
+    }
+}
+
+// -- TextButton --
+
+// TODO: LEFT OFF HERE: I think this text button builder is done, test it out in toolbar!
+
+#[derive(Clone)]
+pub struct TextButtonConfig {
+    button: ButtonConfig,
+    text: TextConfig,
+}
+
+impl TextButtonConfig {
+    pub fn default_with_text(text: impl Into<String>) -> Self {
+        let mut config = Self::default();
+        config.text.with_text(text);
+        config
+    }
+}
+
+impl Default for TextButtonConfig {
+    fn default() -> Self {
+        Self {
+            button: ButtonConfig::default(),
+            text: TextConfig::default(),
+        }
+    }
+}
+
+/// A button UiComponent with text content.
+#[derive(Default)]
+pub struct TextButtonBuilder {
+    config: TextButtonConfig,
+}
+
+impl TextButtonBuilder {
+    pub fn new(config: TextButtonConfig) -> Self {
+        Self { config }
+    }
+
+    pub fn default_with_text(text: impl Into<String>) -> Self {
+        Self::new(TextButtonConfig::default_with_text(text))
+    }
+
+    pub fn with_button_config(&mut self, button_config: ButtonConfig) -> &mut Self {
+        self.config.button = button_config;
+        self
+    }
+
+    pub fn with_text_config(&mut self, text_config: TextConfig) -> &mut Self {
+        self.config.text = text_config;
+        self
+    }
+
+    pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
+        self.config.text.with_text(text);
+        self
+    }
+}
+
+impl UiComponentBuilder for TextButtonBuilder {
+    fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
+        ButtonBuilder::new(self.config.button).spawn(builder, components, |button| {
+            TextBuilder::new(self.config.text.clone()).spawn(button, ());
+        })
     }
 
     fn build(&self) -> impl Bundle {
