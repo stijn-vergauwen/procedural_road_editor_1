@@ -12,12 +12,8 @@ pub struct FlexboxConfig {
 }
 
 impl FlexboxConfig {
-    pub fn centered() -> Self {
-        Self {
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        }
+    pub fn row() -> Self {
+        Self::default()
     }
 
     pub fn horizontally_centered_row() -> Self {
@@ -30,6 +26,13 @@ impl FlexboxConfig {
     pub fn vertically_centered_row() -> Self {
         Self {
             align_items: AlignItems::Center,
+            ..default()
+        }
+    }
+
+    pub fn column() -> Self {
+        Self {
+            flex_direction: FlexDirection::Column,
             ..default()
         }
     }
@@ -48,6 +51,24 @@ impl FlexboxConfig {
             justify_content: JustifyContent::Center,
             ..default()
         }
+    }
+
+    pub fn centered() -> Self {
+        Self {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        }
+    }
+
+    pub fn with_justify(mut self, justify: JustifyContent) -> Self {
+        self.justify_content = justify;
+        self
+    }
+
+    pub fn with_align(mut self, align: AlignItems) -> Self {
+        self.align_items = align;
+        self
     }
 
     pub fn with_row_gap(mut self, gap: Val) -> Self {

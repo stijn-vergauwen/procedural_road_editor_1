@@ -7,12 +7,13 @@ pub mod text;
 
 use bevy::prelude::*;
 use buttons::ButtonsPlugin;
+use inputs::InputComponentsPlugin;
 
 pub struct UiComponentsPlugin;
 
 impl Plugin for UiComponentsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(ButtonsPlugin);
+        app.add_plugins((ButtonsPlugin, InputComponentsPlugin));
     }
 }
 

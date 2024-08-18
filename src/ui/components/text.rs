@@ -2,7 +2,7 @@ use bevy::{prelude::*, text::BreakLineOn};
 
 use super::UiComponentBuilder;
 
-pub struct SimpleTextConfig {
+pub struct TextConfig {
     pub text: String,
     pub color: Color,
     pub font_size: f32,
@@ -10,7 +10,7 @@ pub struct SimpleTextConfig {
     pub linebreak_behavior: BreakLineOn,
 }
 
-impl Default for SimpleTextConfig {
+impl Default for TextConfig {
     fn default() -> Self {
         Self {
             text: String::new(),
@@ -24,13 +24,20 @@ impl Default for SimpleTextConfig {
 
 /// A simple single-line text UiComponent.
 #[derive(Default)]
-pub struct SimpleTextBuilder {
-    config: SimpleTextConfig,
+pub struct TextBuilder {
+    config: TextConfig,
 }
 
-impl SimpleTextBuilder {
-    pub fn new(config: SimpleTextConfig) -> Self {
+impl TextBuilder {
+    pub fn new(config: TextConfig) -> Self {
         Self { config }
+    }
+
+    pub fn default_with_text(text: impl Into<String>) -> Self {
+        Self::new(TextConfig {
+            text: text.into(),
+            ..default()
+        })
     }
 
     pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
@@ -39,7 +46,7 @@ impl SimpleTextBuilder {
     }
 }
 
-impl UiComponentBuilder for SimpleTextBuilder {
+impl UiComponentBuilder for TextBuilder {
     fn build(&self) -> impl Bundle {
         TextBundle {
             text: Text {

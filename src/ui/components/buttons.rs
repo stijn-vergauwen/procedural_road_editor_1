@@ -21,6 +21,7 @@ impl Plugin for ButtonsPlugin {
 // Start of new UiComponent code
 
 // TODO: make ButtonsConfig struct with presets (like FlexboxConfig has)
+// TODO: make default config a wide_element wrapper
 
 /// A button UiComponent without default content.
 #[derive(Default)]

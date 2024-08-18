@@ -9,7 +9,7 @@ use crate::{
             buttons::{spawn_button_node, ButtonBuilder},
             content_wrap::ContentWrapBuilder,
             flexbox::FlexboxBuilder,
-            text::{SimpleTextBuilder, SimpleTextConfig},
+            text::{TextBuilder, TextConfig},
             UiComponentBuilder, UiComponentWithChildrenBuilder,
         },
     },
@@ -55,9 +55,9 @@ impl Default for NumberInputDisplayConfig {
     }
 }
 
-impl From<NumberInputDisplayConfig> for SimpleTextConfig {
+impl From<NumberInputDisplayConfig> for TextConfig {
     fn from(value: NumberInputDisplayConfig) -> Self {
-        SimpleTextConfig {
+        TextConfig {
             color: value.color,
             font_size: value.font_size,
             justify: value.justify,
@@ -91,9 +91,9 @@ impl Default for NumberInputButtonConfig {
     }
 }
 
-impl From<NumberInputButtonConfig> for SimpleTextConfig {
+impl From<NumberInputButtonConfig> for TextConfig {
     fn from(value: NumberInputButtonConfig) -> Self {
-        SimpleTextConfig {
+        TextConfig {
             text: value.text,
             color: value.color,
             font_size: value.font_size,
@@ -143,14 +143,14 @@ impl UiComponentBuilder for NumberInputBuilder {
                 number_input,
                 NumberInputButton::new(NumberInputDirection::Down),
                 |down_button| {
-                    SimpleTextBuilder::new(SimpleTextConfig::from(self.config.down_button.clone()))
+                    TextBuilder::new(TextConfig::from(self.config.down_button.clone()))
                         .spawn(down_button, ());
                 },
             );
 
             // Number input display
             ContentWrapBuilder::spawn_default(number_input, (), |display_wrap| {
-                SimpleTextBuilder::new(SimpleTextConfig::from(self.config.display))
+                TextBuilder::new(TextConfig::from(self.config.display))
                     .spawn(display_wrap, NumberInputDisplay);
             });
 
@@ -159,7 +159,7 @@ impl UiComponentBuilder for NumberInputBuilder {
                 number_input,
                 NumberInputButton::new(NumberInputDirection::Up),
                 |up_button| {
-                    SimpleTextBuilder::new(SimpleTextConfig::from(self.config.up_button.clone()))
+                    TextBuilder::new(TextConfig::from(self.config.up_button.clone()))
                         .spawn(up_button, ());
                 },
             );
