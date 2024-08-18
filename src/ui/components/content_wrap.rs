@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use super::UiComponentWithChildren;
+use super::UiComponentWithChildrenBuilder;
 
 #[derive(Clone, Copy)]
 pub struct ContentWrapConfig {
@@ -12,6 +12,8 @@ pub struct ContentWrapConfig {
 }
 
 impl ContentWrapConfig {
+    // TODO: "wide_element" preset for buttons
+
     pub fn with_padding(mut self, padding: UiRect) -> Self {
         self.padding = padding;
         self
@@ -34,9 +36,15 @@ impl ContentWrapConfig {
     pub fn with_all_px_border_radius(self, border_radius: f32) -> Self {
         self.with_border_radius(BorderRadius::all(Val::Px(border_radius)))
     }
-}
 
-// TODO: zero border radius for default
+    pub fn squared(self) -> Self {
+        self.with_border_radius(BorderRadius::ZERO)
+    }
+
+    pub fn rounded(self) -> Self {
+        self.with_border_radius(BorderRadius::MAX)
+    }
+}
 
 impl Default for ContentWrapConfig {
     fn default() -> Self {
@@ -45,18 +53,18 @@ impl Default for ContentWrapConfig {
             background_color: NEUTRAL_700.into(),
             border_size: UiRect::ZERO,
             border_color: Color::NONE.into(),
-            border_radius: BorderRadius::all(Val::Px(12.0)),
+            border_radius: BorderRadius::ZERO,
         }
     }
 }
 
 /// A UiComponent to wrap color and space around it's content.
 #[derive(Default)]
-pub struct ContentWrap {
+pub struct ContentWrapBuilder {
     config: ContentWrapConfig,
 }
 
-impl ContentWrap {
+impl ContentWrapBuilder {
     pub fn new(config: ContentWrapConfig) -> Self {
         Self { config }
     }
@@ -90,7 +98,7 @@ impl ContentWrap {
     }
 }
 
-impl UiComponentWithChildren for ContentWrap {
+impl UiComponentWithChildrenBuilder for ContentWrapBuilder {
     fn build(&self) -> impl Bundle {
         NodeBundle {
             style: Style {

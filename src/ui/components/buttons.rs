@@ -3,8 +3,8 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::GameRunningSet;
 
 use super::{
-    content_wrap::{ContentWrap, ContentWrapConfig},
-    UiComponentWithChildren,
+    content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+    UiComponentWithChildrenBuilder,
 };
 
 pub struct ButtonsPlugin;
@@ -22,13 +22,13 @@ impl Plugin for ButtonsPlugin {
 
 // TODO: make ButtonsConfig struct with presets (like FlexboxConfig has)
 
-/// A button UiComponent with text as content.
+/// A button UiComponent without default content.
 #[derive(Default)]
-pub struct Button {
+pub struct ButtonBuilder {
     config: ContentWrapConfig,
 }
 
-impl Button {
+impl ButtonBuilder {
     pub fn new(config: ContentWrapConfig) -> Self {
         Self { config }
     }
@@ -62,14 +62,14 @@ impl Button {
     }
 }
 
-impl UiComponentWithChildren for Button {
+impl UiComponentWithChildrenBuilder for ButtonBuilder {
     fn spawn(
         &self,
         builder: &mut ChildBuilder,
         components: impl Bundle,
         children: impl FnOnce(&mut ChildBuilder),
     ) -> Entity {
-        ContentWrap::new(self.config).spawn(builder, (components, self.build()), children)
+        ContentWrapBuilder::new(self.config).spawn(builder, (components, self.build()), children)
     }
 
     fn build(&self) -> impl Bundle {

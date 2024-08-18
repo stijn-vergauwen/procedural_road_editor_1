@@ -1,6 +1,6 @@
 use bevy::{prelude::*, text::BreakLineOn};
 
-use super::UiComponent;
+use super::UiComponentBuilder;
 
 pub struct SimpleTextConfig {
     pub text: String,
@@ -24,11 +24,11 @@ impl Default for SimpleTextConfig {
 
 /// A simple single-line text UiComponent.
 #[derive(Default)]
-pub struct SimpleText {
+pub struct SimpleTextBuilder {
     config: SimpleTextConfig,
 }
 
-impl SimpleText {
+impl SimpleTextBuilder {
     pub fn new(config: SimpleTextConfig) -> Self {
         Self { config }
     }
@@ -39,7 +39,7 @@ impl SimpleText {
     }
 }
 
-impl UiComponent for SimpleText {
+impl UiComponentBuilder for SimpleTextBuilder {
     fn build(&self) -> impl Bundle {
         TextBundle {
             text: Text {

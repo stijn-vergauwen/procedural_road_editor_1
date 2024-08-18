@@ -1,18 +1,20 @@
 use bevy::prelude::*;
 
-use super::{content_wrap::ContentWrapConfig, flexbox::FlexboxConfig, UiComponentWithChildren};
+use super::{
+    content_wrap::ContentWrapConfig, flexbox::FlexboxConfig, UiComponentWithChildrenBuilder,
+};
 
 pub struct SectionConfig {
     pub wrap: ContentWrapConfig,
     pub flexbox: FlexboxConfig,
 }
 
-// TODO: add border radius for default
-
 impl Default for SectionConfig {
     fn default() -> Self {
         Self {
-            wrap: ContentWrapConfig::default().with_all_px_padding(20.0),
+            wrap: ContentWrapConfig::default()
+                .with_all_px_padding(20.0)
+                .with_all_px_border_radius(12.0),
             flexbox: FlexboxConfig::horizontally_centered_column().with_px_gap(12.0),
         }
     }
@@ -20,11 +22,11 @@ impl Default for SectionConfig {
 
 /// A general section UiComponent for content, with content wrap and layout.
 #[derive(Default)]
-pub struct Section {
+pub struct SectionBuilder {
     config: SectionConfig,
 }
 
-impl Section {
+impl SectionBuilder {
     pub fn new(config: SectionConfig) -> Self {
         Self { config }
     }
@@ -43,7 +45,7 @@ impl Section {
     }
 }
 
-impl UiComponentWithChildren for Section {
+impl UiComponentWithChildrenBuilder for SectionBuilder {
     fn build(&self) -> impl Bundle {
         NodeBundle {
             style: Style {

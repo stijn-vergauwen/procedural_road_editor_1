@@ -1,6 +1,7 @@
 pub mod buttons;
 pub mod content_wrap;
 pub mod flexbox;
+pub mod inputs;
 pub mod section;
 pub mod text;
 
@@ -15,7 +16,7 @@ impl Plugin for UiComponentsPlugin {
     }
 }
 
-pub trait UiComponent: Default {
+pub trait UiComponentBuilder: Default {
     /// Spawn this component with the current config.
     ///
     /// - the `components` param is for any extra components you want to add to the spawned entity, leave this empty `()` if you don't need it.
@@ -31,7 +32,7 @@ pub trait UiComponent: Default {
     fn build(&self) -> impl Bundle;
 }
 
-pub trait UiComponentWithChildren: Default {
+pub trait UiComponentWithChildrenBuilder: Default {
     /// Spawn this component with the current config.
     ///
     /// - the `components` param is for any extra components you want to add to the spawned entity, leave this empty `()` if you don't need it.

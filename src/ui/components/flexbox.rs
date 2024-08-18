@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use super::UiComponentWithChildren;
+use super::UiComponentWithChildrenBuilder;
 
 pub struct FlexboxConfig {
     pub flex_direction: FlexDirection,
@@ -86,17 +86,17 @@ impl Default for FlexboxConfig {
 
 /// A flexbox UiComponent, controls layout without padding or background
 #[derive(Default)]
-pub struct Flexbox {
+pub struct FlexboxBuilder {
     config: FlexboxConfig,
 }
 
-impl Flexbox {
+impl FlexboxBuilder {
     pub fn new(config: FlexboxConfig) -> Self {
         Self { config }
     }
 }
 
-impl UiComponentWithChildren for Flexbox {
+impl UiComponentWithChildrenBuilder for FlexboxBuilder {
     fn build(&self) -> impl Bundle {
         let conf = &self.config;
 

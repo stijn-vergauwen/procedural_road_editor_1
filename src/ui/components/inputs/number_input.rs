@@ -1,9 +1,18 @@
 use std::ops::Range;
 
-use bevy::{color::palettes::tailwind::*, prelude::*};
+use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 
 use crate::{
-    ui::{build_text_node, components::buttons::spawn_button_node},
+    ui::{
+        build_text_node,
+        components::{
+            buttons::{spawn_button_node, ButtonBuilder},
+            content_wrap::ContentWrapBuilder,
+            flexbox::FlexboxBuilder,
+            text::{SimpleTextBuilder, SimpleTextConfig},
+            UiComponentBuilder, UiComponentWithChildrenBuilder,
+        },
+    },
     utility::partial::Partial,
     GameRunningSet,
 };
@@ -21,6 +30,148 @@ impl Plugin for NumberInputPlugin {
         );
     }
 }
+
+// Start of new UiComponent code
+
+// TODO: make generic text input UiComponent
+// TODO: make number input build on top of the text input UiComponent, (so it also supports keyboard input, but limits it to numbers within a range)
+
+#[derive(Clone, Copy)]
+pub struct NumberInputDisplayConfig {
+    pub color: Color,
+    pub font_size: f32,
+    pub justify: JustifyText,
+    pub linebreak_behavior: BreakLineOn,
+}
+
+impl Default for NumberInputDisplayConfig {
+    fn default() -> Self {
+        Self {
+            color: Color::WHITE,
+            font_size: 24.0,
+            justify: JustifyText::Center,
+            linebreak_behavior: BreakLineOn::NoWrap,
+        }
+    }
+}
+
+impl From<NumberInputDisplayConfig> for SimpleTextConfig {
+    fn from(value: NumberInputDisplayConfig) -> Self {
+        SimpleTextConfig {
+            color: value.color,
+            font_size: value.font_size,
+            justify: value.justify,
+            linebreak_behavior: value.linebreak_behavior,
+            ..default()
+        }
+    }
+}
+
+#[derive(Clone)]
+pub struct NumberInputButtonConfig {
+    pub text: String,
+    pub color: Color,
+    pub font_size: f32,
+}
+
+impl NumberInputButtonConfig {
+    pub fn with_text(mut self, text: impl Into<String>) -> Self {
+        self.text = text.into();
+        self
+    }
+}
+
+impl Default for NumberInputButtonConfig {
+    fn default() -> Self {
+        Self {
+            text: String::new(),
+            color: Color::WHITE,
+            font_size: 24.0,
+        }
+    }
+}
+
+impl From<NumberInputButtonConfig> for SimpleTextConfig {
+    fn from(value: NumberInputButtonConfig) -> Self {
+        SimpleTextConfig {
+            text: value.text,
+            color: value.color,
+            font_size: value.font_size,
+            ..default()
+        }
+    }
+}
+
+pub struct NumberInputConfig {
+    start_value: f32,
+    // TODO: change to inclusive range
+    value_range: Range<f32>,
+    display: NumberInputDisplayConfig,
+    up_button: NumberInputButtonConfig,
+    down_button: NumberInputButtonConfig,
+}
+
+impl Default for NumberInputConfig {
+    fn default() -> Self {
+        Self {
+            start_value: 0.0,
+            value_range: 0.0..1.0,
+            display: NumberInputDisplayConfig::default(),
+            up_button: NumberInputButtonConfig::default().with_text(">"),
+            down_button: NumberInputButtonConfig::default().with_text("<"),
+        }
+    }
+}
+
+/// A number UiComponent with text as content.
+#[derive(Default)]
+pub struct NumberInputBuilder {
+    config: NumberInputConfig,
+}
+
+impl NumberInputBuilder {
+    pub fn new(config: NumberInputConfig) -> Self {
+        Self { config }
+    }
+}
+
+impl UiComponentBuilder for NumberInputBuilder {
+    fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
+        FlexboxBuilder::spawn_default(builder, (components, self.build()), |number_input| {
+            // Down button
+            ButtonBuilder::spawn_default(
+                number_input,
+                NumberInputButton::new(NumberInputDirection::Down),
+                |down_button| {
+                    SimpleTextBuilder::new(SimpleTextConfig::from(self.config.down_button.clone()))
+                        .spawn(down_button, ());
+                },
+            );
+
+            // Number input display
+            ContentWrapBuilder::spawn_default(number_input, (), |display_wrap| {
+                SimpleTextBuilder::new(SimpleTextConfig::from(self.config.display))
+                    .spawn(display_wrap, NumberInputDisplay);
+            });
+
+            // Up button
+            ButtonBuilder::spawn_default(
+                number_input,
+                NumberInputButton::new(NumberInputDirection::Up),
+                |up_button| {
+                    SimpleTextBuilder::new(SimpleTextConfig::from(self.config.up_button.clone()))
+                        .spawn(up_button, ());
+                },
+            );
+        })
+    }
+
+    fn build(&self) -> impl Bundle {
+        NumberInput::new(self.config.start_value, self.config.value_range.clone())
+    }
+}
+
+// End of new UiComponent code
 
 #[derive(Component)]
 pub struct NumberInput {

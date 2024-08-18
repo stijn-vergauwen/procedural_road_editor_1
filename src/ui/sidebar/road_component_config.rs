@@ -9,10 +9,14 @@ use crate::{
         ActiveRoad, RoadComponent,
     },
     ui::{
-        components::buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
+        components::{
+            buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
+            inputs::number_input::{
+                spawn_number_input_node, NumberInput, OnNumberInputValueChanged,
+            },
+        },
         inputs::{
             color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
-            number_input::{spawn_number_input_node, NumberInput, OnNumberInputValueChanged},
             text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
         },
         list::ListItem,
