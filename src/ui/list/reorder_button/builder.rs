@@ -11,11 +11,7 @@ pub fn spawn_reorder_button(
     size: f32,
 ) {
     builder
-        .spawn(build_button_node(
-            button_direction,
-            list_item_entity,
-            size,
-        ))
+        .spawn(build_button_node(button_direction, list_item_entity, size))
         .with_children(|button| {
             button.spawn(build_button_text_node(button_direction, size));
         });
@@ -29,7 +25,7 @@ fn build_button_text_node(button_direction: ReorderDirection, size: f32) -> Text
             sections: vec![TextSection {
                 value: button_text,
                 style: TextStyle {
-                    color: NEUTRAL_900.into(),
+                    color: NEUTRAL_300.into(),
                     font_size: size - 1.0,
                     ..default()
                 },
@@ -60,7 +56,7 @@ fn build_button_node(
                 border: UiRect::all(Val::Px(2.0)),
                 ..default()
             },
-            border_color: BorderColor(NEUTRAL_900.into()),
+            border_color: BorderColor(NEUTRAL_300.into()),
             ..default()
         },
     )

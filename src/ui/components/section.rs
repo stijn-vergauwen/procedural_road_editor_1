@@ -25,6 +25,11 @@ impl SectionConfig {
         self.wrap.with_background_color(background_color);
         self
     }
+
+    pub fn squared(mut self) -> Self {
+        self.wrap = self.wrap.with_border_radius(BorderRadius::ZERO);
+        self
+    }
 }
 
 impl Default for SectionConfig {
@@ -32,7 +37,7 @@ impl Default for SectionConfig {
         Self {
             wrap: ContentWrapConfig::default()
                 .with_all_px_padding(20.0)
-                .with_all_px_border_radius(12.0),
+                .with_all_px_border_radius(16.0),
             flexbox: FlexboxConfig::horizontally_centered_column().with_px_gap(12.0),
         }
     }

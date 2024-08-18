@@ -40,7 +40,9 @@ struct RoadComponentsList;
 
 pub fn spawn_toolbar(builder: &mut ChildBuilder) {
     let flexbox_config = FlexboxConfig::row().with_justify(JustifyContent::SpaceBetween);
-    let section_config = SectionConfig::default().with_flexbox_config(flexbox_config);
+    let section_config = SectionConfig::default()
+        .with_flexbox_config(flexbox_config)
+        .squared();
 
     SectionBuilder::new(section_config).spawn(builder, Toolbar, |toolbar| {
         spawn_action_buttons(toolbar);

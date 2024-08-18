@@ -29,7 +29,9 @@ pub struct ButtonConfig {
 impl Default for ButtonConfig {
     fn default() -> Self {
         Self {
-            wrap: ContentWrapConfig::wide_element().with_background_color(NEUTRAL_500),
+            wrap: ContentWrapConfig::wide_element()
+                .with_background_color(NEUTRAL_500)
+                .with_all_px_border_radius(8.0),
         }
     }
 }

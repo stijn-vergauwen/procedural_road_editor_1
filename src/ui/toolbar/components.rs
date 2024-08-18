@@ -1,7 +1,7 @@
 mod reorder;
 pub mod selected_road_component;
 
-use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
+use bevy::{color::palettes::tailwind::*, prelude::*};
 use reorder::ReorderPlugin;
 use selected_road_component::{
     OnRoadComponentDeselected, OnRoadComponentSelected, SelectedRoadComponentPlugin,
@@ -16,8 +16,15 @@ use crate::{
         RoadComponent,
     },
     ui::{
-        list::reorder_button::{spawn_reorder_button, ReorderDirection},
-        list::ListItem,
+        components::{
+            flexbox::{FlexboxBuilder, FlexboxConfig},
+            text::{TextBuilder, TextConfig},
+            UiComponentBuilder, UiComponentWithChildrenBuilder,
+        },
+        list::{
+            reorder_button::{spawn_reorder_button, ReorderDirection},
+            ListItem,
+        },
     },
     utility::{entity_is_descendant_of, partial::Partial},
     GameRunningSet,
@@ -158,6 +165,25 @@ fn spawn_road_component(
     components_list_entity: Entity,
     road_component: &RoadComponent,
 ) -> Entity {
+    // TODO: remove the "partial" component from reorder buttons, then this builder can be used for RoadComponentItem
+    // let road_component_components = (
+    //     Partial::new(components_list_entity),
+    //     ListItem::new(index),
+    //     RoadComponentItem::default(),
+    //     Interaction::default(),
+    // );
+
+    // FlexboxBuilder::new(
+    //     FlexboxConfig::horizontally_centered_column()
+    //         .with_justify(JustifyContent::End)
+    //         .with_px_gap(4.0),
+    // )
+    // .spawn(
+    //     components_list,
+    //     road_component_components,
+    //     |road_component_container| {},
+    // );
+
     let mut container = components_list.spawn(build_road_components_container_node(
         index,
         components_list_entity,
@@ -166,11 +192,13 @@ fn spawn_road_component(
 
     container.with_children(|container| {
         container.spawn(build_component_display_node(road_component));
-        container.spawn(build_component_text_node(road_component));
 
-        container
-            .spawn(build_button_container_node())
-            .with_children(|button_container| {
+        spawn_road_component_name(container, road_component);
+
+        FlexboxBuilder::new(FlexboxConfig::row().with_px_gap(8.0)).spawn(
+            container,
+            (),
+            |button_container| {
                 spawn_reorder_button(
                     button_container,
                     ReorderDirection::Previous,
@@ -184,10 +212,21 @@ fn spawn_road_component(
                     container_entity,
                     26.0,
                 );
-            });
+            },
+        );
     });
 
     container_entity
+}
+
+fn spawn_road_component_name(builder: &mut ChildBuilder, road_component: &RoadComponent) -> Entity {
+    TextBuilder::new(
+        TextConfig::default()
+            .with_text(road_component.name())
+            .with_justify(JustifyText::Center)
+            .clone(),
+    )
+    .spawn(builder, RoadComponentName)
 }
 
 fn update_component_display(
@@ -228,6 +267,7 @@ fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
         NodeBundle {
             style: build_component_display_style(road_component),
             background_color: road_component.color().into(),
+            border_color: BorderColor::from(NEUTRAL_400),
             ..default()
         },
     )
@@ -236,37 +276,8 @@ fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
 fn build_component_display_style(road_component: &RoadComponent) -> Style {
     Style {
         width: Val::Px(road_component.size().x * COMPONENT_DISPLAY_SCALE),
-        height: Val::Px(road_component.size().y * COMPONENT_DISPLAY_SCALE),
-        ..default()
-    }
-}
-
-fn build_component_text_node(road_component: &RoadComponent) -> impl Bundle {
-    (
-        RoadComponentName,
-        TextBundle {
-            text: Text {
-                sections: vec![TextSection {
-                    value: road_component.name().to_string(),
-                    style: TextStyle {
-                        color: NEUTRAL_900.into(),
-                        ..default()
-                    },
-                }],
-                linebreak_behavior: BreakLineOn::NoWrap,
-                justify: JustifyText::Center,
-            },
-            ..default()
-        },
-    )
-}
-
-fn build_button_container_node() -> impl Bundle {
-    NodeBundle {
-        style: Style {
-            column_gap: Val::Px(8.0),
-            ..default()
-        },
+        height: Val::Px(road_component.size().y * COMPONENT_DISPLAY_SCALE + 1.0),
+        border: UiRect::all(Val::Px(1.6)),
         ..default()
     }
 }
