@@ -26,7 +26,7 @@ use crate::{
             ListItem,
         },
     },
-    utility::{entity_is_descendant_of, partial::Partial},
+    utility::{find_descendant_of_entity_mut, partial::Partial},
     GameRunningSet,
 };
 
@@ -134,27 +134,28 @@ fn update_road_component_on_change(
         With<RoadComponentDisplay>,
     >,
     mut component_name_query: Query<(Entity, &mut Text), With<RoadComponentName>>,
-    parent_query: Query<&Parent>,
+    children_query: Query<&Children>,
 ) {
     for event in on_changed.read() {
         let component_entity = event.component_entity();
         let road_component = event.component_data();
 
-        // TODO: split iter mut find to utility fn
-        if let Some((_, mut style, mut background_color)) =
-            component_display_query
-                .iter_mut()
-                .find(|(display_entity, _, _)| {
-                    entity_is_descendant_of(&parent_query, *display_entity, component_entity)
-                })
-        {
+        if let Some((_, mut style, mut background_color)) = find_descendant_of_entity_mut(
+            component_entity,
+            &mut component_display_query,
+            |item| item.0,
+            &children_query,
+        ) {
             update_component_display(&mut style, &mut background_color, road_component);
         }
 
         // TODO: split iter mut find to utility fn
-        if let Some((_, mut text)) = component_name_query.iter_mut().find(|(name_entity, _)| {
-            entity_is_descendant_of(&parent_query, *name_entity, component_entity)
-        }) {
+        if let Some((_, mut text)) = find_descendant_of_entity_mut(
+            component_entity,
+            &mut component_name_query,
+            |item| item.0,
+            &children_query,
+        ) {
             update_component_name(&mut text, road_component);
         }
     }

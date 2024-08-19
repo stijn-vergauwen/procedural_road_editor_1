@@ -10,7 +10,7 @@ use crate::{
         text::{TextBuilder, TextConfig},
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
-    utility::entity_is_descendant_of,
+    utility::{entity_is_descendant_of, find_ancestor_of_entity_mut},
     GameRunningSet,
 };
 
@@ -258,14 +258,23 @@ fn update_number_input_value_on_button_press(
         .iter_mut()
         .filter(|(_, interaction, _)| **interaction == Interaction::Pressed)
     {
-        // TODO: split iter mut find to utility fn
-        let Some((number_input_entity, mut number_input)) =
-            number_input_query
-                .iter_mut()
-                .find(|(number_input_entity, _)| {
-                    entity_is_descendant_of(&parent_query, button_entity, *number_input_entity)
-                })
-        else {
+        // // TODO: split iter mut find to utility fn
+        // let Some((number_input_entity, mut number_input)) =
+        //     number_input_query
+        //         .iter_mut()
+        //         .find(|(number_input_entity, _)| {
+        //             entity_is_descendant_of(&parent_query, button_entity, *number_input_entity)
+        //         })
+        // else {
+        //     continue;
+        // };
+
+        let Some((number_input_entity, mut number_input)) = find_ancestor_of_entity_mut(
+            button_entity,
+            &mut number_input_query,
+            |item| item.0,
+            &parent_query,
+        ) else {
             continue;
         };
 
