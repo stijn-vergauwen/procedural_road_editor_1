@@ -28,6 +28,10 @@ impl ContentWrapConfig {
         self.with_padding(UiRect::all(Val::Px(padding)))
     }
 
+    pub fn without_padding(self) -> Self {
+        self.with_padding(UiRect::ZERO)
+    }
+
     pub fn with_background_color(mut self, background_color: impl Into<BackgroundColor>) -> Self {
         self.background_color = background_color.into();
         self

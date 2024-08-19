@@ -140,6 +140,7 @@ fn update_road_component_on_change(
         let component_entity = event.component_entity();
         let road_component = event.component_data();
 
+        // TODO: split iter mut find to utility fn
         if let Some((_, mut style, mut background_color)) =
             component_display_query
                 .iter_mut()
@@ -150,6 +151,7 @@ fn update_road_component_on_change(
             update_component_display(&mut style, &mut background_color, road_component);
         }
 
+        // TODO: split iter mut find to utility fn
         if let Some((_, mut text)) = component_name_query.iter_mut().find(|(name_entity, _)| {
             entity_is_descendant_of(&parent_query, *name_entity, component_entity)
         }) {

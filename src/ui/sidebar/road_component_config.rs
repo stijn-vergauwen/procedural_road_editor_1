@@ -10,10 +10,9 @@ use crate::{
     },
     ui::{
         components::{
-            buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
-            inputs::number_input::{
-                spawn_number_input_node, NumberInput, OnNumberInputValueChanged,
-            },
+            buttons::{ButtonAction, OnButtonPressed, TextButtonBuilder},
+            inputs::number_input::{NumberInput, NumberInputBuilder, OnNumberInputValueChanged},
+            UiComponentBuilder,
         },
         inputs::{
             color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
@@ -100,21 +99,15 @@ fn generate_config_section_for_selected_component(
                         component_data.name(),
                     );
 
-                    spawn_number_input_node(
-                        container,
-                        ComponentConfigAction::SetWidth,
-                        "Width",
-                        component_data.size().x,
-                        0.0..10.0,
-                    );
+                    // TODO: add "Width" label
+                    NumberInputBuilder::default()
+                        .with_values(component_data.size().x, 0.0..10.0)
+                        .spawn(container, ComponentConfigAction::SetWidth);
 
-                    spawn_number_input_node(
-                        container,
-                        ComponentConfigAction::SetHeight,
-                        "Height",
-                        component_data.size().y,
-                        0.0..10.0,
-                    );
+                    // TODO: add "Height" label
+                    NumberInputBuilder::default()
+                        .with_values(component_data.size().y, 0.0..10.0)
+                        .spawn(container, ComponentConfigAction::SetHeight);
 
                     spawn_color_input(
                         container,
@@ -124,7 +117,8 @@ fn generate_config_section_for_selected_component(
                         Some("Color"),
                     );
 
-                    spawn_button_node(container, ButtonAction::DeleteComponent, "Delete", 24.0);
+                    TextButtonBuilder::default_with_text("Delete")
+                        .spawn(container, ButtonAction::DeleteComponent);
                 });
             });
     }

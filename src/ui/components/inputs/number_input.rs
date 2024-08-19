@@ -3,17 +3,14 @@ use std::ops::Range;
 use bevy::{color::palettes::tailwind::*, prelude::*, text::BreakLineOn};
 
 use crate::{
-    ui::{
-        build_text_node,
-        components::{
-            buttons::{spawn_button_node, ButtonBuilder},
-            content_wrap::ContentWrapBuilder,
-            flexbox::FlexboxBuilder,
-            text::{TextBuilder, TextConfig},
-            UiComponentBuilder, UiComponentWithChildrenBuilder,
-        },
+    ui::components::{
+        buttons::ButtonBuilder,
+        content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+        flexbox::FlexboxBuilder,
+        text::{TextBuilder, TextConfig},
+        UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
-    utility::partial::Partial,
+    utility::entity_is_descendant_of,
     GameRunningSet,
 };
 
@@ -34,7 +31,7 @@ impl Plugin for NumberInputPlugin {
 // Start of new UiComponent code
 
 // TODO: make generic text input UiComponent
-// TODO: make number input build on top of the text input UiComponent, (so it also supports keyboard input, but limits it to numbers within a range)
+// TODO: make number input build on top of the text input UiComponent, (so it also supports keyboard input, but limited to numbers within a range)
 
 #[derive(Clone, Copy)]
 pub struct NumberInputDisplayConfig {
@@ -102,6 +99,7 @@ impl From<NumberInputButtonConfig> for TextConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct NumberInputConfig {
     start_value: f32,
     // TODO: change to inclusive range
@@ -133,6 +131,12 @@ impl NumberInputBuilder {
     pub fn new(config: NumberInputConfig) -> Self {
         Self { config }
     }
+
+    pub fn with_values(&mut self, start_value: f32, value_range: Range<f32>) -> &mut Self {
+        self.config.start_value = start_value;
+        self.config.value_range = value_range;
+        self
+    }
 }
 
 impl UiComponentBuilder for NumberInputBuilder {
@@ -149,8 +153,14 @@ impl UiComponentBuilder for NumberInputBuilder {
             );
 
             // Number input display
-            ContentWrapBuilder::spawn_default(number_input, (), |display_wrap| {
+            ContentWrapBuilder::new(
+                ContentWrapConfig::default()
+                    .with_background_color(RED_400)
+                    .without_padding(),
+            )
+            .spawn(number_input, (), |display_wrap| {
                 TextBuilder::new(TextConfig::from(self.config.display))
+                    .with_text(format_display_value(self.config.start_value))
                     .spawn(display_wrap, NumberInputDisplay);
             });
 
@@ -240,17 +250,26 @@ impl OnNumberInputValueChanged {
 
 fn update_number_input_value_on_button_press(
     mut on_changed: EventWriter<OnNumberInputValueChanged>,
-    mut button_query: Query<(&Interaction, &mut NumberInputButton, &Partial), Changed<Interaction>>,
+    mut button_query: Query<(Entity, &Interaction, &mut NumberInputButton), Changed<Interaction>>,
     mut number_input_query: Query<(Entity, &mut NumberInput)>,
+    parent_query: Query<&Parent>,
 ) {
-    for (_, number_input_button, partial) in button_query
+    for (button_entity, _, button) in button_query
         .iter_mut()
-        .filter(|(interaction, _, _)| **interaction == Interaction::Pressed)
+        .filter(|(_, interaction, _)| **interaction == Interaction::Pressed)
     {
-        let (number_input_entity, mut number_input) =
-            number_input_query.get_mut(partial.main_entity()).unwrap();
+        // TODO: split iter mut find to utility fn
+        let Some((number_input_entity, mut number_input)) =
+            number_input_query
+                .iter_mut()
+                .find(|(number_input_entity, _)| {
+                    entity_is_descendant_of(&parent_query, button_entity, *number_input_entity)
+                })
+        else {
+            continue;
+        };
 
-        let delta_value = match number_input_button.direction {
+        let delta_value = match button.direction {
             NumberInputDirection::Up => 0.1,
             NumberInputDirection::Down => -0.1,
         };
@@ -266,123 +285,18 @@ fn update_number_input_value_on_button_press(
 
 fn update_number_display(
     mut on_changed: EventReader<OnNumberInputValueChanged>,
-    mut number_display_query: Query<(&NumberInputDisplay, &mut Text, &Partial)>,
+    mut number_display_query: Query<(Entity, &NumberInputDisplay, &mut Text)>,
+    parent_query: Query<&Parent>,
 ) {
     for event in on_changed.read() {
-        let (_, mut text, _) = number_display_query.iter_mut()
-        .find(|(_, _, partial)| partial.main_entity() == event.number_input_entity())
+        let (_, _, mut text) = number_display_query.iter_mut()
+        .find(|(entity, _, _)| entity_is_descendant_of(&parent_query, *entity, event.number_input_entity()))
         .expect("NumberInputValueChanged event should always match NumberInput entity with a display node.");
 
         text.sections[0].value = format_display_value(event.new_value());
     }
 }
 
-pub fn spawn_number_input_node(
-    builder: &mut ChildBuilder,
-    root_components: impl Bundle,
-    label: impl Into<String>,
-    start_value: f32,
-    value_range: Range<f32>,
-) -> Entity {
-    let mut number_input = builder.spawn(build_number_input_container_node(
-        root_components,
-        start_value,
-        value_range,
-    ));
-    let main_entity = number_input.id();
-
-    number_input.with_children(|number_input| {
-        number_input.spawn(build_text_node(
-            label,
-            20.0,
-            Color::WHITE,
-            JustifyText::Center,
-            (),
-        ));
-
-        number_input
-            .spawn(build_number_input_elements_container_node())
-            .with_children(|elements_container| {
-                spawn_button_node(
-                    elements_container,
-                    (
-                        NumberInputButton::new(NumberInputDirection::Down),
-                        Partial::new(main_entity),
-                    ),
-                    "<",
-                    20.0,
-                );
-
-                elements_container
-                    .spawn(build_numer_input_display_node())
-                    .with_children(|number_display| {
-                        number_display.spawn(build_text_node(
-                            format_display_value(start_value),
-                            20.0,
-                            Color::WHITE,
-                            JustifyText::Center,
-                            (NumberInputDisplay, Partial::new(main_entity)),
-                        ));
-                    });
-
-                spawn_button_node(
-                    elements_container,
-                    (
-                        NumberInputButton::new(NumberInputDirection::Up),
-                        Partial::new(main_entity),
-                    ),
-                    ">",
-                    20.0,
-                );
-            });
-    });
-
-    main_entity
-}
-
 fn format_display_value(value: f32) -> String {
     format!("{:.1}", value)
-}
-
-fn build_number_input_container_node(
-    root_components: impl Bundle,
-    start_value: f32,
-    value_range: Range<f32>,
-) -> impl Bundle {
-    (
-        root_components,
-        NumberInput::new(start_value, value_range),
-        NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                ..default()
-            },
-            ..default()
-        },
-    )
-}
-
-fn build_number_input_elements_container_node() -> NodeBundle {
-    NodeBundle {
-        style: Style {
-            flex_direction: FlexDirection::Row,
-            column_gap: Val::Px(4.0),
-            ..default()
-        },
-        ..default()
-    }
-}
-
-fn build_numer_input_display_node() -> impl Bundle {
-    (NodeBundle {
-        style: Style {
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            padding: UiRect::axes(Val::Px(4.0), Val::Px(2.0)),
-            border: UiRect::all(Val::Px(2.0)),
-            ..default()
-        },
-        border_color: BorderColor(NEUTRAL_900.into()),
-        ..default()
-    },)
 }
