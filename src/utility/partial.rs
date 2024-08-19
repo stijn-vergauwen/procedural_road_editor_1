@@ -1,3 +1,4 @@
+// TODO: delete module
 use bevy::prelude::*;
 
 /// Component to use for entities that are closely tied to a "main" entity.

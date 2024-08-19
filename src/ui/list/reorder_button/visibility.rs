@@ -85,6 +85,7 @@ fn update_visibility_of_reorder_buttons(
     for (_, reorder_button, mut button_visibility, reorder_button_partial) in reorder_button_query
         .iter_mut()
         .filter(|(button_entity, _, _, _)| {
+            // TODO: replace with utility method
             entity_is_descendant_of(parent_query, *button_entity, list_entity)
         })
     {

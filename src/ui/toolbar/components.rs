@@ -149,7 +149,6 @@ fn update_road_component_on_change(
             update_component_display(&mut style, &mut background_color, road_component);
         }
 
-        // TODO: split iter mut find to utility fn
         if let Some((_, mut text)) = find_descendant_of_entity_mut(
             component_entity,
             &mut component_name_query,

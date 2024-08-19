@@ -22,7 +22,6 @@ impl Plugin for SavePlugin {
     }
 }
 
-// TODO: replace with buttonAction
 #[derive(Component)]
 struct SaveConfirmButton;
 
