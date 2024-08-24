@@ -51,8 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Replace all usages of "Partial" component with utility methods
-            - Delete "partial" module
             - Make UiComponent for slider input
             - Make UiComponent for color input
             - Rework layout & colors etc, more web-devvy

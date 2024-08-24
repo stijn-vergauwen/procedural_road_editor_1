@@ -1,17 +1,15 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::utility::partial::Partial;
 
 use super::{ReorderButton, ReorderDirection};
 
 pub fn spawn_reorder_button(
     builder: &mut ChildBuilder,
     button_direction: ReorderDirection,
-    list_item_entity: Entity,
     size: f32,
 ) {
     builder
-        .spawn(build_button_node(button_direction, list_item_entity, size))
+        .spawn(build_button_node(button_direction, size))
         .with_children(|button| {
             button.spawn(build_button_text_node(button_direction, size));
         });
@@ -39,11 +37,9 @@ fn build_button_text_node(button_direction: ReorderDirection, size: f32) -> Text
 
 fn build_button_node(
     button_direction: ReorderDirection,
-    main_entity: Entity,
     size: f32,
 ) -> impl Bundle {
     (
-        Partial::new(main_entity),
         ReorderButton {
             direction: button_direction,
         },

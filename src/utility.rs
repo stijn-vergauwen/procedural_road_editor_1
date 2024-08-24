@@ -1,5 +1,4 @@
 pub mod mesh_builder;
-pub mod partial;
 pub mod texture_builder;
 
 use bevy::{
@@ -74,6 +73,24 @@ pub fn entity_is_ancestor_of(
 /// Returns the first entity in `entities_to_search` that is a ancestor of `start_entity`.
 ///
 /// - In this case we have the child entity, and are searching for the first matching ancestor in the given search query.
+pub fn find_ancestor_of_entity<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
+    start_entity: Entity,
+    entities_to_search: &'a Query<Data, Filter>,
+    get_entity_from_data: Closure,
+    parent_query: &Query<&Parent>,
+) -> Option<Data::Item<'a>>
+where
+    Data: QueryData<ReadOnly = Data>,
+    Filter: QueryFilter,
+{
+    entities_to_search.iter().find(|ancestor| {
+        entity_is_descendant_of(&parent_query, start_entity, get_entity_from_data(ancestor))
+    })
+}
+
+/// Returns the first entity in `entities_to_search` that is a ancestor of `start_entity`.
+///
+/// - In this case we have the child entity, and are searching for the first matching ancestor in the given search query.
 pub fn find_ancestor_of_entity_mut<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
     start_entity: Entity,
     entities_to_search: &'a mut Query<Data, Filter>,
@@ -86,6 +103,31 @@ where
 {
     entities_to_search.iter_mut().find(|ancestor| {
         entity_is_descendant_of(&parent_query, start_entity, get_entity_from_data(ancestor))
+    })
+}
+
+/// Returns the first entity in `entities_to_search` that is a descendant of `start_entity`.
+///
+/// - In this case we have the parent entity, and are searching for the first matching descendant in the given search query.
+///
+/// - This assumes that there will be at most 1 matching entity.
+#[allow(unused)]
+pub fn find_descendant_of_entity<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
+    start_entity: Entity,
+    entities_to_search: &'a Query<Data, Filter>,
+    get_entity_from_data: Closure,
+    children_query: &Query<&Children>,
+) -> Option<Data::Item<'a>>
+where
+    Data: QueryData<ReadOnly = Data>,
+    Filter: QueryFilter,
+{
+    entities_to_search.iter().find(|descendant| {
+        entity_is_ancestor_of(
+            &children_query,
+            start_entity,
+            get_entity_from_data(descendant),
+        )
     })
 }
 
@@ -116,7 +158,31 @@ where
 /// Returns all entities in `entities_to_search` that are descendants of `start_entity`.
 ///
 /// - In this case we have the parent entity, and are searching for all matching descendants in the given search query.
-#[allow(unused)]
+pub fn filter_descendants_of_entity<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
+    start_entity: Entity,
+    entities_to_search: &'a Query<Data, Filter>,
+    get_entity_from_data: Closure,
+    children_query: &Query<&Children>,
+) -> Vec<Data::Item<'a>>
+where
+    Data: QueryData<ReadOnly = Data>,
+    Filter: QueryFilter,
+{
+    entities_to_search
+        .iter()
+        .filter(|descendant| {
+            entity_is_ancestor_of(
+                &children_query,
+                start_entity,
+                get_entity_from_data(descendant),
+            )
+        })
+        .collect()
+}
+
+/// Returns all entities in `entities_to_search` that are descendants of `start_entity`.
+///
+/// - In this case we have the parent entity, and are searching for all matching descendants in the given search query.
 pub fn filter_descendants_of_entity_mut<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
     start_entity: Entity,
     entities_to_search: &'a mut Query<Data, Filter>,

@@ -26,7 +26,7 @@ use crate::{
             ListItem,
         },
     },
-    utility::{find_descendant_of_entity_mut, partial::Partial},
+    utility::find_descendant_of_entity_mut,
     GameRunningSet,
 };
 
@@ -87,12 +87,7 @@ fn rebuild_road_components_on_active_road_set(
             .despawn_descendants()
             .with_children(|components_list| {
                 for (index, road_component) in road_components.iter().enumerate() {
-                    spawn_road_component(
-                        components_list,
-                        index,
-                        components_list_entity,
-                        road_component,
-                    );
+                    spawn_road_component(components_list, index, road_component);
                 }
             });
 
@@ -115,7 +110,6 @@ fn add_road_component_on_event(
                 let component_item_entity = spawn_road_component(
                     components_list,
                     event.component_index(),
-                    components_list_entity,
                     event.component_data(),
                 );
 
@@ -164,61 +158,38 @@ fn update_road_component_on_change(
 fn spawn_road_component(
     components_list: &mut ChildBuilder,
     index: usize,
-    components_list_entity: Entity,
     road_component: &RoadComponent,
 ) -> Entity {
-    // TODO: remove the "partial" component from reorder buttons, then this builder can be used for RoadComponentItem
-    // let road_component_components = (
-    //     Partial::new(components_list_entity),
-    //     ListItem::new(index),
-    //     RoadComponentItem::default(),
-    //     Interaction::default(),
-    // );
+    let road_component_components = (
+        ListItem::new(index),
+        RoadComponentItem::default(),
+        Interaction::default(),
+    );
 
-    // FlexboxBuilder::new(
-    //     FlexboxConfig::horizontally_centered_column()
-    //         .with_justify(JustifyContent::End)
-    //         .with_px_gap(4.0),
-    // )
-    // .spawn(
-    //     components_list,
-    //     road_component_components,
-    //     |road_component_container| {},
-    // );
+    FlexboxBuilder::new(
+        FlexboxConfig::horizontally_centered_column()
+            .with_justify(JustifyContent::End)
+            .with_px_gap(4.0),
+    )
+    .spawn(
+        components_list,
+        road_component_components,
+        |road_component_container| {
+            road_component_container.spawn(build_component_display_node(road_component));
 
-    let mut container = components_list.spawn(build_road_components_container_node(
-        index,
-        components_list_entity,
-    ));
-    let container_entity = container.id();
+            spawn_road_component_name(road_component_container, road_component);
 
-    container.with_children(|container| {
-        container.spawn(build_component_display_node(road_component));
+            FlexboxBuilder::new(FlexboxConfig::row().with_px_gap(8.0)).spawn(
+                road_component_container,
+                (),
+                |button_container| {
+                    spawn_reorder_button(button_container, ReorderDirection::Previous, 26.0);
 
-        spawn_road_component_name(container, road_component);
-
-        FlexboxBuilder::new(FlexboxConfig::row().with_px_gap(8.0)).spawn(
-            container,
-            (),
-            |button_container| {
-                spawn_reorder_button(
-                    button_container,
-                    ReorderDirection::Previous,
-                    container_entity,
-                    26.0,
-                );
-
-                spawn_reorder_button(
-                    button_container,
-                    ReorderDirection::Next,
-                    container_entity,
-                    26.0,
-                );
-            },
-        );
-    });
-
-    container_entity
+                    spawn_reorder_button(button_container, ReorderDirection::Next, 26.0);
+                },
+            );
+        },
+    )
 }
 
 fn spawn_road_component_name(builder: &mut ChildBuilder, road_component: &RoadComponent) -> Entity {
@@ -242,25 +213,6 @@ fn update_component_display(
 
 fn update_component_name(text: &mut Text, road_component: &RoadComponent) {
     text.sections[0].value = road_component.name().to_string();
-}
-
-fn build_road_components_container_node(index: usize, list_entity: Entity) -> impl Bundle {
-    (
-        Partial::new(list_entity),
-        ListItem::new(index),
-        RoadComponentItem::default(),
-        Interaction::default(),
-        NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::End,
-                align_items: AlignItems::Center,
-                row_gap: Val::Px(4.0),
-                ..default()
-            },
-            ..default()
-        },
-    )
 }
 
 fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {

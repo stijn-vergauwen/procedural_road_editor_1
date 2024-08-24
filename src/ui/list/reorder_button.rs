@@ -4,8 +4,10 @@ mod visibility;
 use bevy::prelude::*;
 use visibility::ReorderButtonVisibilityPlugin;
 
-use crate::{ui::list::ListItem, utility::partial::Partial, GameRunningSet};
+use crate::{ui::list::ListItem, utility::find_ancestor_of_entity, GameRunningSet};
 pub use builder::spawn_reorder_button;
+
+use super::List;
 
 pub struct ReorderButtonPlugin;
 
@@ -68,18 +70,27 @@ pub enum ReorderDirection {
 
 fn send_reorder_button_pressed_events(
     mut on_pressed: EventWriter<OnReorderButtonPressed>,
-    button_query: Query<(&ReorderButton, &Interaction, &Partial), Changed<Interaction>>,
-    list_item_query: Query<&Partial, With<ListItem>>,
+    button_query: Query<(Entity, &ReorderButton, &Interaction), Changed<Interaction>>,
+    list_item_query: Query<Entity, With<ListItem>>,
+    list_query: Query<Entity, With<List>>,
+    parent_query: Query<&Parent>,
 ) {
-    for (button, interaction, button_partial) in button_query.iter() {
-        if *interaction == Interaction::Pressed {
-            let list_partial = list_item_query.get(button_partial.main_entity()).unwrap();
+    for (button_entity, button, _) in button_query
+        .iter()
+        .filter(|(_, _, interaction)| **interaction == Interaction::Pressed)
+    {
+        let list_item_entity =
+            find_ancestor_of_entity(button_entity, &list_item_query, |item| *item, &parent_query)
+                .unwrap();
 
-            on_pressed.send(OnReorderButtonPressed::new(
-                list_partial.main_entity(),
-                button_partial.main_entity(),
-                button.direction,
-            ));
-        }
+        let list_entity =
+            find_ancestor_of_entity(list_item_entity, &list_query, |item| *item, &parent_query)
+                .unwrap();
+
+        on_pressed.send(OnReorderButtonPressed::new(
+            list_entity,
+            list_item_entity,
+            button.direction,
+        ));
     }
 }

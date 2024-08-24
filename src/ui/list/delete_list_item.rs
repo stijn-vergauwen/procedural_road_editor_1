@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{utility::partial::Partial, GameRunningSet};
+use crate::GameRunningSet;
 
 use super::ListItem;
 
@@ -47,7 +47,7 @@ impl OnListItemDeleted {
 fn handle_deletion_events(
     mut on_deleted: EventReader<OnListItemDeleted>,
     mut commands: Commands,
-    mut list_item_query: Query<(&mut ListItem, &Partial)>,
+    mut list_item_query: Query<(Entity, &mut ListItem)>,
 ) {
     for event in on_deleted.read() {
         let mut list_item_commands = commands.entity(event.list_item_entity());
@@ -55,11 +55,16 @@ fn handle_deletion_events(
         list_item_commands.remove_parent();
         list_item_commands.despawn_recursive();
 
-        for (mut item, _) in list_item_query.iter_mut().filter(|(item, partial)| {
-            partial.main_entity() == event.list_entity() && item.index() > event.index()
-        }) {
-            let new_index = item.index() - 1;
-            item.set_index(new_index);
+        for (_, mut list_item) in
+            list_item_query
+                .iter_mut()
+                .filter(|(list_item_entity, list_item)| {
+                    *list_item_entity == event.list_item_entity()
+                        && list_item.index() > event.index()
+                })
+        {
+            let new_index = list_item.index() - 1;
+            list_item.set_index(new_index);
         }
     }
 }

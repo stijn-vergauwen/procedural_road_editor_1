@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     ui::list::{add_list_item::OnListItemAdded, reorder_list::OnListReordered, List, ListItem},
-    utility::{entity_is_descendant_of, partial::Partial},
+    utility::{filter_descendants_of_entity_mut, find_ancestor_of_entity},
     GameRunningSet,
 };
 
@@ -34,10 +34,11 @@ impl Plugin for ReorderButtonVisibilityPlugin {
 
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnListItemAdded>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
+    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
     list_query: Query<&Children, With<List>>,
-    list_item_query: Query<&ListItem>,
+    list_item_query: Query<(Entity, &ListItem)>,
     parent_query: Query<&Parent>,
+    children_query: Query<&Children>,
 ) {
     for event in on_added.read() {
         let list_children = list_query.get(event.list_entity()).unwrap();
@@ -46,6 +47,7 @@ fn update_reorder_buttons_on_add_event(
         update_visibility_of_reorder_buttons(
             &mut reorder_button_query,
             &parent_query,
+            &children_query,
             &list_item_query,
             event.list_entity(),
             list_length,
@@ -55,10 +57,11 @@ fn update_reorder_buttons_on_add_event(
 
 fn update_reorder_buttons_on_reorder_event(
     mut on_reordered: EventReader<OnListReordered>,
-    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
+    mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
     list_query: Query<&Children, With<List>>,
-    list_item_query: Query<&ListItem>,
+    list_item_query: Query<(Entity, &ListItem)>,
     parent_query: Query<&Parent>,
+    children_query: Query<&Children>,
 ) {
     for event in on_reordered.read() {
         let list_children = list_query.get(event.list_entity()).unwrap();
@@ -67,6 +70,7 @@ fn update_reorder_buttons_on_reorder_event(
         update_visibility_of_reorder_buttons(
             &mut reorder_button_query,
             &parent_query,
+            &children_query,
             &list_item_query,
             event.list_entity(),
             list_length,
@@ -75,23 +79,29 @@ fn update_reorder_buttons_on_reorder_event(
 }
 
 fn update_visibility_of_reorder_buttons(
-    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility, &Partial)>,
+    reorder_button_query: &mut Query<(Entity, &ReorderButton, &mut Visibility)>,
     parent_query: &Query<&Parent>,
-    list_item_query: &Query<&ListItem>,
+    children_query: &Query<&Children>,
+    list_item_query: &Query<(Entity, &ListItem)>,
     list_entity: Entity,
     list_length: usize,
 ) {
     // TODO: replace query params with "reorder_buttons", then filter on parent entity outside this fn
-    for (_, reorder_button, mut button_visibility, reorder_button_partial) in reorder_button_query
-        .iter_mut()
-        .filter(|(button_entity, _, _, _)| {
-            // TODO: replace with utility method
-            entity_is_descendant_of(parent_query, *button_entity, list_entity)
-        })
+    for (reorder_button_entity, reorder_button, mut button_visibility) in
+        filter_descendants_of_entity_mut(
+            list_entity,
+            reorder_button_query,
+            |item| item.0,
+            children_query,
+        )
     {
-        let list_item = list_item_query
-            .get(reorder_button_partial.main_entity())
-            .unwrap();
+        let (_, list_item) = find_ancestor_of_entity(
+            reorder_button_entity,
+            list_item_query,
+            |item| item.0,
+            parent_query,
+        )
+        .unwrap();
 
         update_reorder_button_visibility(
             reorder_button,
