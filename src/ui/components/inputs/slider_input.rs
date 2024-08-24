@@ -1,6 +1,13 @@
 use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition};
 
-use crate::{utility::find_descendant_of_entity_mut, GameRunningSet};
+use crate::{
+    ui::components::{
+        buttons::{ButtonBuilder, ButtonConfig},
+        UiComponentBuilder, UiComponentWithChildrenBuilder,
+    },
+    utility::find_descendant_of_entity_mut,
+    GameRunningSet,
+};
 
 pub struct SliderInputPlugin;
 
@@ -13,6 +20,78 @@ impl Plugin for SliderInputPlugin {
                 update_slider_handle_position.in_set(GameRunningSet::UpdateEntities),
             ),
         );
+    }
+}
+
+#[derive(Clone)]
+pub struct SliderInputConfig {
+    start_value: f32,
+    button: ButtonConfig,
+}
+
+impl SliderInputConfig {
+    pub fn with_start_value(&mut self, start_value: f32) -> &mut Self {
+        self.start_value = start_value;
+        self
+    }
+
+    pub fn with_button_config(&mut self, button_config: ButtonConfig) -> &mut Self {
+        self.button = button_config;
+        self
+    }
+
+    pub fn with_background_image(&mut self, image_handle: Handle<Image>) -> &mut Self {
+        self.button.with_background_image(image_handle);
+        self
+    }
+
+    pub fn with_min_width(&mut self, min_width: Val) -> &mut Self {
+        self.button.with_min_width(min_width);
+        self
+    }
+}
+
+impl Default for SliderInputConfig {
+    fn default() -> Self {
+        Self {
+            start_value: 0.0,
+            button: ButtonConfig::default(),
+        }
+    }
+}
+
+/// A slider UiComponent with a color or image as background.
+#[derive(Default)]
+pub struct SliderInputBuilder {
+    config: SliderInputConfig,
+}
+
+impl SliderInputBuilder {
+    pub fn new(config: SliderInputConfig) -> Self {
+        Self { config }
+    }
+}
+
+impl UiComponentBuilder for SliderInputBuilder {
+    fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
+        ButtonBuilder::new(self.config.button.clone()).spawn(
+            builder,
+            (components, self.build()),
+            |button| {
+                button
+                    .spawn(build_slider_handle_node(self.config.start_value))
+                    .with_children(|slider_handle| {
+                        slider_handle.spawn(build_slider_handle_bar_node(6.0));
+                    });
+            },
+        )
+    }
+
+    fn build(&self) -> impl Bundle {
+        (
+            SliderInput::new(self.config.start_value),
+            RelativeCursorPosition::default(),
+        )
     }
 }
 
@@ -59,53 +138,6 @@ impl OnSliderInputValueChanged {
     pub fn new_value(&self) -> f32 {
         self.new_value
     }
-}
-
-#[allow(unused)]
-pub fn spawn_slider_input(
-    builder: &mut ChildBuilder,
-    root_components: impl Bundle,
-    start_value: f32,
-) -> Entity {
-    let mut slider_input = builder.spawn(build_slider_input_node(
-        root_components,
-        start_value,
-        build_button_bundle(Val::Px(200.0), Val::Px(12.0)),
-    ));
-
-    slider_input
-        .with_children(|color_input| {
-            color_input
-                .spawn(build_slider_handle_node(start_value))
-                .with_children(|slider_handle| {
-                    slider_handle.spawn(build_slider_handle_bar_node(6.0));
-                });
-        })
-        .id()
-}
-
-#[allow(unused)]
-pub fn spawn_slider_input_with_image(
-    builder: &mut ChildBuilder,
-    root_components: impl Bundle,
-    start_value: f32,
-    image: Handle<Image>,
-) -> Entity {
-    let mut slider_input = builder.spawn(build_slider_input_node(
-        root_components,
-        start_value,
-        build_button_bundle_with_image(Val::Px(200.0), Val::Px(12.0), image),
-    ));
-
-    slider_input
-        .with_children(|color_input| {
-            color_input
-                .spawn(build_slider_handle_node(start_value))
-                .with_children(|slider_handle| {
-                    slider_handle.spawn(build_slider_handle_bar_node(6.0));
-                });
-        })
-        .id()
 }
 
 fn send_slider_value_changed_events(
@@ -166,19 +198,6 @@ fn calculate_slider_value(relative_cursor_position: &RelativeCursorPosition) -> 
 
 // Node builders
 
-fn build_slider_input_node(
-    components: impl Bundle,
-    start_value: f32,
-    button_bundle: ButtonBundle,
-) -> impl Bundle {
-    (
-        components,
-        SliderInput::new(start_value),
-        RelativeCursorPosition::default(),
-        button_bundle,
-    )
-}
-
 fn build_slider_handle_node(start_value: f32) -> impl Bundle {
     (
         SliderHandle,
@@ -207,31 +226,4 @@ fn build_slider_handle_bar_node(width: f32) -> impl Bundle {
         background_color: NEUTRAL_100.into(),
         ..default()
     },)
-}
-
-fn build_button_bundle(width: Val, height: Val) -> ButtonBundle {
-    ButtonBundle {
-        style: Style {
-            width,
-            height,
-            ..default()
-        },
-        background_color: NEUTRAL_500.into(),
-        ..default()
-    }
-}
-
-fn build_button_bundle_with_image(width: Val, height: Val, image: Handle<Image>) -> ButtonBundle {
-    ButtonBundle {
-        style: Style {
-            width,
-            height,
-            ..default()
-        },
-        image: UiImage {
-            texture: image,
-            ..default()
-        },
-        ..default()
-    }
 }

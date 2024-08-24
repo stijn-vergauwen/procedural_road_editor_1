@@ -21,14 +21,28 @@ impl Plugin for ButtonsPlugin {
 
 // Start of new UiComponent code
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct ButtonConfig {
+    background_image: Option<Handle<Image>>,
     wrap: ContentWrapConfig,
+}
+
+impl ButtonConfig {
+    pub fn with_background_image(&mut self, image_handle: Handle<Image>) -> &mut Self {
+        self.background_image = Some(image_handle);
+        self
+    }
+
+    pub fn with_min_width(&mut self, min_width: Val) -> &mut Self {
+        self.wrap.with_min_width(min_width);
+        self
+    }
 }
 
 impl Default for ButtonConfig {
     fn default() -> Self {
         Self {
+            background_image: None,
             wrap: ContentWrapConfig::wide_element()
                 .with_background_color(NEUTRAL_500)
                 .with_all_px_border_radius(8.0),
@@ -79,7 +93,10 @@ impl UiComponentWithChildrenBuilder for ButtonBuilder {
     }
 
     fn build(&self) -> impl Bundle {
-        (Button, Interaction::default())
+        match self.config.background_image.clone() {
+            Some(image_handle) => (Button, Interaction::default(), UiImage::new(image_handle)),
+            None => (Button, Interaction::default(), UiImage::default()),
+        }
     }
 }
 
@@ -141,7 +158,7 @@ impl TextButtonBuilder {
 
 impl UiComponentBuilder for TextButtonBuilder {
     fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
-        ButtonBuilder::new(self.config.button).spawn(builder, components, |button| {
+        ButtonBuilder::new(self.config.button.clone()).spawn(builder, components, |button| {
             TextBuilder::new(self.config.text.clone()).spawn(button, ());
         })
     }

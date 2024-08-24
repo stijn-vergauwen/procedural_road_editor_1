@@ -1,15 +1,21 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
-    ui::build_text_node,
+    ui::{
+        build_text_node,
+        components::{
+            inputs::slider_input::{
+                OnSliderInputValueChanged, SliderInputBuilder, SliderInputConfig,
+            },
+            UiComponentBuilder,
+        },
+    },
     utility::{
         filter_descendants_of_entity, find_ancestor_of_entity_mut, find_descendant_of_entity_mut,
         texture_builder::TextureBuilder,
     },
     GameRunningSet,
 };
-
-use super::slider_input::{spawn_slider_input_with_image, OnSliderInputValueChanged};
 
 pub struct ColorInputPlugin;
 
@@ -124,13 +130,17 @@ fn spawn_color_input_slider(
     color_channel: ColorChannel,
 ) -> Entity {
     let image = images.add(generate_slider_image(start_color, color_channel));
+    let start_value = get_rgba_color_channel(start_color, color_channel);
 
-    spawn_slider_input_with_image(
-        builder,
-        (ColorInputSlider::new(color_channel),),
-        get_rgba_color_channel(start_color, color_channel),
-        image,
+    SliderInputBuilder::new(
+        SliderInputConfig::default()
+            .with_start_value(start_value)
+            .with_background_image(image)
+            // TODO: why does min_width not have any effect?
+            .with_min_width(Val::Px(300.0))
+            .clone(),
     )
+    .spawn(builder, ColorInputSlider::new(color_channel))
 }
 
 fn send_color_input_changed_events(

@@ -9,6 +9,7 @@ pub struct ContentWrapConfig {
     pub border_size: UiRect,
     pub border_color: BorderColor,
     pub border_radius: BorderRadius,
+    pub min_width: Val,
 }
 
 impl ContentWrapConfig {
@@ -53,6 +54,11 @@ impl ContentWrapConfig {
     pub fn rounded(self) -> Self {
         self.with_border_radius(BorderRadius::MAX)
     }
+
+    pub fn with_min_width(mut self, min_width: Val) -> Self {
+        self.min_width = min_width;
+        self
+    }
 }
 
 impl Default for ContentWrapConfig {
@@ -63,6 +69,7 @@ impl Default for ContentWrapConfig {
             border_size: UiRect::ZERO,
             border_color: Color::NONE.into(),
             border_radius: BorderRadius::ZERO,
+            min_width: Val::default(),
         }
     }
 }
@@ -85,6 +92,7 @@ impl UiComponentWithChildrenBuilder for ContentWrapBuilder {
             style: Style {
                 padding: self.config.padding,
                 border: self.config.border_size,
+                min_width: self.config.min_width,
                 ..default()
             },
             background_color: self.config.background_color,
