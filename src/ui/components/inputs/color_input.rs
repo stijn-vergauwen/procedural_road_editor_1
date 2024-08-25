@@ -1,14 +1,11 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
-    ui::{
-        build_text_node,
-        components::{
-            inputs::slider_input::{
-                OnSliderInputValueChanged, SliderInputBuilder, SliderInputConfig,
-            },
-            UiComponentBuilder,
-        },
+    ui::components::{
+        content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+        inputs::slider_input::{OnSliderInputValueChanged, SliderInputBuilder, SliderInputConfig},
+        section::{SectionBuilder, SectionConfig},
+        UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
     utility::{
         filter_descendants_of_entity, find_ancestor_of_entity_mut, find_descendant_of_entity_mut,
@@ -31,6 +28,104 @@ impl Plugin for ColorInputPlugin {
         );
     }
 }
+
+// Start of new UiComponent code
+
+#[derive(Clone, Copy)]
+pub struct ColorInputConfig {
+    start_color: Color,
+    section: SectionConfig,
+}
+
+impl ColorInputConfig {
+    pub fn new(start_color: Color, section: SectionConfig) -> Self {
+        Self {
+            start_color,
+            section,
+        }
+    }
+
+    pub fn with_start_color(mut self, start_color: impl Into<Color>) -> Self {
+        self.start_color = start_color.into();
+        self
+    }
+}
+
+impl Default for ColorInputConfig {
+    fn default() -> Self {
+        Self {
+            start_color: Color::WHITE,
+            section: SectionConfig::default().with_background_color(NEUTRAL_500),
+        }
+    }
+}
+
+/// A color selector UiComponent.
+#[derive(Default)]
+pub struct ColorInputBuilder {
+    slider_image_a: Handle<Image>,
+    slider_image_b: Handle<Image>,
+    slider_image_c: Handle<Image>,
+    config: ColorInputConfig,
+}
+
+impl ColorInputBuilder {
+    pub fn new(config: ColorInputConfig, images: &mut Assets<Image>) -> Self {
+        Self {
+            slider_image_a: images.add(generate_slider_image(config.start_color, ColorChannel::A)),
+            slider_image_b: images.add(generate_slider_image(config.start_color, ColorChannel::B)),
+            slider_image_c: images.add(generate_slider_image(config.start_color, ColorChannel::C)),
+            config,
+        }
+    }
+}
+
+impl UiComponentBuilder for ColorInputBuilder {
+    fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
+        SectionBuilder::new(self.config.section).spawn(
+            builder,
+            (components, self.build()),
+            |color_input| {
+                ContentWrapBuilder::new(ContentWrapConfig {
+                    background_color: self.config.start_color.into(),
+                    width: Val::Px(40.0),
+                    height: Val::Px(40.0),
+                    border_size: UiRect::all(Val::Px(4.0)),
+                    border_color: NEUTRAL_700.into(),
+                    ..ContentWrapConfig::empty()
+                })
+                .spawn(color_input, ColorInputDisplay, |_| {});
+
+                spawn_slider_input(
+                    color_input,
+                    self.config.start_color,
+                    ColorChannel::A,
+                    self.slider_image_a.clone(),
+                );
+
+                spawn_slider_input(
+                    color_input,
+                    self.config.start_color,
+                    ColorChannel::B,
+                    self.slider_image_b.clone(),
+                );
+
+                spawn_slider_input(
+                    color_input,
+                    self.config.start_color,
+                    ColorChannel::C,
+                    self.slider_image_c.clone(),
+                );
+            },
+        )
+    }
+
+    fn build(&self) -> impl Bundle {
+        ColorInput::new(self.config.start_color)
+    }
+}
+
+// End of new UiComponent code
 
 #[derive(Component)]
 pub struct ColorInput {
@@ -89,56 +184,6 @@ impl OnColorInputValueChanged {
     pub fn new_color(&self) -> Color {
         self.new_color
     }
-}
-
-pub fn spawn_color_input(
-    builder: &mut ChildBuilder,
-    root_components: impl Bundle,
-    images: &mut Assets<Image>,
-    start_color: Color,
-    label: Option<impl Into<String>>,
-) -> Entity {
-    let mut color_input = builder.spawn(build_color_input_container_node(
-        root_components,
-        start_color,
-    ));
-
-    color_input
-        .with_children(|color_input| {
-            if let Some(label) = label {
-                color_input.spawn(build_text_node(
-                    label,
-                    20.0,
-                    Color::WHITE,
-                    JustifyText::Center,
-                    (),
-                ));
-            }
-
-            color_input.spawn(build_color_display_node(start_color));
-            spawn_color_input_slider(color_input, images, start_color, ColorChannel::A);
-            spawn_color_input_slider(color_input, images, start_color, ColorChannel::B);
-            spawn_color_input_slider(color_input, images, start_color, ColorChannel::C);
-        })
-        .id()
-}
-
-fn spawn_color_input_slider(
-    builder: &mut ChildBuilder,
-    images: &mut Assets<Image>,
-    start_color: Color,
-    color_channel: ColorChannel,
-) -> Entity {
-    let image = images.add(generate_slider_image(start_color, color_channel));
-    let start_value = get_rgba_color_channel(start_color, color_channel);
-
-    SliderInputBuilder::new(
-        SliderInputConfig::default()
-            .with_start_value(start_value)
-            .with_background_image(image)
-            .clone(),
-    )
-    .spawn(builder, ColorInputSlider::new(color_channel))
 }
 
 fn send_color_input_changed_events(
@@ -220,6 +265,21 @@ fn update_color_input_display(
 
 // Utility
 
+fn spawn_slider_input(
+    builder: &mut ChildBuilder,
+    start_color: Color,
+    color_channel: ColorChannel,
+    slider_image: Handle<Image>,
+) {
+    SliderInputBuilder::new(
+        SliderInputConfig::default()
+            .with_start_value(get_rgba_color_channel(start_color, color_channel))
+            .with_background_image(slider_image)
+            .clone(),
+    )
+    .spawn(builder, ColorInputSlider::new(color_channel));
+}
+
 fn generate_slider_image(color: Color, channel: ColorChannel) -> Image {
     TextureBuilder::image_from_colors(vec![
         get_rgba_color_with_channel(color, channel, 0.0),
@@ -241,44 +301,4 @@ fn get_rgba_color_channel(color: Color, channel: ColorChannel) -> f32 {
         ColorChannel::B => color.to_srgba().green,
         ColorChannel::C => color.to_srgba().blue,
     }
-}
-
-// Node builders
-
-fn build_color_input_container_node(
-    root_components: impl Bundle,
-    start_color: Color,
-) -> impl Bundle {
-    (
-        root_components,
-        ColorInput::new(start_color),
-        NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                row_gap: Val::Px(8.0),
-                padding: UiRect::all(Val::Px(4.0)),
-                ..default()
-            },
-            background_color: NEUTRAL_600.into(),
-            ..default()
-        },
-    )
-}
-
-fn build_color_display_node(start_color: Color) -> impl Bundle {
-    (
-        ColorInputDisplay,
-        NodeBundle {
-            style: Style {
-                width: Val::Px(40.0),
-                height: Val::Px(40.0),
-                border: UiRect::all(Val::Px(4.0)),
-                ..default()
-            },
-            border_color: NEUTRAL_700.into(),
-            background_color: start_color.into(),
-            ..default()
-        },
-    )
 }

@@ -28,11 +28,11 @@ impl Plugin for UiPlugin {
             ModalPlugin,
             ListPlugin,
         ))
-        .add_systems(Startup, spawn_layout_container);
+        .add_systems(Startup, spawn_editor_layout);
     }
 }
 
-fn spawn_layout_container(mut commands: Commands) {
+fn spawn_editor_layout(mut commands: Commands) {
     let container_node = NodeBundle {
         style: Style {
             flex_direction: FlexDirection::Column,
@@ -56,32 +56,4 @@ fn spawn_layout_container(mut commands: Commands) {
 
         spawn_toolbar(container);
     });
-}
-
-// TODO: delete
-fn build_text_node(
-    text: impl Into<String>,
-    font_size: f32,
-    font_color: impl Into<Color>,
-    justify: JustifyText,
-    text_components: impl Bundle,
-) -> impl Bundle {
-    (
-        text_components,
-        TextBundle {
-            text: Text {
-                sections: vec![TextSection {
-                    value: text.into(),
-                    style: TextStyle {
-                        color: font_color.into(),
-                        font_size,
-                        ..default()
-                    },
-                }],
-                justify,
-                ..default()
-            },
-            ..default()
-        },
-    )
 }

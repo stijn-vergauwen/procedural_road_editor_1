@@ -58,9 +58,9 @@ impl Default for SliderInputConfig {
         Self {
             start_value: 0.0,
             handle_bar_width: 6.0,
-            button: ButtonConfig::new()
+            button: ButtonConfig::empty()
                 .with_content_wrap_config(
-                    ContentWrapConfig::new()
+                    ContentWrapConfig::empty()
                         .with_background_color(NEUTRAL_800)
                         .with_width(Val::Percent(100.0))
                         .with_height(Val::Px(12.0))

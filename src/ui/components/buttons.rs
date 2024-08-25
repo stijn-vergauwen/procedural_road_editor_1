@@ -28,10 +28,10 @@ pub struct ButtonConfig {
 }
 
 impl ButtonConfig {
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         Self {
             background_image: None,
-            wrap: ContentWrapConfig::new(),
+            wrap: ContentWrapConfig::empty(),
         }
     }
 

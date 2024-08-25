@@ -11,13 +11,15 @@ use crate::{
     ui::{
         components::{
             buttons::{ButtonAction, OnButtonPressed, TextButtonBuilder},
-            inputs::number_input::{NumberInput, NumberInputBuilder, OnNumberInputValueChanged},
+            inputs::{
+                color_input::{
+                    ColorInput, ColorInputBuilder, ColorInputConfig, OnColorInputValueChanged,
+                },
+                number_input::{NumberInput, NumberInputBuilder, OnNumberInputValueChanged},
+            },
             UiComponentBuilder,
         },
-        inputs::{
-            color_input::{spawn_color_input, ColorInput, OnColorInputValueChanged},
-            text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
-        },
+        inputs::text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
         list::{List, ListItem},
         toolbar::components::selected_road_component::{
             OnRoadComponentDeselected, OnRoadComponentSelected,
@@ -109,13 +111,12 @@ fn generate_config_section_for_selected_component(
                         .with_values(component_data.size().y, 0.0..10.0)
                         .spawn(container, ComponentConfigAction::SetHeight);
 
-                    spawn_color_input(
-                        container,
-                        ComponentConfigAction::SetColor,
+                    // TODO: add "Color" label
+                    ColorInputBuilder::new(
+                        ColorInputConfig::default().with_start_color(component_data.color()),
                         &mut images,
-                        component_data.color(),
-                        Some("Color"),
-                    );
+                    )
+                    .spawn(container, ComponentConfigAction::SetColor);
 
                     TextButtonBuilder::default_with_text("Delete")
                         .spawn(container, ButtonAction::DeleteComponent);

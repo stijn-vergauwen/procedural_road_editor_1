@@ -14,7 +14,7 @@ pub struct ContentWrapConfig {
 }
 
 impl ContentWrapConfig {
-    pub fn new() -> Self {
+    pub fn empty() -> Self {
         Self {
             padding: UiRect::ZERO,
             background_color: Color::NONE.into(),

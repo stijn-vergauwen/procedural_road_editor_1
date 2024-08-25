@@ -11,6 +11,13 @@ pub struct SectionConfig {
 }
 
 impl SectionConfig {
+    pub fn empty() -> Self {
+        Self {
+            wrap: ContentWrapConfig::empty(),
+            flexbox: FlexboxConfig::default(),
+        }
+    }
+
     pub fn with_content_wrap_config(mut self, content_wrap_config: ContentWrapConfig) -> Self {
         self.wrap = content_wrap_config;
         self
@@ -21,8 +28,8 @@ impl SectionConfig {
         self
     }
 
-    pub fn with_background_color(self, background_color: impl Into<BackgroundColor>) -> Self {
-        self.wrap.with_background_color(background_color);
+    pub fn with_background_color(mut self, background_color: impl Into<BackgroundColor>) -> Self {
+        self.wrap = self.wrap.with_background_color(background_color);
         self
     }
 
