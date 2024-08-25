@@ -3,7 +3,11 @@ use bevy::prelude::*;
 use crate::{
     road::{ActiveRoad, OnSaveRoadRequested},
     ui::{
-        components::buttons::{spawn_button_node, ButtonAction, OnButtonPressed},
+        components::{
+            buttons::{ButtonAction, OnButtonPressed, TextButtonBuilder},
+            flexbox::{FlexboxBuilder, FlexboxConfig},
+            UiComponentBuilder, UiComponentWithChildrenBuilder,
+        },
         inputs::text_input::{spawn_text_input_node, TextInput},
         modal::{OnHideModalRequested, OnShowModalRequested},
     },
@@ -37,14 +41,17 @@ fn show_modal_on_save_button_pressed(
         .read()
         .filter(|event| event.is_action(ButtonAction::SaveRoad))
     {
-        let mut modal_content_container = commands.spawn(build_save_content_container_node());
+        let mut modal_content_container = commands.spawn(
+            FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column().with_px_gap(8.0))
+                .build(),
+        );
         let modal_content_entity = modal_content_container.id();
 
         modal_content_container.with_children(|container| {
+            // TODO: replace with UiComponent
             spawn_text_input_node(container, RoadNameInput, "New road");
 
-            // TODO: replace with UiComponent
-            spawn_button_node(container, SaveConfirmButton, "Confirm", 24.0);
+            TextButtonBuilder::default_with_text("Confirm").spawn(container, SaveConfirmButton);
         });
 
         on_request.send(OnShowModalRequested::new(modal_content_entity));
@@ -69,17 +76,5 @@ fn send_save_requests(
 
             on_hide_request.send(OnHideModalRequested);
         }
-    }
-}
-
-fn build_save_content_container_node() -> impl Bundle {
-    NodeBundle {
-        style: Style {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            row_gap: Val::Px(8.0),
-            ..default()
-        },
-        ..default()
     }
 }

@@ -50,9 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Large refactor <- doing
-            - Rework layout & colors etc, more web-devvy
-
         - Lane lines support
         - Goal: Have a multilane highway road design with grass median
         - General road markings support

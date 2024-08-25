@@ -92,40 +92,41 @@ fn generate_config_section_for_selected_component(
             .entity(sidebar)
             .despawn_descendants()
             .with_children(|sidebar| {
-                FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column().with_px_gap(12.0))
-                    .spawn(
-                        sidebar,
-                        RoadComponentConfig::new(event.component_item_entity()),
-                        |config_container| {
-                            // TODO: replace with text input UiComponent
-                            spawn_text_input_node(
-                                config_container,
-                                ComponentConfigAction::SetName,
-                                component_data.name(),
-                            );
+                FlexboxBuilder::new(
+                    FlexboxConfig::horizontally_centered_column().with_px_gap(12.0),
+                )
+                .spawn(
+                    sidebar,
+                    RoadComponentConfig::new(event.component_item_entity()),
+                    |config_container| {
+                        // TODO: replace with text input UiComponent
+                        spawn_text_input_node(
+                            config_container,
+                            ComponentConfigAction::SetName,
+                            component_data.name(),
+                        );
 
-                            // TODO: add "Width" label
-                            NumberInputBuilder::default()
-                                .with_values(component_data.size().x, 0.0..10.0)
-                                .spawn(config_container, ComponentConfigAction::SetWidth);
+                        // TODO: add "Width" label
+                        NumberInputBuilder::default()
+                            .with_values(component_data.size().x, 0.0..10.0)
+                            .spawn(config_container, ComponentConfigAction::SetWidth);
 
-                            // TODO: add "Height" label
-                            NumberInputBuilder::default()
-                                .with_values(component_data.size().y, 0.0..10.0)
-                                .spawn(config_container, ComponentConfigAction::SetHeight);
+                        // TODO: add "Height" label
+                        NumberInputBuilder::default()
+                            .with_values(component_data.size().y, 0.0..10.0)
+                            .spawn(config_container, ComponentConfigAction::SetHeight);
 
-                            // TODO: add "Color" label
-                            ColorInputBuilder::new(
-                                ColorInputConfig::default()
-                                    .with_start_color(component_data.color()),
-                                &mut images,
-                            )
-                            .spawn(config_container, ComponentConfigAction::SetColor);
+                        // TODO: add "Color" label
+                        ColorInputBuilder::new(
+                            ColorInputConfig::default().with_start_color(component_data.color()),
+                            &mut images,
+                        )
+                        .spawn(config_container, ComponentConfigAction::SetColor);
 
-                            TextButtonBuilder::default_with_text("Delete")
-                                .spawn(config_container, ButtonAction::DeleteComponent);
-                        },
-                    );
+                        TextButtonBuilder::default_with_text("Delete")
+                            .spawn(config_container, ButtonAction::DeleteComponent);
+                    },
+                );
             });
     }
 }
@@ -188,7 +189,9 @@ fn handle_text_input_changed_events(
 ) {
     for event in on_input_changed.read() {
         let event_entity = event.text_input_entity();
-        let config_action = text_input_query.get(event_entity).unwrap();
+        let Ok(config_action) = text_input_query.get(event_entity) else {
+            continue;
+        };
 
         if *config_action != ComponentConfigAction::SetName {
             continue;
