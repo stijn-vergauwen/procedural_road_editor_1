@@ -35,6 +35,7 @@ impl ButtonConfig {
         }
     }
 
+    /// Returns this component but with the background image set to the given image handle.
     pub fn with_background_image(&mut self, image_handle: Handle<Image>) -> &mut Self {
         self.background_image = Some(image_handle);
         self
@@ -42,6 +43,36 @@ impl ButtonConfig {
 
     pub fn with_content_wrap_config(&mut self, wrap: ContentWrapConfig) -> &mut Self {
         self.wrap = wrap;
+        self
+    }
+
+    /// Returns this component but with the given width
+    /// 
+    /// - Use only percentage values for consistency.
+    pub fn with_width(mut self, width: Val) -> Self {
+        self.wrap = self.wrap.with_width(width);
+        self
+    }
+
+    /// Returns this component but with the width set to 100%.
+    pub fn with_full_width(mut self) -> Self {
+        self.wrap = self.wrap.with_full_width();
+        self
+    }
+
+    /// Returns this component but with the given minimum width
+    /// 
+    /// - Use only pixel values for consistency.
+    pub fn with_min_width(mut self, min_width: Val) -> Self {
+        self.wrap = self.wrap.with_min_width(min_width);
+        self
+    }
+
+    /// Returns this component but with the given height
+    /// 
+    /// - Use only percentage values for consistency.
+    pub fn with_height(mut self, height: Val) -> Self {
+        self.wrap = self.wrap.with_height(height);
         self
     }
 }
@@ -211,6 +242,7 @@ fn send_button_pressed_events(
     }
 }
 
+// TODO: delete
 pub fn spawn_button_node(
     builder: &mut ChildBuilder,
     root_components: impl Bundle,

@@ -11,13 +11,14 @@ use crate::{
     ui::{
         components::{
             buttons::{ButtonAction, OnButtonPressed, TextButtonBuilder},
+            flexbox::{FlexboxBuilder, FlexboxConfig},
             inputs::{
                 color_input::{
                     ColorInput, ColorInputBuilder, ColorInputConfig, OnColorInputValueChanged,
                 },
                 number_input::{NumberInput, NumberInputBuilder, OnNumberInputValueChanged},
             },
-            UiComponentBuilder,
+            UiComponentBuilder, UiComponentWithChildrenBuilder,
         },
         inputs::text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
         list::{List, ListItem},
@@ -91,36 +92,40 @@ fn generate_config_section_for_selected_component(
             .entity(sidebar)
             .despawn_descendants()
             .with_children(|sidebar| {
-                let mut component_config =
-                    sidebar.spawn(build_config_container_node(event.component_item_entity()));
+                FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column().with_px_gap(12.0))
+                    .spawn(
+                        sidebar,
+                        RoadComponentConfig::new(event.component_item_entity()),
+                        |config_container| {
+                            // TODO: replace with text input UiComponent
+                            spawn_text_input_node(
+                                config_container,
+                                ComponentConfigAction::SetName,
+                                component_data.name(),
+                            );
 
-                component_config.with_children(|container| {
-                    spawn_text_input_node(
-                        container,
-                        ComponentConfigAction::SetName,
-                        component_data.name(),
+                            // TODO: add "Width" label
+                            NumberInputBuilder::default()
+                                .with_values(component_data.size().x, 0.0..10.0)
+                                .spawn(config_container, ComponentConfigAction::SetWidth);
+
+                            // TODO: add "Height" label
+                            NumberInputBuilder::default()
+                                .with_values(component_data.size().y, 0.0..10.0)
+                                .spawn(config_container, ComponentConfigAction::SetHeight);
+
+                            // TODO: add "Color" label
+                            ColorInputBuilder::new(
+                                ColorInputConfig::default()
+                                    .with_start_color(component_data.color()),
+                                &mut images,
+                            )
+                            .spawn(config_container, ComponentConfigAction::SetColor);
+
+                            TextButtonBuilder::default_with_text("Delete")
+                                .spawn(config_container, ButtonAction::DeleteComponent);
+                        },
                     );
-
-                    // TODO: add "Width" label
-                    NumberInputBuilder::default()
-                        .with_values(component_data.size().x, 0.0..10.0)
-                        .spawn(container, ComponentConfigAction::SetWidth);
-
-                    // TODO: add "Height" label
-                    NumberInputBuilder::default()
-                        .with_values(component_data.size().y, 0.0..10.0)
-                        .spawn(container, ComponentConfigAction::SetHeight);
-
-                    // TODO: add "Color" label
-                    ColorInputBuilder::new(
-                        ColorInputConfig::default().with_start_color(component_data.color()),
-                        &mut images,
-                    )
-                    .spawn(container, ComponentConfigAction::SetColor);
-
-                    TextButtonBuilder::default_with_text("Delete")
-                        .spawn(container, ButtonAction::DeleteComponent);
-                });
             });
     }
 }
@@ -261,18 +266,4 @@ fn handle_delete_button_pressed_events(
 
 fn list_item_index_from_entity(list_item_query: &Query<&ListItem>, entity: Entity) -> usize {
     list_item_query.get(entity).unwrap().index()
-}
-
-fn build_config_container_node(component_entity: Entity) -> impl Bundle {
-    (
-        RoadComponentConfig::new(component_entity),
-        NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                align_items: AlignItems::Center,
-                ..default()
-            },
-            ..default()
-        },
-    )
 }

@@ -62,7 +62,7 @@ impl Default for SliderInputConfig {
                 .with_content_wrap_config(
                     ContentWrapConfig::empty()
                         .with_background_color(NEUTRAL_800)
-                        .with_width(Val::Percent(100.0))
+                        .with_full_width()
                         .with_height(Val::Px(12.0))
                         .rounded(),
                 )

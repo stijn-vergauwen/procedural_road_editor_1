@@ -28,6 +28,36 @@ impl SectionConfig {
         self
     }
 
+    /// Returns this component but with the given width
+    /// 
+    /// - Use only percentage values for consistency.
+    pub fn with_width(mut self, width: Val) -> Self {
+        self.wrap = self.wrap.with_width(width);
+        self
+    }
+
+    /// Returns this component but with the width set to 100%.
+    pub fn with_full_width(mut self) -> Self {
+        self.wrap = self.wrap.with_full_width();
+        self
+    }
+
+    /// Returns this component but with the given minimum width
+    /// 
+    /// - Use only pixel values for consistency.
+    pub fn with_min_width(mut self, min_width: Val) -> Self {
+        self.wrap = self.wrap.with_min_width(min_width);
+        self
+    }
+
+    /// Returns this component but with the given height
+    /// 
+    /// - Use only percentage values for consistency.
+    pub fn with_height(mut self, height: Val) -> Self {
+        self.wrap = self.wrap.with_height(height);
+        self
+    }
+
     pub fn with_background_color(mut self, background_color: impl Into<BackgroundColor>) -> Self {
         self.wrap = self.wrap.with_background_color(background_color);
         self
@@ -74,6 +104,9 @@ impl UiComponentWithChildrenBuilder for SectionBuilder {
                 column_gap: self.config.flexbox.column_gap,
                 padding: self.config.wrap.padding,
                 border: self.config.wrap.border_size,
+                width: self.config.wrap.width,
+                min_width: self.config.wrap.min_width,
+                height: self.config.wrap.height,
                 ..default()
             },
             background_color: self.config.wrap.background_color,

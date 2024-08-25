@@ -3,6 +3,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::{
     ui::components::{
         content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+        flexbox::FlexboxConfig,
         inputs::slider_input::{OnSliderInputValueChanged, SliderInputBuilder, SliderInputConfig},
         section::{SectionBuilder, SectionConfig},
         UiComponentBuilder, UiComponentWithChildrenBuilder,
@@ -55,7 +56,14 @@ impl Default for ColorInputConfig {
     fn default() -> Self {
         Self {
             start_color: Color::WHITE,
-            section: SectionConfig::default().with_background_color(NEUTRAL_500),
+            section: SectionConfig {
+                wrap: ContentWrapConfig::default()
+                    .with_all_px_border_radius(8.0)
+                    .with_full_width()
+                    .with_min_width(Val::Px(160.0))
+                    .with_background_color(NEUTRAL_500),
+                flexbox: FlexboxConfig::horizontally_centered_column().with_px_gap(4.0),
+            },
         }
     }
 }

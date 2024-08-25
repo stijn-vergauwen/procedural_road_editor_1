@@ -9,7 +9,11 @@ pub struct ContentWrapConfig {
     pub border_size: UiRect,
     pub border_color: BorderColor,
     pub border_radius: BorderRadius,
+    /// The width of this component, use only percentage values for consistency.
     pub width: Val,
+    /// The minimum width this component has to be, use only pixel values for consistency.
+    pub min_width: Val,
+    /// The height of this component, use only percentage values for consistency.
     pub height: Val,
 }
 
@@ -18,11 +22,7 @@ impl ContentWrapConfig {
         Self {
             padding: UiRect::ZERO,
             background_color: Color::NONE.into(),
-            border_size: UiRect::ZERO,
-            border_color: Color::NONE.into(),
-            border_radius: BorderRadius::ZERO,
-            width: Val::Auto,
-            height: Val::Auto,
+            ..default()
         }
     }
 
@@ -68,11 +68,30 @@ impl ContentWrapConfig {
         self.with_border_radius(BorderRadius::MAX)
     }
 
+    /// Returns this component but with the given width
+    /// 
+    /// - Use only percentage values for consistency.
     pub fn with_width(mut self, width: Val) -> Self {
         self.width = width;
         self
     }
 
+    /// Returns this component but with the width set to 100%.
+    pub fn with_full_width(self) -> Self {
+        self.with_width(Val::Percent(100.0))
+    }
+
+    /// Returns this component but with the given minimum width
+    /// 
+    /// - Use only pixel values for consistency.
+    pub fn with_min_width(mut self, min_width: Val) -> Self {
+        self.min_width = min_width;
+        self
+    }
+
+    /// Returns this component but with the given height
+    /// 
+    /// - Use only percentage values for consistency.
     pub fn with_height(mut self, height: Val) -> Self {
         self.height = height;
         self
@@ -89,6 +108,7 @@ impl Default for ContentWrapConfig {
             border_radius: BorderRadius::ZERO,
             width: Val::Auto,
             height: Val::Auto,
+            min_width: Val::Auto,
         }
     }
 }
@@ -112,6 +132,7 @@ impl UiComponentWithChildrenBuilder for ContentWrapBuilder {
                 padding: self.config.padding,
                 border: self.config.border_size,
                 width: self.config.width,
+                min_width: self.config.min_width,
                 height: self.config.height,
                 ..default()
             },

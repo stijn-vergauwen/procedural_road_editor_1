@@ -51,7 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Large refactor <- doing
-            - Make UiComponent for color input
             - Rework layout & colors etc, more web-devvy
 
         - Lane lines support
