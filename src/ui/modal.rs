@@ -1,6 +1,8 @@
-use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition};
+use bevy::{prelude::*, ui::RelativeCursorPosition};
 
 use crate::GameRunningSet;
+
+use super::components::{section::SectionBuilder, UiComponentWithChildrenBuilder};
 
 pub struct ModalPlugin;
 
@@ -38,12 +40,18 @@ impl OnShowModalRequested {
 #[derive(Event)]
 pub struct OnHideModalRequested;
 
-fn spawn_centered_modal(mut commands: Commands) {
+fn spawn_centered_modal(mut commands: Commands, mut on_hide: EventWriter<OnHideModalRequested>) {
     commands
         .spawn(build_centered_container_node())
         .with_children(|container| {
-            container.spawn(build_modal_node());
+            SectionBuilder::spawn_default(
+                container,
+                (Modal, RelativeCursorPosition::default()),
+                |_| {},
+            );
         });
+
+    on_hide.send(OnHideModalRequested);
 }
 
 fn handle_show_requests(
@@ -102,20 +110,4 @@ fn build_centered_container_node() -> impl Bundle {
         },
         ..default()
     }
-}
-
-fn build_modal_node() -> impl Bundle {
-    (
-        Modal,
-        RelativeCursorPosition::default(),
-        NodeBundle {
-            style: Style {
-                padding: UiRect::all(Val::Px(20.0)),
-                ..default()
-            },
-            background_color: NEUTRAL_500.into(),
-            visibility: Visibility::Hidden,
-            ..default()
-        },
-    )
 }
