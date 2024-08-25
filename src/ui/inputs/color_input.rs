@@ -136,8 +136,6 @@ fn spawn_color_input_slider(
         SliderInputConfig::default()
             .with_start_value(start_value)
             .with_background_image(image)
-            // TODO: why does min_width not have any effect?
-            .with_min_width(Val::Px(300.0))
             .clone(),
     )
     .spawn(builder, ColorInputSlider::new(color_channel))

@@ -9,10 +9,23 @@ pub struct ContentWrapConfig {
     pub border_size: UiRect,
     pub border_color: BorderColor,
     pub border_radius: BorderRadius,
-    pub min_width: Val,
+    pub width: Val,
+    pub height: Val,
 }
 
 impl ContentWrapConfig {
+    pub fn new() -> Self {
+        Self {
+            padding: UiRect::ZERO,
+            background_color: Color::NONE.into(),
+            border_size: UiRect::ZERO,
+            border_color: Color::NONE.into(),
+            border_radius: BorderRadius::ZERO,
+            width: Val::Auto,
+            height: Val::Auto,
+        }
+    }
+
     pub fn wide_element() -> Self {
         Self {
             padding: UiRect::axes(Val::Px(12.0), Val::Px(4.0)),
@@ -55,8 +68,13 @@ impl ContentWrapConfig {
         self.with_border_radius(BorderRadius::MAX)
     }
 
-    pub fn with_min_width(mut self, min_width: Val) -> Self {
-        self.min_width = min_width;
+    pub fn with_width(mut self, width: Val) -> Self {
+        self.width = width;
+        self
+    }
+
+    pub fn with_height(mut self, height: Val) -> Self {
+        self.height = height;
         self
     }
 }
@@ -69,7 +87,8 @@ impl Default for ContentWrapConfig {
             border_size: UiRect::ZERO,
             border_color: Color::NONE.into(),
             border_radius: BorderRadius::ZERO,
-            min_width: Val::default(),
+            width: Val::Auto,
+            height: Val::Auto,
         }
     }
 }
@@ -92,7 +111,8 @@ impl UiComponentWithChildrenBuilder for ContentWrapBuilder {
             style: Style {
                 padding: self.config.padding,
                 border: self.config.border_size,
-                min_width: self.config.min_width,
+                width: self.config.width,
+                height: self.config.height,
                 ..default()
             },
             background_color: self.config.background_color,

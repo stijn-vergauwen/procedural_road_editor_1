@@ -23,18 +23,25 @@ impl Plugin for ButtonsPlugin {
 
 #[derive(Clone)]
 pub struct ButtonConfig {
-    background_image: Option<Handle<Image>>,
-    wrap: ContentWrapConfig,
+    pub background_image: Option<Handle<Image>>,
+    pub wrap: ContentWrapConfig,
 }
 
 impl ButtonConfig {
+    pub fn new() -> Self {
+        Self {
+            background_image: None,
+            wrap: ContentWrapConfig::new(),
+        }
+    }
+
     pub fn with_background_image(&mut self, image_handle: Handle<Image>) -> &mut Self {
         self.background_image = Some(image_handle);
         self
     }
 
-    pub fn with_min_width(&mut self, min_width: Val) -> &mut Self {
-        self.wrap.with_min_width(min_width);
+    pub fn with_content_wrap_config(&mut self, wrap: ContentWrapConfig) -> &mut Self {
+        self.wrap = wrap;
         self
     }
 }

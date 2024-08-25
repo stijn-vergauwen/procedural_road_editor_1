@@ -3,6 +3,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition}
 use crate::{
     ui::components::{
         buttons::{ButtonBuilder, ButtonConfig},
+        content_wrap::ContentWrapConfig,
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
     utility::find_descendant_of_entity_mut,
@@ -26,6 +27,7 @@ impl Plugin for SliderInputPlugin {
 #[derive(Clone)]
 pub struct SliderInputConfig {
     start_value: f32,
+    handle_bar_width: f32,
     button: ButtonConfig,
 }
 
@@ -45,8 +47,8 @@ impl SliderInputConfig {
         self
     }
 
-    pub fn with_min_width(&mut self, min_width: Val) -> &mut Self {
-        self.button.with_min_width(min_width);
+    pub fn with_width(&mut self, width: Val) -> &mut Self {
+        self.button.wrap = self.button.wrap.with_width(width);
         self
     }
 }
@@ -55,7 +57,16 @@ impl Default for SliderInputConfig {
     fn default() -> Self {
         Self {
             start_value: 0.0,
-            button: ButtonConfig::default(),
+            handle_bar_width: 6.0,
+            button: ButtonConfig::new()
+                .with_content_wrap_config(
+                    ContentWrapConfig::new()
+                        .with_background_color(NEUTRAL_800)
+                        .with_width(Val::Percent(100.0))
+                        .with_height(Val::Px(12.0))
+                        .rounded(),
+                )
+                .clone(),
         }
     }
 }
@@ -81,7 +92,8 @@ impl UiComponentBuilder for SliderInputBuilder {
                 button
                     .spawn(build_slider_handle_node(self.config.start_value))
                     .with_children(|slider_handle| {
-                        slider_handle.spawn(build_slider_handle_bar_node(6.0));
+                        slider_handle
+                            .spawn(build_slider_handle_bar_node(self.config.handle_bar_width));
                     });
             },
         )
