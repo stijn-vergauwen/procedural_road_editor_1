@@ -128,7 +128,7 @@ fn road_texture_from_road_data(road_data: &RoadData) -> Image {
         road_data
             .components()
             .iter()
-            .map(|component| component.color())
+            .map(|component| component.color)
             .collect(),
     )
 }

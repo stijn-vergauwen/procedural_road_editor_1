@@ -3,6 +3,7 @@ mod load;
 mod road_builder;
 mod road_component;
 mod road_data;
+mod road_markings;
 mod road_preview;
 mod save;
 
@@ -10,6 +11,7 @@ pub use active_road::ActiveRoad;
 pub use load::OnLoadRoadRequested;
 pub use road_component::RoadComponent;
 pub use road_data::RoadData;
+use road_markings::RoadMarkingsPlugin;
 pub use save::OnSaveRoadRequested;
 
 use active_road::ActiveRoadPlugin;
@@ -27,6 +29,7 @@ impl Plugin for RoadPlugin {
             LoadRoadPlugin,
             ActiveRoadPlugin,
             RoadPreviewPlugin,
+            RoadMarkingsPlugin,
         ));
     }
 }

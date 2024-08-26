@@ -29,11 +29,11 @@ impl Plugin for ActiveRoadPlugin {
 
 fn setup_example_road(mut commands: Commands, mut on_road_set: EventWriter<OnActiveRoadSet>) {
     let road_components = vec![
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
-        RoadComponent::new("Median", Vec2::new(0.4, 0.3), GRAY_600.into()),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into(), Vec::new()),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into(), Vec::new()),
+        RoadComponent::new("Median", Vec2::new(0.4, 0.3), GRAY_600.into(), Vec::new()),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into(), Vec::new()),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into(), Vec::new()),
     ];
 
     let road = RoadData::new(String::from("Example road"), road_components);

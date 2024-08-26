@@ -103,22 +103,22 @@ fn generate_config_section_for_selected_component(
                         spawn_text_input_node(
                             config_container,
                             ComponentConfigAction::SetName,
-                            component_data.name(),
+                            component_data.name.clone(),
                         );
 
                         // TODO: add "Width" label
                         NumberInputBuilder::default()
-                            .with_values(component_data.size().x, 0.0..10.0)
+                            .with_values(component_data.size.x, 0.0..10.0)
                             .spawn(config_container, ComponentConfigAction::SetWidth);
 
                         // TODO: add "Height" label
                         NumberInputBuilder::default()
-                            .with_values(component_data.size().y, 0.0..10.0)
+                            .with_values(component_data.size.y, 0.0..10.0)
                             .spawn(config_container, ComponentConfigAction::SetHeight);
 
                         // TODO: add "Color" label
                         ColorInputBuilder::new(
-                            ColorInputConfig::default().with_start_color(component_data.color()),
+                            ColorInputConfig::default().with_start_color(component_data.color),
                             &mut images,
                         )
                         .spawn(config_container, ComponentConfigAction::SetColor);

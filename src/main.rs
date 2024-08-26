@@ -50,7 +50,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Lane lines support
+        - Lane lines support <- doing
         - Goal: Have a multilane highway road design with grass median
         - General road markings support
         - Spaced elements support

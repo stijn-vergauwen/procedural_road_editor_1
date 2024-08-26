@@ -195,7 +195,7 @@ fn spawn_road_component(
 fn spawn_road_component_name(builder: &mut ChildBuilder, road_component: &RoadComponent) -> Entity {
     TextBuilder::new(
         TextConfig::default()
-            .with_text(road_component.name())
+            .with_text(road_component.name.clone())
             .with_justify(JustifyText::Center)
             .clone(),
     )
@@ -208,11 +208,11 @@ fn update_component_display(
     road_component: &RoadComponent,
 ) {
     *style = build_component_display_style(road_component);
-    *background_color = road_component.color().into();
+    *background_color = road_component.color.into();
 }
 
 fn update_component_name(text: &mut Text, road_component: &RoadComponent) {
-    text.sections[0].value = road_component.name().to_string();
+    text.sections[0].value = road_component.name.clone();
 }
 
 fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
@@ -220,7 +220,7 @@ fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
         RoadComponentDisplay,
         NodeBundle {
             style: build_component_display_style(road_component),
-            background_color: road_component.color().into(),
+            background_color: road_component.color.into(),
             border_color: BorderColor::from(NEUTRAL_400),
             ..default()
         },
@@ -229,8 +229,8 @@ fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {
 
 fn build_component_display_style(road_component: &RoadComponent) -> Style {
     Style {
-        width: Val::Px(road_component.size().x * COMPONENT_DISPLAY_SCALE),
-        height: Val::Px(road_component.size().y * COMPONENT_DISPLAY_SCALE + 1.0),
+        width: Val::Px(road_component.size.x * COMPONENT_DISPLAY_SCALE),
+        height: Val::Px(road_component.size.y * COMPONENT_DISPLAY_SCALE + 1.0),
         border: UiRect::all(Val::Px(1.6)),
         ..default()
     }

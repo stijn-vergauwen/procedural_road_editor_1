@@ -28,7 +28,7 @@ impl RoadBuilder {
         for (index, component) in road_data.components().iter().enumerate() {
             self.build_road_component(
                 &mut width_of_built_sections,
-                component.size(),
+                component.size,
                 road_data.total_width(),
                 calculate_road_component_uv(index, component_count),
             )

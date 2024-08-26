@@ -38,13 +38,13 @@ impl RoadData {
     pub fn total_width(&self) -> f32 {
         self.components
             .iter()
-            .fold(0.0, |sum, component| sum + component.size().x)
+            .fold(0.0, |sum, component| sum + component.size.x)
     }
 
     #[allow(unused)]
     fn total_height(&self) -> f32 {
         self.components
             .iter()
-            .fold(0.0, |sum, component| sum.max(component.size().y))
+            .fold(0.0, |sum, component| sum.max(component.size.y))
     }
 }

@@ -1,20 +1,29 @@
 use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
 use serde::{Deserialize, Serialize};
 
+use super::road_markings::RoadMarking;
+
 #[derive(Clone, Serialize, Deserialize)]
 #[serde(default)]
 pub struct RoadComponent {
-    name: String,
-    size: Vec2,
-    color: Color,
+    pub name: String,
+    pub size: Vec2,
+    pub color: Color,
+    pub markings: Vec<RoadMarking>,
 }
 
 impl RoadComponent {
-    pub fn new(name: impl Into<String>, size: Vec2, color: Color) -> Self {
+    pub fn new(
+        name: impl Into<String>,
+        size: Vec2,
+        color: Color,
+        markings: Vec<RoadMarking>,
+    ) -> Self {
         Self {
             name: name.into(),
             size,
             color,
+            markings,
         }
     }
 
@@ -37,18 +46,6 @@ impl RoadComponent {
         self.color = color;
         self
     }
-
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn size(&self) -> Vec2 {
-        self.size
-    }
-
-    pub fn color(&self) -> Color {
-        self.color
-    }
 }
 
 impl Default for RoadComponent {
@@ -57,6 +54,7 @@ impl Default for RoadComponent {
             name: String::from("New component"),
             size: Vec2::new(1.0, 0.2),
             color: GRAY_600.into(),
+            markings: Vec::new(),
         }
     }
 }
