@@ -1,9 +1,9 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-pub struct RoadMarkingsPlugin;
+pub struct RoadMarkingPlugin;
 
-impl Plugin for RoadMarkingsPlugin {
+impl Plugin for RoadMarkingPlugin {
     fn build(&self, _app: &mut App) {
         // app.add_systems(Update, ());
     }
@@ -16,16 +16,16 @@ impl Plugin for RoadMarkingsPlugin {
 pub struct RoadMarking {
     pub color: Color,
     pub segment_width: f32,
-    /// This marking's offset from the lane's center.
-    pub offset: f32,
+    /// This marking's horizontal position relative to the road center.
+    pub x_position: f32,
 }
 
 impl RoadMarking {
-    pub fn new(color: Color, segment_width: f32, offset: f32) -> Self {
+    pub fn new(color: impl Into<Color>, segment_width: f32, x_position: f32) -> Self {
         Self {
-            color,
+            color: color.into(),
             segment_width,
-            offset,
+            x_position,
         }
     }
 
@@ -39,8 +39,8 @@ impl RoadMarking {
         self
     }
 
-    pub fn with_offset(mut self, offset: f32) -> Self {
-        self.offset = offset;
+    pub fn with_x_position(mut self, x_position: f32) -> Self {
+        self.x_position = x_position;
         self
     }
 }

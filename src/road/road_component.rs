@@ -10,11 +10,11 @@ pub struct RoadComponent {
 }
 
 impl RoadComponent {
-    pub fn new(name: impl Into<String>, size: Vec2, color: Color) -> Self {
+    pub fn new(name: impl Into<String>, size: Vec2, color: impl Into<Color>) -> Self {
         Self {
             name: name.into(),
             size,
-            color,
+            color: color.into(),
         }
     }
 
@@ -36,6 +36,14 @@ impl RoadComponent {
     pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
         self
+    }
+
+    pub fn width(&self) -> f32 {
+        self.size.x
+    }
+
+    pub fn half_width(&self) -> f32 {
+        self.width() / 2.0
     }
 }
 

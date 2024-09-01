@@ -9,7 +9,7 @@ use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
 
-use super::{road_data::RoadData, RoadComponent};
+use super::{road_data::RoadData, road_marking::RoadMarking, RoadComponent};
 
 pub struct ActiveRoadPlugin;
 
@@ -29,14 +29,18 @@ impl Plugin for ActiveRoadPlugin {
 
 fn setup_example_road(mut commands: Commands, mut on_road_set: EventWriter<OnActiveRoadSet>) {
     let road_components = vec![
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
-        RoadComponent::new("Median", Vec2::new(0.4, 0.3), GRAY_600.into()),
-        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800.into()),
-        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600.into()),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800),
+        RoadComponent::new("Lane", Vec2::new(4.0, 0.1), GRAY_800),
+        RoadComponent::new("Sidewalk", Vec2::new(2.0, 0.3), GRAY_600),
     ];
 
-    let road = RoadData::new(String::from("Example road"), road_components, Vec::new());
+    let road_markings = vec![
+        RoadMarking::new(Color::WHITE, 0.15, -3.7),
+        RoadMarking::new(Color::WHITE, 0.15, 3.7),
+    ];
+
+    let road = RoadData::new(String::from("Example road"), road_components, road_markings);
 
     let active_road = ActiveRoad {
         road_data: road.clone(),

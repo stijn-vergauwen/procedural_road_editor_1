@@ -1,7 +1,9 @@
-use bevy::prelude::*;
+use std::{iter::Enumerate, slice::Iter};
+
+use bevy::{math::NormedVectorSpace, prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{road_markings::RoadMarking, RoadComponent};
+use super::{road_marking::RoadMarking, RoadComponent};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RoadData {
@@ -35,6 +37,18 @@ impl RoadData {
         &mut self.components
     }
 
+    pub fn enumerate_components(&self) -> Enumerate<Iter<RoadComponent>> {
+        self.components.iter().enumerate()
+    }
+
+    pub fn markings(&self) -> &[RoadMarking] {
+        &self.markings
+    }
+
+    pub fn enumerate_markings(&self) -> Enumerate<Iter<RoadMarking>> {
+        self.markings.iter().enumerate()
+    }
+
     #[allow(unused)]
     fn total_size(&self) -> Vec2 {
         Vec2::new(self.total_width(), self.total_height())
@@ -46,10 +60,40 @@ impl RoadData {
             .fold(0.0, |sum, component| sum + component.size.x)
     }
 
+    pub fn half_width(&self) -> f32 {
+        self.total_width() / 2.0
+    }
+
     #[allow(unused)]
     fn total_height(&self) -> f32 {
         self.components
             .iter()
             .fold(0.0, |sum, component| sum.max(component.size.y))
+    }
+
+    pub fn find_road_component_at_x_position(&self, x_position: f32) -> Option<RoadComponent> {
+        let road_component_positions = self.calculate_road_component_positions();
+
+        self.components.iter().enumerate().find(|(index, component)| {
+            let component_position = road_component_positions[*index];
+            
+            x_position.distance(component_position) <= component.half_width()
+
+        }).map(|(_, component)| component).cloned()
+    }
+
+    /// Returns an array describing the x_position of each component relative to the road's center.
+    fn calculate_road_component_positions(&self) -> Vec<f32> {
+        let mut width_of_previous_components = 0.0;
+        let mut result = Vec::new();
+
+        for component in self.components() {
+            let x_position = width_of_previous_components + component.half_width() - self.half_width();
+            result.push(x_position);
+
+            width_of_previous_components += component.width();
+        }
+
+        result
     }
 }

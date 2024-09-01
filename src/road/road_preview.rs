@@ -124,13 +124,19 @@ fn create_road_mesh_and_texture(
 }
 
 fn road_texture_from_road_data(road_data: &RoadData) -> Image {
-    TextureBuilder::image_from_colors(
-        road_data
-            .components()
-            .iter()
-            .map(|component| component.color)
-            .collect(),
-    )
+    let road_component_colors: Vec<Color> = road_data
+        .components()
+        .iter()
+        .map(|component| component.color)
+        .collect();
+
+    let road_marking_colors: Vec<Color> = road_data
+        .markings()
+        .iter()
+        .map(|marking| marking.color)
+        .collect();
+
+    TextureBuilder::image_from_colors([road_component_colors, road_marking_colors].concat())
 }
 
 fn create_road_preview_material(

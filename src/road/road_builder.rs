@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::utility::mesh_builder::MeshBuilder;
 
-use super::RoadData;
+use super::{road_marking::RoadMarking, RoadData};
 
 const ROAD_LENGTH: f32 = 20.0;
 
@@ -22,16 +22,25 @@ impl RoadBuilder {
             warn!("build method called on a RoadBuilder that already contains mesh data.");
         }
 
-        let component_count = road_data.components().len();
+        let road_component_length = road_data.components().len();
+        let road_texture_length = road_component_length + road_data.markings().len();
         let mut width_of_built_sections = 0.0;
 
-        for (index, component) in road_data.components().iter().enumerate() {
+        for (index, component) in road_data.enumerate_components() {
             self.build_road_component(
                 &mut width_of_built_sections,
                 component.size,
                 road_data.total_width(),
-                calculate_road_component_uv(index, component_count),
+                calculate_road_component_uv(index, road_texture_length),
             )
+        }
+
+        for (index, road_marking) in road_data.enumerate_markings() {
+            self.build_road_marking(
+                *road_marking,
+                calculate_road_marking_uv(index, road_texture_length, road_component_length),
+                &road_data,
+            );
         }
     }
 
@@ -70,6 +79,20 @@ impl RoadBuilder {
 
         *width_of_built_sections += component_size.x;
     }
+
+    fn build_road_marking(&mut self, road_marking: RoadMarking, uv: Vec2, road_data: &RoadData) {
+        let road_height = road_data
+            .find_road_component_at_x_position(road_marking.x_position)
+            .unwrap()
+            .size
+            .y;
+
+        let size = Vec2::new(road_marking.segment_width, road_height + 0.01);
+        self.mesh_builder.add_quad(
+            calculate_top_face_transform(road_marking.x_position, size),
+            uv,
+        );
+    }
 }
 
 // Utils
@@ -100,7 +123,15 @@ fn calculate_x_position_of_road_component(
     -road_width / 2.0 + width_of_built_sections + size.x / 2.0
 }
 
-fn calculate_road_component_uv(index: usize, component_count: usize) -> Vec2 {
-    let step_size = 1.0 / component_count as f32;
+fn calculate_road_marking_uv(
+    index: usize,
+    texture_length: usize,
+    road_component_length: usize,
+) -> Vec2 {
+    calculate_road_component_uv(index + road_component_length, texture_length)
+}
+
+fn calculate_road_component_uv(index: usize, texture_length: usize) -> Vec2 {
+    let step_size = 1.0 / texture_length as f32;
     Vec2::new(step_size * index as f32 + step_size * 0.5, 0.5)
 }
