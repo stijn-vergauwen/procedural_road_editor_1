@@ -9,6 +9,9 @@ impl Plugin for RoadMarkingsPlugin {
     }
 }
 
+// TODO: add segment_length field
+// TODO: add segment_spacing field
+
 #[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct RoadMarking {
     pub color: Color,

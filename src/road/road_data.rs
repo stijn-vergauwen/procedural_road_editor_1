@@ -1,23 +1,28 @@
 use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use super::RoadComponent;
+use super::{road_markings::RoadMarking, RoadComponent};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RoadData {
     name: String,
     components: Vec<RoadComponent>,
+    markings: Vec<RoadMarking>,
 }
 
 impl RoadData {
-    pub fn new(name: String, components: Vec<RoadComponent>) -> Self {
-        Self { name, components }
+    pub fn new(name: String, components: Vec<RoadComponent>, markings: Vec<RoadMarking>) -> Self {
+        Self {
+            name,
+            components,
+            markings,
+        }
     }
-    
+
     pub fn name(&self) -> &str {
         &self.name
     }
-    
+
     pub fn set_name(&mut self, name: String) {
         self.name = name;
     }
@@ -25,7 +30,7 @@ impl RoadData {
     pub fn components(&self) -> &[RoadComponent] {
         &self.components
     }
-    
+
     pub fn components_mut(&mut self) -> &mut Vec<RoadComponent> {
         &mut self.components
     }

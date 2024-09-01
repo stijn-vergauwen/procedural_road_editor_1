@@ -51,6 +51,10 @@ use world::WorldPlugin;
 
     Backlog:
         - Lane lines support <- doing
+            - mesh builder
+            - config ui (new sidebar screen for lines)
+            - lane line events & handlers
+            - spaced lines
         - Goal: Have a multilane highway road design with grass median
         - General road markings support
         - Spaced elements support
