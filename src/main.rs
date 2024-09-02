@@ -51,11 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Rework road & road_component events <- doing
-            - for RoadComponentChanged variant
-                - make RoadComponentField enum, this has a variant for each road_component field that can be changed
-                - replace ComponentConfigAction with RoadComponentField
-                - add RoadComponentField to event variant
-                - replace old event
             - for RoadComponentReordered variant
                 - make ListReorder struct, move fields of OnListReordered to this struct
                 - make OnListReorderRequested event, change handler to read this and write OnListReordered
@@ -74,7 +69,7 @@ use world::WorldPlugin;
 
         - Questions about event reworks:
             - can all entity and index fields from the road event structs be replaced by list event structs? In a way that road event structs only contain road data & reuse list structs
-            - 
+            -
 
         - Lane marking support
             - bug: road marking position messes up when changing the road data

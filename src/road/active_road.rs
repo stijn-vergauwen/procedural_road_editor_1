@@ -1,11 +1,9 @@
 pub mod active_road_events;
-pub mod road_component_change;
 pub mod road_component_deletion;
 pub mod road_component_reorder;
 
-use active_road_events::ActiveRoadEventsPlugin;
+use active_road_events::{road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin};
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
 
@@ -18,7 +16,6 @@ impl Plugin for ActiveRoadPlugin {
         app.add_plugins((
             ActiveRoadEventsPlugin,
             RoadComponentReorderPlugin,
-            RoadComponentChangePlugin,
             RoadComponentDeletionPlugin,
         ))
         .add_event::<OnActiveRoadSet>()
@@ -93,6 +90,25 @@ impl ActiveRoad {
 
     pub fn set_road_component(&mut self, component_index: usize, component_data: RoadComponent) {
         self.road_data.components_mut()[component_index] = component_data;
+    }
+
+    pub fn change_road_component_at_index(
+        &mut self,
+        component_index: usize,
+        field_to_change: RoadComponentFieldChange,
+    ) -> RoadComponent {
+        let road_component = self.component_at_index(component_index).clone();
+
+        let new_component = match field_to_change {
+            RoadComponentFieldChange::Name(name) => road_component.with_name(name),
+            RoadComponentFieldChange::Width(width) => road_component.with_width(width),
+            RoadComponentFieldChange::Height(height) => road_component.with_height(height),
+            RoadComponentFieldChange::Color(color) => road_component.with_color(color),
+        };
+
+        self.set_road_component(component_index, new_component.clone());
+
+        new_component
     }
 
     pub fn delete_road_component(&mut self, component_index: usize) {

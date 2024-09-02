@@ -54,17 +54,17 @@ fn handle_new_component_requests(
     mut active_road: ResMut<ActiveRoad>,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for new_road_component_request in
+    for request in
         requests
             .read()
             .filter_map(|request| match &request.active_road_change_request {
-                ActiveRoadChangeRequest::AddRoadComponent(new_road_component) => {
-                    Some(new_road_component)
+                ActiveRoadChangeRequest::AddRoadComponent(request) => {
+                    Some(request)
                 }
                 _ => None,
             })
     {
-        let new_road_component = new_road_component_request.road_component.clone();
+        let new_road_component = request.road_component.clone();
         let previous_road_data = active_road.road_data().clone();
 
         let road_component_index = active_road.add_road_component(new_road_component.clone());

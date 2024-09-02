@@ -3,10 +3,13 @@ use bevy::prelude::*;
 use crate::{
     road::{
         active_road::{
-            road_component_change::OnRoadComponentChangeRequested,
+            active_road_events::{
+                road_component_change::{RoadComponentChangeRequest, RoadComponentFieldChange},
+                ActiveRoadChangeRequest, OnActiveRoadChangeRequested, RoadComponentField,
+            },
             road_component_deletion::OnRoadComponentDeletionRequested,
         },
-        ActiveRoad, RoadComponent,
+        ActiveRoad,
     },
     ui::{
         components::{
@@ -68,14 +71,6 @@ impl RoadComponentConfig {
     }
 }
 
-#[derive(Clone, Copy, Component, PartialEq)]
-enum ComponentConfigAction {
-    SetName,
-    SetWidth,
-    SetHeight,
-    SetColor,
-}
-
 fn generate_config_section_for_selected_component(
     mut on_selected: EventReader<OnRoadComponentSelected>,
     mut commands: Commands,
@@ -102,26 +97,26 @@ fn generate_config_section_for_selected_component(
                         // TODO: replace with text input UiComponent
                         spawn_text_input_node(
                             config_container,
-                            ComponentConfigAction::SetName,
+                            RoadComponentField::Name,
                             component_data.name.clone(),
                         );
 
                         // TODO: add "Width" label
                         NumberInputBuilder::default()
                             .with_values(component_data.size.x, 0.0..10.0)
-                            .spawn(config_container, ComponentConfigAction::SetWidth);
+                            .spawn(config_container, RoadComponentField::Width);
 
                         // TODO: add "Height" label
                         NumberInputBuilder::default()
                             .with_values(component_data.size.y, 0.0..10.0)
-                            .spawn(config_container, ComponentConfigAction::SetHeight);
+                            .spawn(config_container, RoadComponentField::Height);
 
                         // TODO: add "Color" label
                         ColorInputBuilder::new(
                             ColorInputConfig::default().with_start_color(component_data.color),
                             &mut images,
                         )
-                        .spawn(config_container, ComponentConfigAction::SetColor);
+                        .spawn(config_container, RoadComponentField::Color);
 
                         TextButtonBuilder::default_with_text("Delete")
                             .spawn(config_container, ButtonAction::DeleteComponent);
@@ -145,55 +140,47 @@ fn despawn_config_section_on_component_deselected(
 
 fn handle_number_input_changed_events(
     mut on_input_changed: EventReader<OnNumberInputValueChanged>,
-    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
+    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    number_input_query: Query<&ComponentConfigAction, With<NumberInput>>,
+    number_input_query: Query<&RoadComponentField, With<NumberInput>>,
     list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
-        let event_entity = event.number_input_entity();
-        let config_action = number_input_query.get(event_entity).unwrap();
+        let Ok(config_action) = number_input_query.get(event.number_input_entity()) else {
+            continue;
+        };
 
         let component_config = component_config_query.single();
         let new_value = event.new_value();
 
-        let requested_change: Box<dyn Fn(RoadComponent) -> RoadComponent + Send + Sync> =
-            match config_action {
-                ComponentConfigAction::SetWidth => {
-                    Box::new(move |road_component: RoadComponent| -> RoadComponent {
-                        road_component.with_x(new_value)
-                    })
-                }
-                ComponentConfigAction::SetHeight => {
-                    Box::new(move |road_component: RoadComponent| -> RoadComponent {
-                        road_component.with_y(new_value)
-                    })
-                }
-                _ => continue,
-            };
+        let field_to_change = match config_action {
+            RoadComponentField::Width => RoadComponentFieldChange::Width(new_value),
+            RoadComponentField::Height => RoadComponentFieldChange::Height(new_value),
+            _ => continue,
+        };
 
-        on_change_request.send(OnRoadComponentChangeRequested::new(
-            requested_change,
-            component_config.component_entity,
-            list_item_index_from_entity(&list_item_query, component_config.component_entity),
+        on_change_request.send(OnActiveRoadChangeRequested::new(
+            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+                field_to_change,
+                list_item_index_from_entity(&list_item_query, component_config.component_entity),
+            )),
         ));
     }
 }
 
 fn handle_text_input_changed_events(
     mut on_input_changed: EventReader<OnTextInputValueChanged>,
-    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
+    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    text_input_query: Query<&ComponentConfigAction, With<TextInput>>,
+    text_input_query: Query<&RoadComponentField, With<TextInput>>,
     list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
-        let event_entity = event.text_input_entity();
-        let Ok(config_action) = text_input_query.get(event_entity) else {
+        let Ok(config_action) = text_input_query.get(event.text_input_entity()) else {
             continue;
         };
 
-        if *config_action != ComponentConfigAction::SetName {
+        if *config_action != RoadComponentField::Name {
             continue;
         };
 
@@ -201,36 +188,39 @@ fn handle_text_input_changed_events(
 
         let name = event.text().to_string();
 
-        on_change_request.send(OnRoadComponentChangeRequested::new(
-            Box::new(move |road_component| road_component.with_name(name.clone())),
-            component_config.component_entity,
-            list_item_index_from_entity(&list_item_query, component_config.component_entity),
+        on_change_request.send(OnActiveRoadChangeRequested::new(
+            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+                RoadComponentFieldChange::Name(name),
+                list_item_index_from_entity(&list_item_query, component_config.component_entity),
+            )),
         ));
     }
 }
 
 fn handle_color_input_changed_events(
     mut on_input_changed: EventReader<OnColorInputValueChanged>,
-    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
+    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
-    color_input_query: Query<&ComponentConfigAction, With<ColorInput>>,
+    color_input_query: Query<&RoadComponentField, With<ColorInput>>,
     list_item_query: Query<&ListItem>,
 ) {
     for event in on_input_changed.read() {
-        let event_entity = event.color_input_entity();
-        let config_action = color_input_query.get(event_entity).unwrap();
+        let Ok(config_action) = color_input_query.get(event.color_input_entity()) else {
+            continue;
+        };
 
-        if *config_action != ComponentConfigAction::SetColor {
+        if *config_action != RoadComponentField::Color {
             continue;
         };
 
         let component_config = component_config_query.single();
         let color = event.new_color();
 
-        on_change_request.send(OnRoadComponentChangeRequested::new(
-            Box::new(move |road_component| road_component.with_color(color)),
-            component_config.component_entity,
-            list_item_index_from_entity(&list_item_query, component_config.component_entity),
+        on_change_request.send(OnActiveRoadChangeRequested::new(
+            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+                RoadComponentFieldChange::Color(color),
+                list_item_index_from_entity(&list_item_query, component_config.component_entity),
+            )),
         ));
     }
 }

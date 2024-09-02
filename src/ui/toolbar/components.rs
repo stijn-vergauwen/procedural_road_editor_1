@@ -10,8 +10,10 @@ use selected_road_component::{
 use crate::{
     road::{
         active_road::{
-            active_road_events::{ActiveRoadChange, OnActiveRoadChanged},
-            road_component_change::OnRoadComponentChanged,
+            active_road_events::{
+                road_component_change::RoadComponentFieldChange, ActiveRoadChange,
+                OnActiveRoadChanged,
+            },
             OnActiveRoadSet,
         },
         RoadComponent,
@@ -88,7 +90,7 @@ fn rebuild_road_components_on_active_road_set(
             .despawn_descendants()
             .with_children(|components_list| {
                 for (index, road_component) in road_components.iter().enumerate() {
-                    spawn_road_component(components_list, index, road_component);
+                    spawn_road_component_item(components_list, index, road_component);
                 }
             });
 
@@ -117,7 +119,7 @@ fn add_road_component_on_event(
         commands
             .entity(road_components_list_entity)
             .with_children(|components_list| {
-                let component_item_entity = spawn_road_component(
+                let component_item_entity = spawn_road_component_item(
                     components_list,
                     new_road_component.road_component_index,
                     &new_road_component.road_component,
@@ -132,7 +134,8 @@ fn add_road_component_on_event(
 }
 
 fn update_road_component_on_change(
-    mut on_changed: EventReader<OnRoadComponentChanged>,
+    mut on_changed: EventReader<OnActiveRoadChanged>,
+    road_component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
     mut component_display_query: Query<
         (Entity, &mut Style, &mut BackgroundColor),
         With<RoadComponentDisplay>,
@@ -140,32 +143,54 @@ fn update_road_component_on_change(
     mut component_name_query: Query<(Entity, &mut Text), With<RoadComponentName>>,
     children_query: Query<&Children>,
 ) {
-    for event in on_changed.read() {
-        let component_entity = event.component_entity();
-        let road_component = event.component_data();
+    for road_component_change in
+        on_changed
+            .read()
+            .filter_map(|event| match &event.active_road_change {
+                ActiveRoadChange::RoadComponentChanged(road_component_change) => {
+                    Some(road_component_change)
+                }
+                _ => None,
+            })
+    {
+        let Some((road_component_entity, _)) = road_component_item_query
+            .iter()
+            .find(|(_, list_item)| list_item.index() == road_component_change.road_component_index)
+        else {
+            continue;
+        };
 
-        if let Some((_, mut style, mut background_color)) = find_descendant_of_entity_mut(
-            component_entity,
-            &mut component_display_query,
-            |item| item.0,
-            &children_query,
-        ) {
-            update_component_display(&mut style, &mut background_color, road_component);
-        }
-
-        if let Some((_, mut text)) = find_descendant_of_entity_mut(
-            component_entity,
-            &mut component_name_query,
-            |item| item.0,
-            &children_query,
-        ) {
-            update_component_name(&mut text, road_component);
-        }
+        match &road_component_change.changed_field {
+            RoadComponentFieldChange::Name(name) => {
+                if let Some((_, mut text)) = find_descendant_of_entity_mut(
+                    road_component_entity,
+                    &mut component_name_query,
+                    |item| item.0,
+                    &children_query,
+                ) {
+                    update_component_name(&mut text, name.clone());
+                }
+            }
+            _ => {
+                if let Some((_, mut style, mut background_color)) = find_descendant_of_entity_mut(
+                    road_component_entity,
+                    &mut component_display_query,
+                    |item| item.0,
+                    &children_query,
+                ) {
+                    update_component_display(
+                        &mut style,
+                        &mut background_color,
+                        &road_component_change.new_road_component,
+                    );
+                }
+            }
+        };
     }
 }
 // Utility
 
-fn spawn_road_component(
+fn spawn_road_component_item(
     components_list: &mut ChildBuilder,
     index: usize,
     road_component: &RoadComponent,
@@ -221,8 +246,8 @@ fn update_component_display(
     *background_color = road_component.color.into();
 }
 
-fn update_component_name(text: &mut Text, road_component: &RoadComponent) {
-    text.sections[0].value = road_component.name.clone();
+fn update_component_name(text: &mut Text, name: String) {
+    text.sections[0].value = name;
 }
 
 fn build_component_display_node(road_component: &RoadComponent) -> impl Bundle {

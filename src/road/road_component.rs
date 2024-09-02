@@ -1,7 +1,7 @@
 use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Serialize, Deserialize, PartialEq)]
+#[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(default)]
 pub struct RoadComponent {
     pub name: String,
@@ -18,13 +18,13 @@ impl RoadComponent {
         }
     }
 
-    pub fn with_x(mut self, x: f32) -> Self {
-        self.size = self.size.with_x(x);
+    pub fn with_width(mut self, width: f32) -> Self {
+        self.size = self.size.with_x(width);
         self
     }
 
-    pub fn with_y(mut self, y: f32) -> Self {
-        self.size = self.size.with_y(y);
+    pub fn with_height(mut self, height: f32) -> Self {
+        self.size = self.size.with_y(height);
         self
     }
 

@@ -1,7 +1,11 @@
 pub mod new_road_component;
+pub mod road_component_change;
 
 use bevy::prelude::*;
 use new_road_component::{NewRoadComponent, NewRoadComponentPlugin, NewRoadComponentRequest};
+use road_component_change::{
+    RoadComponentChange, RoadComponentChangePlugin, RoadComponentChangeRequest,
+};
 
 use crate::road::RoadData;
 
@@ -9,16 +13,24 @@ pub struct ActiveRoadEventsPlugin;
 
 impl Plugin for ActiveRoadEventsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(NewRoadComponentPlugin)
+        app.add_plugins((NewRoadComponentPlugin, RoadComponentChangePlugin))
             .add_event::<OnActiveRoadChangeRequested>()
             .add_event::<OnActiveRoadChanged>();
     }
 }
 
+#[derive(Component, Clone, Copy, PartialEq)]
+pub enum RoadComponentField {
+    Name,
+    Width,
+    Height,
+    Color,
+}
+
 #[derive(Clone, PartialEq)]
 pub enum ActiveRoadChangeRequest {
     AddRoadComponent(NewRoadComponentRequest),
-    ChangeRoadComponent,
+    ChangeRoadComponent(RoadComponentChangeRequest),
     ReorderRoadComponent,
     DeleteRoadComponent,
 }
@@ -39,7 +51,7 @@ impl OnActiveRoadChangeRequested {
 #[derive(Clone, PartialEq)]
 pub enum ActiveRoadChange {
     RoadComponentAdded(NewRoadComponent),
-    RoadComponentChanged,
+    RoadComponentChanged(RoadComponentChange),
     RoadComponentReordered,
     RoadComponentDeleted,
 }
