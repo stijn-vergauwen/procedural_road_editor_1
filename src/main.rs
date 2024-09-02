@@ -50,7 +50,40 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Lane marking support <- doing
+        - Rework road & road_component events <- doing
+            - have 1 main event struct: ActiveRoadChange
+            - have 2 events: OnActiveRoadChangeRequested and OnActiveRoadChanged
+            - add a previous_road_data and new_road_data field, complete info about what has changed (should also be reversable)
+            - make enum for different actions: RoadComponentAdded, RoadComponentChanged, RoadComponentReordered, RoadComponentDeleted
+            - for RoadComponentAdded variant
+                - check if indices are needed, if so, make a NewRoadComponent struct with these indices and add it to event variant
+                - replace old event
+            - for RoadComponentChanged variant
+                - make RoadComponentField enum, this has a variant for each road_component field that can be changed
+                - replace ComponentConfigAction with RoadComponentField
+                - add RoadComponentField to event variant
+                - replace old event
+            - for RoadComponentReordered variant
+                - make ListReorder struct, move fields of OnListReordered to this struct
+                - make OnListReorderRequested event, change handler to read this and write OnListReordered
+                - use ListReorder struct in event variant
+                - replace old event
+            - for RoadComponentDeleted variant
+                - make ListItemDeletion struct, move fields of OnListItemDeleted to this struct
+                - make OnListItemDeleteRequested event, change handler to read this and write OnListItemDeleted
+                - use ListItemDeletion struct in event variant
+                - replace old event
+
+        - Rework List module events to same structure as road events
+            - 1 main event struct: ListChange
+            - 2 events: OnListChangeRequested and OnListChanged
+            - enum for different actions
+
+        - Questions about event reworks:
+            - can all entity and index fields from the road event structs be replaced by list event structs? In a way that road event structs only contain road data & reuse list structs
+            - 
+
+        - Lane marking support
             - bug: road marking position messes up when changing the road data
             - config ui (new sidebar screen for markings)
             - lane line events & handlers
