@@ -1,10 +1,10 @@
-pub mod new_road_component;
+pub mod active_road_events;
 pub mod road_component_change;
 pub mod road_component_deletion;
 pub mod road_component_reorder;
 
+use active_road_events::ActiveRoadEventsPlugin;
 use bevy::{color::palettes::tailwind::*, prelude::*};
-use new_road_component::NewRoadComponentPlugin;
 use road_component_change::RoadComponentChangePlugin;
 use road_component_deletion::RoadComponentDeletionPlugin;
 use road_component_reorder::RoadComponentReorderPlugin;
@@ -16,10 +16,10 @@ pub struct ActiveRoadPlugin;
 impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
+            ActiveRoadEventsPlugin,
             RoadComponentReorderPlugin,
             RoadComponentChangePlugin,
             RoadComponentDeletionPlugin,
-            NewRoadComponentPlugin,
         ))
         .add_event::<OnActiveRoadSet>()
         .add_event::<OnActiveRoadModified>()
@@ -75,8 +75,8 @@ impl ActiveRoad {
         self.road_data = road;
     }
 
-    pub fn add_road_component(&mut self, component_data: RoadComponent) -> usize {
-        self.road_data.components_mut().push(component_data);
+    pub fn add_road_component(&mut self, road_component: RoadComponent) -> usize {
+        self.road_data.components_mut().push(road_component);
 
         self.component_count() - 1
     }
@@ -103,6 +103,7 @@ impl ActiveRoad {
         self.road_preview_entity = road_preview_entity;
     }
 
+    // TODO: delete
     pub fn send_road_modified_event(
         &self,
         on_road_modified: &mut EventWriter<OnActiveRoadModified>,
@@ -126,7 +127,7 @@ impl OnActiveRoadSet {
     }
 }
 
-// TODO: remove event, use the more specific events instead
+// TODO: remove event, use the new OnActiveRoadChanged instead
 #[derive(Event, Clone)]
 pub struct OnActiveRoadModified {
     road_data: RoadData,

@@ -51,13 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Rework road & road_component events <- doing
-            - have 1 main event struct: ActiveRoadChange
-            - have 2 events: OnActiveRoadChangeRequested and OnActiveRoadChanged
-            - add a previous_road_data and new_road_data field, complete info about what has changed (should also be reversable)
-            - make enum for different actions: RoadComponentAdded, RoadComponentChanged, RoadComponentReordered, RoadComponentDeleted
-            - for RoadComponentAdded variant
-                - check if indices are needed, if so, make a NewRoadComponent struct with these indices and add it to event variant
-                - replace old event
             - for RoadComponentChanged variant
                 - make RoadComponentField enum, this has a variant for each road_component field that can be changed
                 - replace ComponentConfigAction with RoadComponentField

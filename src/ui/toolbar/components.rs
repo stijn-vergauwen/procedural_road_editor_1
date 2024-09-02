@@ -10,8 +10,9 @@ use selected_road_component::{
 use crate::{
     road::{
         active_road::{
-            new_road_component::OnRoadComponentAdded,
-            road_component_change::OnRoadComponentChanged, OnActiveRoadSet,
+            active_road_events::{ActiveRoadChange, OnActiveRoadChanged},
+            road_component_change::OnRoadComponentChanged,
+            OnActiveRoadSet,
         },
         RoadComponent,
     },
@@ -96,25 +97,34 @@ fn rebuild_road_components_on_active_road_set(
 }
 
 fn add_road_component_on_event(
-    mut on_added: EventReader<OnRoadComponentAdded>,
+    mut on_changed: EventReader<OnActiveRoadChanged>,
     mut on_component_selected: EventWriter<OnRoadComponentSelected>,
     mut commands: Commands,
-    components_list_query: Query<Entity, With<RoadComponentsList>>,
+    road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for event in on_added.read() {
-        let components_list_entity = components_list_query.single();
+    for new_road_component in
+        on_changed
+            .read()
+            .filter_map(|event| match &event.active_road_change {
+                ActiveRoadChange::RoadComponentAdded(new_road_component) => {
+                    Some(new_road_component)
+                }
+                _ => None,
+            })
+    {
+        let road_components_list_entity = road_components_list_query.single();
 
         commands
-            .entity(components_list_entity)
+            .entity(road_components_list_entity)
             .with_children(|components_list| {
                 let component_item_entity = spawn_road_component(
                     components_list,
-                    event.component_index(),
-                    event.component_data(),
+                    new_road_component.road_component_index,
+                    &new_road_component.road_component,
                 );
 
                 on_component_selected.send(OnRoadComponentSelected::new(
-                    event.component_index(),
+                    new_road_component.road_component_index,
                     component_item_entity,
                 ));
             });

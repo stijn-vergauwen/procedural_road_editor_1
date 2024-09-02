@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{utility::texture_builder::TextureBuilder, GameRunningSet};
 
 use super::{
-    active_road::{OnActiveRoadModified, OnActiveRoadSet},
+    active_road::{active_road_events::OnActiveRoadChanged, OnActiveRoadSet},
     road_builder::RoadBuilder,
     ActiveRoad, RoadData,
 };
@@ -15,7 +15,7 @@ impl Plugin for RoadPreviewPlugin {
         app.add_systems(
             Update,
             (
-                redraw_preview_on_active_road_modified,
+                redraw_preview_on_active_road_changed,
                 redraw_preview_on_active_road_set,
                 spawn_preview_on_active_road_set,
             )
@@ -78,8 +78,8 @@ fn redraw_preview_on_active_road_set(
         );
     }
 }
-fn redraw_preview_on_active_road_modified(
-    mut on_modified: EventReader<OnActiveRoadModified>,
+fn redraw_preview_on_active_road_changed(
+    mut on_changed: EventReader<OnActiveRoadChanged>,
     mut road_preview_query: Query<
         (&mut Handle<Mesh>, &Handle<StandardMaterial>),
         With<RoadPreview>,
@@ -88,13 +88,13 @@ fn redraw_preview_on_active_road_modified(
     mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    for event in on_modified.read() {
+    for event in on_changed.read() {
         let (mut preview_mesh, preview_material) = road_preview_query.get_single_mut().expect(
             "OnActiveRoadModified should only be called when a road preview already exists",
         );
 
         redraw_road_preview(
-            create_road_mesh_and_texture(&mut meshes, &mut images, event.road_data()),
+            create_road_mesh_and_texture(&mut meshes, &mut images, &event.new_road_data),
             &mut preview_mesh,
             materials.get_mut(preview_material).unwrap(),
         );

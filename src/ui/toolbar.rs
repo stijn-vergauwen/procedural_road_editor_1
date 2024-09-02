@@ -36,7 +36,7 @@ impl Plugin for ToolbarPlugin {
 struct Toolbar;
 
 #[derive(Component)]
-struct RoadComponentsList;
+pub struct RoadComponentsList;
 
 pub fn spawn_toolbar(builder: &mut ChildBuilder) {
     let flexbox_config = FlexboxConfig::row().with_justify(JustifyContent::SpaceBetween);
