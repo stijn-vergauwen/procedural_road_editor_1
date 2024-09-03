@@ -1,10 +1,16 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::active_road::road_component_reorder::OnRoadComponentReorderRequested,
+    road::active_road::active_road_events::{
+        road_component_reorder::RoadComponentReorder, ActiveRoadChangeRequest,
+        OnActiveRoadChangeRequested,
+    },
     ui::{
-        list::reorder_button::{OnReorderButtonPressed, ReorderDirection},
-        list::ListItem,
+        list::{
+            reorder_button::{OnReorderButtonPressed, ReorderDirection},
+            reorder_list::ReorderIndices,
+            ListItem,
+        },
         toolbar::RoadComponentsList,
     },
     GameRunningSet,
@@ -23,7 +29,7 @@ impl Plugin for ReorderPlugin {
 
 fn send_reorder_requests(
     mut events: EventReader<OnReorderButtonPressed>,
-    mut requests: EventWriter<OnRoadComponentReorderRequested>,
+    mut requests: EventWriter<OnActiveRoadChangeRequested>,
     road_component_list_query: Query<&RoadComponentsList>,
     list_item_query: Query<&ListItem>,
 ) {
@@ -38,10 +44,10 @@ fn send_reorder_requests(
             ReorderDirection::Previous => list_item.index().saturating_sub(1),
         };
 
-        requests.send(OnRoadComponentReorderRequested::new(
-            list_item.index(),
-            requested_index,
-            event.list_entity(),
+        requests.send(OnActiveRoadChangeRequested::new(
+            ActiveRoadChangeRequest::ReorderRoadComponent(RoadComponentReorder::new(
+                ReorderIndices::new(list_item.index(), requested_index),
+            )),
         ));
     }
 }

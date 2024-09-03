@@ -32,6 +32,7 @@ impl NewRoadComponentRequest {
     }
 }
 
+// TODO: delete this struct, use NewRoadComponentRequest for both request and event. This moves the code more to "single source of truth"
 #[derive(Clone, PartialEq)]
 pub struct NewRoadComponent {
     pub road_component: RoadComponent,

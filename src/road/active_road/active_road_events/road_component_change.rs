@@ -43,6 +43,7 @@ impl RoadComponentChangeRequest {
     }
 }
 
+// TODO: delete this struct, use RoadComponentChangeRequest for both request and event. This moves the code more to "single source of truth"
 #[derive(Clone, PartialEq)]
 pub struct RoadComponentChange {
     pub changed_field: RoadComponentFieldChange,

@@ -12,38 +12,45 @@ impl Plugin for ReorderListPlugin {
             .add_event::<OnListReordered>()
             .add_systems(
                 Update,
-                handle_reorder_events.after(GameRunningSet::HandleCommands),
+                handle_reorder_events.before(GameRunningSet::UpdateEntities),
             );
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct ListReorder {
-    pub list_entity: Entity,
+pub struct ReorderIndices {
     pub previous_index: usize,
     pub new_index: usize,
 }
 
+impl ReorderIndices {
+    pub fn new(previous_index: usize, new_index: usize) -> Self {
+        Self {
+            previous_index,
+            new_index,
+        }
+    }
+}
+
 #[derive(Event, Clone, Copy)]
 pub struct OnListReorderRequested {
-    pub reorder: ListReorder,
+    pub reorder: ReorderIndices,
+    pub list_entity: Entity,
 }
 
 impl OnListReorderRequested {
-    pub fn new(list_entity: Entity, previous_index: usize, new_index: usize) -> Self {
+    pub fn new(reorder: ReorderIndices, list_entity: Entity) -> Self {
         Self {
-            reorder: ListReorder {
-                list_entity,
-                previous_index,
-                new_index,
-            },
+            reorder,
+            list_entity,
         }
     }
 }
 
 #[derive(Event, Clone, Copy)]
 pub struct OnListReordered {
-    pub reorder: ListReorder,
+    pub reorder: ReorderIndices,
+    pub list_entity: Entity,
 
     /// Entity of the list item that moved from previous index to new index.
     #[allow(unused)]
@@ -56,19 +63,21 @@ pub struct OnListReordered {
 
 impl OnListReordered {
     pub fn new(
-        reorder: ListReorder,
+        reorder: ReorderIndices,
+        list_entity: Entity,
         target_list_item_entity: Entity,
         swapped_list_item_entity: Entity,
     ) -> Self {
         Self {
             reorder,
+            list_entity,
             target_list_item_entity,
             swapped_list_item_entity,
         }
     }
 
     pub fn list_entity(&self) -> Entity {
-        self.reorder.list_entity
+        self.list_entity
     }
 
     pub fn previous_index(&self) -> usize {
@@ -87,9 +96,7 @@ fn handle_reorder_events(
     mut list_item_query: Query<&mut ListItem>,
 ) {
     for request in requests.read() {
-        let mut children_of_list = list_children_query
-            .get_mut(request.reorder.list_entity)
-            .unwrap();
+        let mut children_of_list = list_children_query.get_mut(request.list_entity).unwrap();
         let previous_index = request.reorder.previous_index;
         let new_index = request.reorder.new_index;
 
@@ -115,6 +122,7 @@ fn handle_reorder_events(
 
         on_reordered.send(OnListReordered::new(
             request.reorder,
+            request.list_entity,
             target_list_item_entity.unwrap(),
             swapped_list_item_entity.unwrap(),
         ));

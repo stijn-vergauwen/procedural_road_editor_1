@@ -1,11 +1,11 @@
 pub mod active_road_events;
 pub mod road_component_deletion;
-pub mod road_component_reorder;
 
 use active_road_events::{road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin};
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use road_component_deletion::RoadComponentDeletionPlugin;
-use road_component_reorder::RoadComponentReorderPlugin;
+
+use crate::ui::list::reorder_list::ReorderIndices;
 
 use super::{road_data::RoadData, road_marking::RoadMarking, RoadComponent};
 
@@ -15,7 +15,6 @@ impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             ActiveRoadEventsPlugin,
-            RoadComponentReorderPlugin,
             RoadComponentDeletionPlugin,
         ))
         .add_event::<OnActiveRoadSet>()
@@ -78,14 +77,10 @@ impl ActiveRoad {
         self.component_count() - 1
     }
 
-    pub fn reorder_road_components(
-        &mut self,
-        component_index: usize,
-        requested_component_index: usize,
-    ) {
+    pub fn reorder_road_components(&mut self, reorder: ReorderIndices) {
         self.road_data
             .components_mut()
-            .swap(component_index, requested_component_index);
+            .swap(reorder.previous_index, reorder.new_index);
     }
 
     pub fn set_road_component(&mut self, component_index: usize, component_data: RoadComponent) {

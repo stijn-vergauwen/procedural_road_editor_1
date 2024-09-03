@@ -1,11 +1,13 @@
 pub mod new_road_component;
 pub mod road_component_change;
+pub mod road_component_reorder;
 
 use bevy::prelude::*;
 use new_road_component::{NewRoadComponent, NewRoadComponentPlugin, NewRoadComponentRequest};
 use road_component_change::{
     RoadComponentChange, RoadComponentChangePlugin, RoadComponentChangeRequest,
 };
+use road_component_reorder::{RoadComponentReorder, RoadComponentReorderPlugin};
 
 use crate::road::RoadData;
 
@@ -13,9 +15,13 @@ pub struct ActiveRoadEventsPlugin;
 
 impl Plugin for ActiveRoadEventsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((NewRoadComponentPlugin, RoadComponentChangePlugin))
-            .add_event::<OnActiveRoadChangeRequested>()
-            .add_event::<OnActiveRoadChanged>();
+        app.add_plugins((
+            NewRoadComponentPlugin,
+            RoadComponentChangePlugin,
+            RoadComponentReorderPlugin,
+        ))
+        .add_event::<OnActiveRoadChangeRequested>()
+        .add_event::<OnActiveRoadChanged>();
     }
 }
 
@@ -31,7 +37,7 @@ pub enum RoadComponentField {
 pub enum ActiveRoadChangeRequest {
     AddRoadComponent(NewRoadComponentRequest),
     ChangeRoadComponent(RoadComponentChangeRequest),
-    ReorderRoadComponent,
+    ReorderRoadComponent(RoadComponentReorder),
     DeleteRoadComponent,
 }
 
@@ -48,11 +54,12 @@ impl OnActiveRoadChangeRequested {
     }
 }
 
+// TODO: delete this struct, use ActiveRoadChangeRequest for both request and event. This moves the code more to "single source of truth"
 #[derive(Clone, PartialEq)]
 pub enum ActiveRoadChange {
     RoadComponentAdded(NewRoadComponent),
     RoadComponentChanged(RoadComponentChange),
-    RoadComponentReordered,
+    RoadComponentReordered(RoadComponentReorder),
     RoadComponentDeleted,
 }
 
