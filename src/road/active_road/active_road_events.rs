@@ -1,5 +1,6 @@
 pub mod new_road_component;
 pub mod road_component_change;
+pub mod road_component_deletion;
 pub mod road_component_reorder;
 
 use bevy::prelude::*;
@@ -7,6 +8,7 @@ use new_road_component::{NewRoadComponent, NewRoadComponentPlugin, NewRoadCompon
 use road_component_change::{
     RoadComponentChange, RoadComponentChangePlugin, RoadComponentChangeRequest,
 };
+use road_component_deletion::RoadComponentDeletion;
 use road_component_reorder::{RoadComponentReorder, RoadComponentReorderPlugin};
 
 use crate::road::RoadData;
@@ -38,7 +40,7 @@ pub enum ActiveRoadChangeRequest {
     AddRoadComponent(NewRoadComponentRequest),
     ChangeRoadComponent(RoadComponentChangeRequest),
     ReorderRoadComponent(RoadComponentReorder),
-    DeleteRoadComponent,
+    DeleteRoadComponent(RoadComponentDeletion),
 }
 
 #[derive(Event, Clone)]
@@ -60,12 +62,13 @@ pub enum ActiveRoadChange {
     RoadComponentAdded(NewRoadComponent),
     RoadComponentChanged(RoadComponentChange),
     RoadComponentReordered(RoadComponentReorder),
-    RoadComponentDeleted,
+    RoadComponentDeleted(RoadComponentDeletion),
 }
 
 #[derive(Event, Clone)]
 pub struct OnActiveRoadChanged {
     pub active_road_change: ActiveRoadChange,
+    #[allow(unused)]
     pub previous_road_data: RoadData,
     pub new_road_data: RoadData,
 }

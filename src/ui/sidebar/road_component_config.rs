@@ -2,12 +2,10 @@ use bevy::prelude::*;
 
 use crate::{
     road::{
-        active_road::{
-            active_road_events::{
-                road_component_change::{RoadComponentChangeRequest, RoadComponentFieldChange},
-                ActiveRoadChangeRequest, OnActiveRoadChangeRequested, RoadComponentField,
-            },
-            road_component_deletion::OnRoadComponentDeletionRequested,
+        active_road::active_road_events::{
+            road_component_change::{RoadComponentChangeRequest, RoadComponentFieldChange},
+            road_component_deletion::RoadComponentDeletion,
+            ActiveRoadChangeRequest, OnActiveRoadChangeRequested, RoadComponentField,
         },
         ActiveRoad,
     },
@@ -24,12 +22,11 @@ use crate::{
             UiComponentBuilder, UiComponentWithChildrenBuilder,
         },
         inputs::text_input::{spawn_text_input_node, OnTextInputValueChanged, TextInput},
-        list::{List, ListItem},
+        list::ListItem,
         toolbar::components::selected_road_component::{
             OnRoadComponentDeselected, OnRoadComponentSelected,
         },
     },
-    utility::find_ancestor_of_entity,
     GameRunningSet,
 };
 
@@ -227,30 +224,24 @@ fn handle_color_input_changed_events(
 
 fn handle_delete_button_pressed_events(
     mut on_pressed: EventReader<OnButtonPressed>,
-    mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
+    mut on_deletion_request: EventWriter<OnActiveRoadChangeRequested>,
     mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
-    list_item_query: Query<(Entity, &ListItem)>,
-    list_query: Query<Entity, With<List>>,
-    parent_query: Query<&Parent>,
+    list_item_query: Query<&ListItem>,
 ) {
     for _ in on_pressed
         .read()
         .filter(|event| event.is_action(ButtonAction::DeleteComponent))
     {
         let component_config = component_config_query.single();
-        let (list_item_entity, list_item) = list_item_query
+        let list_item = list_item_query
             .get(component_config.component_entity)
             .unwrap();
 
-        let list_entity =
-            find_ancestor_of_entity(list_item_entity, &list_query, |item| *item, &parent_query)
-                .unwrap();
-
-        on_deletion_request.send(OnRoadComponentDeletionRequested::new(
-            list_entity,
-            component_config.component_entity,
-            list_item.index(),
+        on_deletion_request.send(OnActiveRoadChangeRequested::new(
+            ActiveRoadChangeRequest::DeleteRoadComponent(RoadComponentDeletion::new(
+                list_item.index(),
+            )),
         ));
 
         on_deselect.send(OnRoadComponentDeselected);

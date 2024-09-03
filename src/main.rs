@@ -51,9 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Rework road & road_component events <- doing
-            - for RoadComponentReordered variant
-                - use ListReorder struct in event variant
-                - replace old event
             - for RoadComponentDeleted variant
                 - make ListItemDeletion struct, move fields of OnListItemDeleted to this struct
                 - make OnListItemDeleteRequested event, change handler to read this and write OnListItemDeleted
