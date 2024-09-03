@@ -5,9 +5,9 @@ use crate::{
         active_road::active_road_events::{
             road_component_change::{RoadComponentChange, RoadComponentFieldChange},
             road_component_deletion::RoadComponentDeletion,
-            ActiveRoadChange, OnActiveRoadChangeRequested, RoadComponentField,
+            ActiveRoadChange, OnActiveRoadChangeRequested,
         },
-        ActiveRoad,
+        ActiveRoad, RoadComponentField,
     },
     ui::{
         components::{

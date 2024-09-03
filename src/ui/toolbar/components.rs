@@ -111,7 +111,7 @@ fn add_road_component_on_event(
         };
 
         let road_components_list_entity = road_components_list_query.single();
-        let new_road_component_index = event.new_road_data.component_count() - 1;
+        let new_road_component_index = event.new_road_data().component_count() - 1;
 
         commands
             .entity(road_components_list_entity)
@@ -172,7 +172,7 @@ fn update_road_component_on_change(
                     &children_query,
                 ) {
                     let new_road_component = event
-                        .new_road_data
+                        .new_road_data()
                         .components()
                         .get(road_component_change.road_component_index)
                         .unwrap();

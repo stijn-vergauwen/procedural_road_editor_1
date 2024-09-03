@@ -9,7 +9,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged};
+use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged, RoadDataChange};
 
 pub struct RoadComponentReorderPlugin;
 
@@ -54,8 +54,7 @@ fn handle_component_reorder_requests(
 
         on_changed.send(OnActiveRoadChanged::new(
             request.change_request.clone(),
-            previous_road_data,
-            new_road_data,
+            RoadDataChange::new(previous_road_data, new_road_data),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

@@ -26,20 +26,27 @@ impl Plugin for ActiveRoadEventsPlugin {
     }
 }
 
-#[derive(Component, Clone, Copy, PartialEq)]
-pub enum RoadComponentField {
-    Name,
-    Width,
-    Height,
-    Color,
-}
-
 #[derive(Clone, PartialEq)]
 pub enum ActiveRoadChange {
     AddRoadComponent(NewRoadComponent),
     ChangeRoadComponent(RoadComponentChange),
     ReorderRoadComponent(RoadComponentReorder),
     DeleteRoadComponent(RoadComponentDeletion),
+}
+
+#[derive(Clone)]
+pub struct RoadDataChange {
+    pub previous_road_data: RoadData,
+    pub new_road_data: RoadData,
+}
+
+impl RoadDataChange {
+    pub fn new(previous_road_data: RoadData, new_road_data: RoadData) -> Self {
+        Self {
+            previous_road_data,
+            new_road_data,
+        }
+    }
 }
 
 #[derive(Event, Clone)]
@@ -56,21 +63,19 @@ impl OnActiveRoadChangeRequested {
 #[derive(Event, Clone)]
 pub struct OnActiveRoadChanged {
     pub change: ActiveRoadChange,
-    #[allow(unused)]
-    pub previous_road_data: RoadData,
-    pub new_road_data: RoadData,
+    pub road_data: RoadDataChange,
 }
 
 impl OnActiveRoadChanged {
-    pub fn new(
-        change: ActiveRoadChange,
-        previous_road_data: RoadData,
-        new_road_data: RoadData,
-    ) -> Self {
-        Self {
-            change,
-            previous_road_data,
-            new_road_data,
-        }
+    pub fn new(change: ActiveRoadChange, road_data: RoadDataChange) -> Self {
+        Self { change, road_data }
+    }
+
+    pub fn previous_road_data(&self) -> &RoadData {
+        &self.road_data.previous_road_data
+    }
+
+    pub fn new_road_data(&self) -> &RoadData {
+        &self.road_data.new_road_data
     }
 }

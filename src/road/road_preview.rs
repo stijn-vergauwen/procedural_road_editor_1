@@ -94,7 +94,7 @@ fn redraw_preview_on_active_road_changed(
         );
 
         redraw_road_preview(
-            create_road_mesh_and_texture(&mut meshes, &mut images, &event.new_road_data),
+            create_road_mesh_and_texture(&mut meshes, &mut images, event.new_road_data()),
             &mut preview_mesh,
             materials.get_mut(preview_material).unwrap(),
         );

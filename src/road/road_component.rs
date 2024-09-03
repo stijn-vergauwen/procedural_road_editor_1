@@ -9,6 +9,14 @@ pub struct RoadComponent {
     pub color: Color,
 }
 
+#[derive(Component, Clone, Copy, PartialEq)]
+pub enum RoadComponentField {
+    Name,
+    Width,
+    Height,
+    Color,
+}
+
 impl RoadComponent {
     pub fn new(name: impl Into<String>, size: Vec2, color: impl Into<Color>) -> Self {
         Self {

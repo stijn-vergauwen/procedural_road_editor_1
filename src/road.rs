@@ -13,6 +13,7 @@ pub use road_component::RoadComponent;
 pub use road_data::RoadData;
 use road_marking::RoadMarkingPlugin;
 pub use save::OnSaveRoadRequested;
+pub use road_component::RoadComponentField;
 
 use active_road::ActiveRoadPlugin;
 use bevy::prelude::*;

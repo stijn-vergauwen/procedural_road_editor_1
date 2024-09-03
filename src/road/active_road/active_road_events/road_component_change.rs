@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{road::ActiveRoad, GameRunningSet};
 
-use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged};
+use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged, RoadDataChange};
 
 pub struct RoadComponentChangePlugin;
 
@@ -60,8 +60,7 @@ fn handle_component_change_requests(
 
         on_changed.send(OnActiveRoadChanged::new(
             request.change_request.clone(),
-            previous_road_data,
-            new_road_data,
+            RoadDataChange::new(previous_road_data, new_road_data),
         ));
     }
 }
