@@ -3,10 +3,9 @@ use bevy::prelude::*;
 use crate::{
     road::{
         active_road::active_road_events::{
-            new_road_component::NewRoadComponent, ActiveRoadChange,
-            OnActiveRoadChangeRequested,
+            new_road_component::NewRoadComponent, ActiveRoadChange, OnActiveRoadChangeRequested,
         },
-        RoadComponent,
+        road_component::RoadComponent,
     },
     ui::components::buttons::{ButtonAction, OnButtonPressed},
     GameRunningSet,
@@ -32,9 +31,7 @@ pub fn handle_add_road_component_button_pressed(
         .filter(|event| event.is_action(ButtonAction::AddComponent))
     {
         on_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::AddRoadComponent(NewRoadComponent::new(
-                RoadComponent::default(),
-            )),
+            ActiveRoadChange::AddRoadComponent(NewRoadComponent::new(RoadComponent::default())),
         ));
     }
 }

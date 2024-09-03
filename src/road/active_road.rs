@@ -5,7 +5,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::ui::list::reorder_list::ReorderIndices;
 
-use super::{road_data::RoadData, road_marking::RoadMarking, RoadComponent};
+use super::{road_data::RoadData, road_marking::RoadMarking, road_component::RoadComponent};
 
 pub struct ActiveRoadPlugin;
 
@@ -13,7 +13,6 @@ impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((ActiveRoadEventsPlugin,))
             .add_event::<OnActiveRoadSet>()
-            .add_event::<OnActiveRoadModified>()
             .add_systems(Startup, setup_example_road);
     }
 }
@@ -104,14 +103,6 @@ impl ActiveRoad {
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
     }
-
-    // TODO: delete
-    pub fn send_road_modified_event(
-        &self,
-        on_road_modified: &mut EventWriter<OnActiveRoadModified>,
-    ) {
-        on_road_modified.send(OnActiveRoadModified::new(self.road_data.clone()));
-    }
 }
 
 #[derive(Event)]
@@ -120,22 +111,6 @@ pub struct OnActiveRoadSet {
 }
 
 impl OnActiveRoadSet {
-    pub fn new(road_data: RoadData) -> Self {
-        Self { road_data }
-    }
-
-    pub fn road_data(&self) -> &RoadData {
-        &self.road_data
-    }
-}
-
-// TODO: remove event, use the new OnActiveRoadChanged instead
-#[derive(Event, Clone)]
-pub struct OnActiveRoadModified {
-    road_data: RoadData,
-}
-
-impl OnActiveRoadModified {
     pub fn new(road_data: RoadData) -> Self {
         Self { road_data }
     }

@@ -7,7 +7,8 @@ use crate::{
             road_component_deletion::RoadComponentDeletion,
             ActiveRoadChange, OnActiveRoadChangeRequested,
         },
-        ActiveRoad, RoadComponentField,
+        active_road::ActiveRoad,
+        road_component::RoadComponentField,
     },
     ui::{
         components::{

@@ -6,7 +6,7 @@ use std::{
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
-    road::OnLoadRoadRequested,
+    road::load::OnLoadRoadRequested,
     ui::{
         components::buttons::{ButtonAction, OnButtonPressed},
         modal::{OnHideModalRequested, OnShowModalRequested},

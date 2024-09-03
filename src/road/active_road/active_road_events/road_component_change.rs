@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{road::ActiveRoad, GameRunningSet};
+use crate::{road::active_road::ActiveRoad, GameRunningSet};
 
 use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged, RoadDataChange};
 

@@ -16,7 +16,7 @@ use crate::{
             },
             OnActiveRoadSet,
         },
-        RoadComponent,
+        road_component::RoadComponent,
     },
     ui::{
         components::{

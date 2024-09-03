@@ -9,7 +9,7 @@ use road_component_change::{RoadComponentChange, RoadComponentChangePlugin};
 use road_component_deletion::{RoadComponentDeletion, RoadComponentDeletionPlugin};
 use road_component_reorder::{RoadComponentReorder, RoadComponentReorderPlugin};
 
-use crate::road::RoadData;
+use crate::road::road_data::RoadData;
 
 pub struct ActiveRoadEventsPlugin;
 

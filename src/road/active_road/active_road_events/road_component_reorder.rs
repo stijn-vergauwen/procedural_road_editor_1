@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::ActiveRoad,
+    road::active_road::ActiveRoad,
     ui::{
         list::reorder_list::{OnListReorderRequested, ReorderIndices},
         toolbar::RoadComponentsList,

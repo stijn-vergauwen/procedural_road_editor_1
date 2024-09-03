@@ -5,7 +5,7 @@ use crate::{utility::texture_builder::TextureBuilder, GameRunningSet};
 use super::{
     active_road::{active_road_events::OnActiveRoadChanged, OnActiveRoadSet},
     road_builder::RoadBuilder,
-    ActiveRoad, RoadData,
+    active_road::ActiveRoad, road_data::RoadData,
 };
 
 pub struct RoadPreviewPlugin;

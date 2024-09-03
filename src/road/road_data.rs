@@ -3,7 +3,7 @@ use std::{iter::Enumerate, slice::Iter};
 use bevy::{math::NormedVectorSpace, prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{road_marking::RoadMarking, RoadComponent};
+use super::{road_marking::RoadMarking, road_component::RoadComponent};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct RoadData {

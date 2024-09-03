@@ -5,7 +5,7 @@ use ron::ser::PrettyConfig;
 
 use crate::GameRunningSet;
 
-use super::RoadData;
+use crate::road::road_data::RoadData;
 
 // TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
 

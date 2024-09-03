@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::ActiveRoad,
+    road::active_road::ActiveRoad,
     ui::{
         list::delete_list_item::{ListItemDeletion, OnListItemDeletionRequested},
         toolbar::RoadComponentsList,

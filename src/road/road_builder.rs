@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::utility::mesh_builder::MeshBuilder;
 
-use super::{road_marking::RoadMarking, RoadData};
+use super::{road_marking::RoadMarking, road_data::RoadData};
 
 const ROAD_LENGTH: f32 = 20.0;
 
