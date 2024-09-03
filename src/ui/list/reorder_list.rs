@@ -8,10 +8,12 @@ pub struct ReorderListPlugin;
 
 impl Plugin for ReorderListPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnListReordered>().add_systems(
-            Update,
-            handle_reorder_events.after(GameRunningSet::HandleCommands),
-        );
+        app.add_event::<OnListReorderRequested>()
+            .add_event::<OnListReordered>()
+            .add_systems(
+                Update,
+                handle_reorder_events.after(GameRunningSet::HandleCommands),
+            );
     }
 }
 
