@@ -18,7 +18,7 @@ impl Plugin for ReorderButtonVisibilityPlugin {
                 update_reorder_buttons_on_add_event,
                 update_reorder_buttons_on_reorder_event,
             )
-                .after(GameRunningSet::UpdateEntities),
+                .in_set(GameRunningSet::UpdateEntities),
         );
     }
 }

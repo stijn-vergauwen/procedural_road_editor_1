@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{ui::list::reorder_list::OnListReordered, GameRunningSet};
+use crate::{ui::list::reorder_list::OnListReorderRequested, GameRunningSet};
 
 use super::{ActiveRoad, OnActiveRoadModified};
 
@@ -40,14 +40,14 @@ impl OnRoadComponentReorderRequested {
 fn handle_reorder_requests(
     mut requests: EventReader<OnRoadComponentReorderRequested>,
     mut on_road_modified: EventWriter<OnActiveRoadModified>,
-    mut on_list_item_reordered: EventWriter<OnListReordered>,
+    mut on_list_reorder: EventWriter<OnListReorderRequested>,
     mut active_road: ResMut<ActiveRoad>,
 ) {
     for request in requests.read() {
         active_road.reorder_road_components(request.component_index, request.requested_index);
         active_road.send_road_modified_event(&mut on_road_modified);
 
-        on_list_item_reordered.send(OnListReordered::new(
+        on_list_reorder.send(OnListReorderRequested::new(
             request.component_list_entity,
             request.requested_index,
             request.component_index,
