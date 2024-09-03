@@ -8,10 +8,12 @@ pub struct DeleteListItemPlugin;
 
 impl Plugin for DeleteListItemPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnListItemDeleted>().add_systems(
-            Update,
-            handle_deletion_events.in_set(GameRunningSet::DespawnEntities),
-        );
+        app.add_event::<OnListItemDeletionRequested>()
+            .add_event::<OnListItemDeleted>()
+            .add_systems(
+                Update,
+                handle_deletion_events.in_set(GameRunningSet::DespawnEntities),
+            );
     }
 }
 
@@ -23,7 +25,10 @@ pub struct ListItemDeletion {
 
 impl ListItemDeletion {
     pub fn new(list_entity: Entity, index_to_delete: usize) -> Self {
-        Self { list_entity, index_to_delete }
+        Self {
+            list_entity,
+            index_to_delete,
+        }
     }
 }
 

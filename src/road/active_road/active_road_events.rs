@@ -8,7 +8,7 @@ use new_road_component::{NewRoadComponent, NewRoadComponentPlugin, NewRoadCompon
 use road_component_change::{
     RoadComponentChange, RoadComponentChangePlugin, RoadComponentChangeRequest,
 };
-use road_component_deletion::RoadComponentDeletion;
+use road_component_deletion::{RoadComponentDeletion, RoadComponentDeletionPlugin};
 use road_component_reorder::{RoadComponentReorder, RoadComponentReorderPlugin};
 
 use crate::road::RoadData;
@@ -21,6 +21,7 @@ impl Plugin for ActiveRoadEventsPlugin {
             NewRoadComponentPlugin,
             RoadComponentChangePlugin,
             RoadComponentReorderPlugin,
+            RoadComponentDeletionPlugin,
         ))
         .add_event::<OnActiveRoadChangeRequested>()
         .add_event::<OnActiveRoadChanged>();
