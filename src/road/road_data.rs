@@ -41,6 +41,10 @@ impl RoadData {
         self.components.iter().enumerate()
     }
 
+    pub fn component_count(&self) -> usize {
+        self.components.len()
+    }
+
     pub fn markings(&self) -> &[RoadMarking] {
         &self.markings
     }
@@ -74,12 +78,16 @@ impl RoadData {
     pub fn find_road_component_at_x_position(&self, x_position: f32) -> Option<RoadComponent> {
         let road_component_positions = self.calculate_road_component_positions();
 
-        self.components.iter().enumerate().find(|(index, component)| {
-            let component_position = road_component_positions[*index];
-            
-            x_position.distance(component_position) <= component.half_width()
+        self.components
+            .iter()
+            .enumerate()
+            .find(|(index, component)| {
+                let component_position = road_component_positions[*index];
 
-        }).map(|(_, component)| component).cloned()
+                x_position.distance(component_position) <= component.half_width()
+            })
+            .map(|(_, component)| component)
+            .cloned()
     }
 
     /// Returns an array describing the x_position of each component relative to the road's center.
@@ -88,7 +96,8 @@ impl RoadData {
         let mut result = Vec::new();
 
         for component in self.components() {
-            let x_position = width_of_previous_components + component.half_width() - self.half_width();
+            let x_position =
+                width_of_previous_components + component.half_width() - self.half_width();
             result.push(x_position);
 
             width_of_previous_components += component.width();

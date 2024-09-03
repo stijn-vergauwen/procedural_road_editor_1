@@ -4,10 +4,8 @@ pub mod road_component_deletion;
 pub mod road_component_reorder;
 
 use bevy::prelude::*;
-use new_road_component::{NewRoadComponent, NewRoadComponentPlugin, NewRoadComponentRequest};
-use road_component_change::{
-    RoadComponentChange, RoadComponentChangePlugin, RoadComponentChangeRequest,
-};
+use new_road_component::{NewRoadComponent, NewRoadComponentPlugin};
+use road_component_change::{RoadComponentChange, RoadComponentChangePlugin};
 use road_component_deletion::{RoadComponentDeletion, RoadComponentDeletionPlugin};
 use road_component_reorder::{RoadComponentReorder, RoadComponentReorderPlugin};
 
@@ -37,38 +35,27 @@ pub enum RoadComponentField {
 }
 
 #[derive(Clone, PartialEq)]
-pub enum ActiveRoadChangeRequest {
-    AddRoadComponent(NewRoadComponentRequest),
-    ChangeRoadComponent(RoadComponentChangeRequest),
+pub enum ActiveRoadChange {
+    AddRoadComponent(NewRoadComponent),
+    ChangeRoadComponent(RoadComponentChange),
     ReorderRoadComponent(RoadComponentReorder),
     DeleteRoadComponent(RoadComponentDeletion),
 }
 
 #[derive(Event, Clone)]
 pub struct OnActiveRoadChangeRequested {
-    pub active_road_change_request: ActiveRoadChangeRequest,
+    pub change_request: ActiveRoadChange,
 }
 
 impl OnActiveRoadChangeRequested {
-    pub fn new(active_road_change_request: ActiveRoadChangeRequest) -> Self {
-        Self {
-            active_road_change_request,
-        }
+    pub fn new(change_request: ActiveRoadChange) -> Self {
+        Self { change_request }
     }
-}
-
-// TODO: delete this struct, use ActiveRoadChangeRequest for both request and event. This moves the code more to "single source of truth"
-#[derive(Clone, PartialEq)]
-pub enum ActiveRoadChange {
-    RoadComponentAdded(NewRoadComponent),
-    RoadComponentChanged(RoadComponentChange),
-    RoadComponentReordered(RoadComponentReorder),
-    RoadComponentDeleted(RoadComponentDeletion),
 }
 
 #[derive(Event, Clone)]
 pub struct OnActiveRoadChanged {
-    pub active_road_change: ActiveRoadChange,
+    pub change: ActiveRoadChange,
     #[allow(unused)]
     pub previous_road_data: RoadData,
     pub new_road_data: RoadData,
@@ -76,12 +63,12 @@ pub struct OnActiveRoadChanged {
 
 impl OnActiveRoadChanged {
     pub fn new(
-        active_road_change: ActiveRoadChange,
+        change: ActiveRoadChange,
         previous_road_data: RoadData,
         new_road_data: RoadData,
     ) -> Self {
         Self {
-            active_road_change,
+            change,
             previous_road_data,
             new_road_data,
         }

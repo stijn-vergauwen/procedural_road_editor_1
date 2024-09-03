@@ -2,8 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     road::active_road::active_road_events::{
-        road_component_reorder::RoadComponentReorder, ActiveRoadChangeRequest,
-        OnActiveRoadChangeRequested,
+        road_component_reorder::RoadComponentReorder, ActiveRoadChange, OnActiveRoadChangeRequested,
     },
     ui::{
         list::{
@@ -45,9 +44,10 @@ fn send_reorder_requests(
         };
 
         requests.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::ReorderRoadComponent(RoadComponentReorder::new(
-                ReorderIndices::new(list_item.index(), requested_index),
-            )),
+            ActiveRoadChange::ReorderRoadComponent(RoadComponentReorder::new(ReorderIndices::new(
+                list_item.index(),
+                requested_index,
+            ))),
         ));
     }
 }

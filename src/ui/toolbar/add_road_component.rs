@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     road::{
         active_road::active_road_events::{
-            new_road_component::NewRoadComponentRequest, ActiveRoadChangeRequest,
+            new_road_component::NewRoadComponent, ActiveRoadChange,
             OnActiveRoadChangeRequested,
         },
         RoadComponent,
@@ -32,7 +32,7 @@ pub fn handle_add_road_component_button_pressed(
         .filter(|event| event.is_action(ButtonAction::AddComponent))
     {
         on_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::AddRoadComponent(NewRoadComponentRequest::new(
+            ActiveRoadChange::AddRoadComponent(NewRoadComponent::new(
                 RoadComponent::default(),
             )),
         ));

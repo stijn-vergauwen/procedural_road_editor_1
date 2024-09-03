@@ -3,9 +3,9 @@ use bevy::prelude::*;
 use crate::{
     road::{
         active_road::active_road_events::{
-            road_component_change::{RoadComponentChangeRequest, RoadComponentFieldChange},
+            road_component_change::{RoadComponentChange, RoadComponentFieldChange},
             road_component_deletion::RoadComponentDeletion,
-            ActiveRoadChangeRequest, OnActiveRoadChangeRequested, RoadComponentField,
+            ActiveRoadChange, OnActiveRoadChangeRequested, RoadComponentField,
         },
         ActiveRoad,
     },
@@ -157,7 +157,7 @@ fn handle_number_input_changed_events(
         };
 
         on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
                 field_to_change,
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
             )),
@@ -186,7 +186,7 @@ fn handle_text_input_changed_events(
         let name = event.text().to_string();
 
         on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
                 RoadComponentFieldChange::Name(name),
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
             )),
@@ -214,7 +214,7 @@ fn handle_color_input_changed_events(
         let color = event.new_color();
 
         on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::ChangeRoadComponent(RoadComponentChangeRequest::new(
+            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
                 RoadComponentFieldChange::Color(color),
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
             )),
@@ -239,9 +239,7 @@ fn handle_delete_button_pressed_events(
             .unwrap();
 
         on_deletion_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChangeRequest::DeleteRoadComponent(RoadComponentDeletion::new(
-                list_item.index(),
-            )),
+            ActiveRoadChange::DeleteRoadComponent(RoadComponentDeletion::new(list_item.index())),
         ));
 
         on_deselect.send(OnRoadComponentDeselected);

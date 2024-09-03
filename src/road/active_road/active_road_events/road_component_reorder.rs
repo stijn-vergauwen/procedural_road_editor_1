@@ -9,9 +9,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{
-    ActiveRoadChange, ActiveRoadChangeRequest, OnActiveRoadChangeRequested, OnActiveRoadChanged,
-};
+use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged};
 
 pub struct RoadComponentReorderPlugin;
 
@@ -42,28 +40,27 @@ fn handle_component_reorder_requests(
     mut active_road: ResMut<ActiveRoad>,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for request in requests
-        .read()
-        .filter_map(|request| match &request.active_road_change_request {
-            ActiveRoadChangeRequest::ReorderRoadComponent(request) => Some(request),
-            _ => None,
-        })
-    {
+    for request in requests.read() {
+        let reorder = match &request.change_request {
+            ActiveRoadChange::ReorderRoadComponent(request) => request.reorder,
+            _ => continue,
+        };
+
         let previous_road_data = active_road.road_data().clone();
 
-        active_road.reorder_road_components(request.reorder);
+        active_road.reorder_road_components(reorder);
 
         let new_road_data = active_road.road_data().clone();
 
         on_changed.send(OnActiveRoadChanged::new(
-            ActiveRoadChange::RoadComponentReordered(request.clone()),
+            request.change_request.clone(),
             previous_road_data,
             new_road_data,
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {
             on_list_reorder.send(OnListReorderRequested::new(
-                request.reorder,
+                reorder,
                 road_components_list_entity,
             ));
         }

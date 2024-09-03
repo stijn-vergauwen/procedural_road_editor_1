@@ -66,10 +66,8 @@ impl ActiveRoad {
         self.road_data = road;
     }
 
-    pub fn add_road_component(&mut self, road_component: RoadComponent) -> usize {
+    pub fn add_road_component(&mut self, road_component: RoadComponent) {
         self.road_data.components_mut().push(road_component);
-
-        self.component_count() - 1
     }
 
     pub fn reorder_road_components(&mut self, reorder: ReorderIndices) {
@@ -86,7 +84,7 @@ impl ActiveRoad {
         &mut self,
         component_index: usize,
         field_to_change: RoadComponentFieldChange,
-    ) -> RoadComponent {
+    ) {
         let road_component = self.component_at_index(component_index).clone();
 
         let new_component = match field_to_change {
@@ -97,8 +95,6 @@ impl ActiveRoad {
         };
 
         self.set_road_component(component_index, new_component.clone());
-
-        new_component
     }
 
     pub fn delete_road_component(&mut self, component_index: usize) {

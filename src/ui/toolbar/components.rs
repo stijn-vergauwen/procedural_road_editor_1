@@ -104,29 +104,26 @@ fn add_road_component_on_event(
     mut commands: Commands,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for new_road_component in
-        on_changed
-            .read()
-            .filter_map(|event| match &event.active_road_change {
-                ActiveRoadChange::RoadComponentAdded(new_road_component) => {
-                    Some(new_road_component)
-                }
-                _ => None,
-            })
-    {
+    for event in on_changed.read() {
+        let new_road_component = match &event.change {
+            ActiveRoadChange::AddRoadComponent(new_road_component) => new_road_component,
+            _ => continue,
+        };
+
         let road_components_list_entity = road_components_list_query.single();
+        let new_road_component_index = event.new_road_data.component_count() - 1;
 
         commands
             .entity(road_components_list_entity)
             .with_children(|components_list| {
                 let component_item_entity = spawn_road_component_item(
                     components_list,
-                    new_road_component.road_component_index,
+                    new_road_component_index,
                     &new_road_component.road_component,
                 );
 
                 on_component_selected.send(OnRoadComponentSelected::new(
-                    new_road_component.road_component_index,
+                    new_road_component_index,
                     component_item_entity,
                 ));
             });
@@ -143,16 +140,12 @@ fn update_road_component_on_change(
     mut component_name_query: Query<(Entity, &mut Text), With<RoadComponentName>>,
     children_query: Query<&Children>,
 ) {
-    for road_component_change in
-        on_changed
-            .read()
-            .filter_map(|event| match &event.active_road_change {
-                ActiveRoadChange::RoadComponentChanged(road_component_change) => {
-                    Some(road_component_change)
-                }
-                _ => None,
-            })
-    {
+    for event in on_changed.read() {
+        let road_component_change = match &event.change {
+            ActiveRoadChange::ChangeRoadComponent(road_component_change) => road_component_change,
+            _ => continue,
+        };
+
         let Some((road_component_entity, _)) = road_component_item_query
             .iter()
             .find(|(_, list_item)| list_item.index() == road_component_change.road_component_index)
@@ -160,7 +153,7 @@ fn update_road_component_on_change(
             continue;
         };
 
-        match &road_component_change.changed_field {
+        match &road_component_change.field {
             RoadComponentFieldChange::Name(name) => {
                 if let Some((_, mut text)) = find_descendant_of_entity_mut(
                     road_component_entity,
@@ -178,16 +171,19 @@ fn update_road_component_on_change(
                     |item| item.0,
                     &children_query,
                 ) {
-                    update_component_display(
-                        &mut style,
-                        &mut background_color,
-                        &road_component_change.new_road_component,
-                    );
+                    let new_road_component = event
+                        .new_road_data
+                        .components()
+                        .get(road_component_change.road_component_index)
+                        .unwrap();
+
+                    update_component_display(&mut style, &mut background_color, new_road_component);
                 }
             }
         };
     }
 }
+
 // Utility
 
 fn spawn_road_component_item(

@@ -9,9 +9,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{
-    ActiveRoadChange, ActiveRoadChangeRequest, OnActiveRoadChangeRequested, OnActiveRoadChanged,
-};
+use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged};
 
 pub struct RoadComponentDeletionPlugin;
 
@@ -42,21 +40,20 @@ fn handle_component_deletion_requests(
     mut active_road: ResMut<ActiveRoad>,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for request in requests
-        .read()
-        .filter_map(|request| match &request.active_road_change_request {
-            ActiveRoadChangeRequest::DeleteRoadComponent(request) => Some(request),
-            _ => None,
-        })
-    {
+    for request in requests.read() {
+        let deletion_request = match &request.change_request {
+            ActiveRoadChange::DeleteRoadComponent(request) => request,
+            _ => continue,
+        };
+
         let previous_road_data = active_road.road_data().clone();
 
-        active_road.delete_road_component(request.index_to_delete);
+        active_road.delete_road_component(deletion_request.index_to_delete);
 
         let new_road_data = active_road.road_data().clone();
 
         on_changed.send(OnActiveRoadChanged::new(
-            ActiveRoadChange::RoadComponentDeleted(request.clone()),
+            request.change_request.clone(),
             previous_road_data,
             new_road_data,
         ));
@@ -64,7 +61,7 @@ fn handle_component_deletion_requests(
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {
             on_list_item_deleted.send(OnListItemDeletionRequested::new(ListItemDeletion::new(
                 road_components_list_entity,
-                request.index_to_delete,
+                deletion_request.index_to_delete,
             )));
         }
     }
