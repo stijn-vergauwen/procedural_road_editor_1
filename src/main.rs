@@ -50,14 +50,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Rework List module events to same structure as road events
-            - request event and normal event for each action
-            - share common data in structs
-
-        - Questions about event reworks:
-            - can all entity and index fields from the road event structs be replaced by list event structs? In a way that road event structs only contain road data & reuse list structs
-            -
-
         - Lane marking support
             - bug: road marking position messes up when changing the road data
             - config ui (new sidebar screen for markings)
@@ -76,7 +68,6 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
-            // RapierDebugRenderPlugin::default(),
             UtilityPlugin,
             SchedulePlugin,
             WorldPlugin,
