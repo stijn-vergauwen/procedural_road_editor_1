@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    ui::list::{add_list_item::OnListItemAdded, reorder_list::OnListReordered, List, ListItem},
+    ui::list::{
+        list_events::{list_reorder::OnListReordered, new_list_item::OnListItemAdded},
+        List, ListItem,
+    },
     utility::{filter_descendants_of_entity_mut, find_ancestor_of_entity},
     GameRunningSet,
 };

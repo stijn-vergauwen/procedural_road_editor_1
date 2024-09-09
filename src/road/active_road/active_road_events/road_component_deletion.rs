@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     road::{active_road::ActiveRoad, road_data::RoadData},
     ui::{
-        list::delete_list_item::{ListItemDeletion, OnListItemDeletionRequested},
+        list::list_events::list_item_deletion::{ListItemDeletion, OnListItemDeletionRequested},
         toolbar::RoadComponentsList,
     },
     GameRunningSet,

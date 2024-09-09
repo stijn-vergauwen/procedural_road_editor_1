@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-pub struct AddListItemPlugin;
+pub struct NewListItemPlugin;
 
-impl Plugin for AddListItemPlugin {
+impl Plugin for NewListItemPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnListItemAdded>();
     }

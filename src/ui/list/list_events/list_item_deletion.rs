@@ -1,12 +1,10 @@
 use bevy::prelude::*;
 
-use crate::GameRunningSet;
+use crate::{ui::list::ListItem, GameRunningSet};
 
-use super::ListItem;
+pub struct ListItemDeletionPlugin;
 
-pub struct DeleteListItemPlugin;
-
-impl Plugin for DeleteListItemPlugin {
+impl Plugin for ListItemDeletionPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnListItemDeletionRequested>()
             .add_event::<OnListItemDeleted>()

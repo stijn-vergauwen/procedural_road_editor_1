@@ -1,12 +1,13 @@
 use bevy::prelude::*;
 
-use crate::GameRunningSet;
+use crate::{
+    ui::list::{List, ListItem},
+    GameRunningSet,
+};
 
-use super::{List, ListItem};
+pub struct ListReorderPlugin;
 
-pub struct ReorderListPlugin;
-
-impl Plugin for ReorderListPlugin {
+impl Plugin for ListReorderPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnListReorderRequested>()
             .add_event::<OnListReordered>()

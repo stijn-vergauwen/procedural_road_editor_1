@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::{
     road::{active_road::ActiveRoad, road_data::RoadData},
     ui::{
-        list::reorder_list::{OnListReorderRequested, ReorderIndices},
+        list::list_events::list_reorder::{OnListReorderRequested, ReorderIndices},
         toolbar::RoadComponentsList,
     },
     GameRunningSet,

@@ -1,24 +1,15 @@
-pub mod add_list_item;
-pub mod delete_list_item;
+pub mod list_events;
 pub mod reorder_button;
-pub mod reorder_list;
 
-use add_list_item::AddListItemPlugin;
 use bevy::prelude::*;
-use delete_list_item::DeleteListItemPlugin;
+use list_events::ListEventsPlugin;
 use reorder_button::ReorderButtonPlugin;
-use reorder_list::ReorderListPlugin;
 
 pub struct ListPlugin;
 
 impl Plugin for ListPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            ReorderButtonPlugin,
-            AddListItemPlugin,
-            ReorderListPlugin,
-            DeleteListItemPlugin,
-        ));
+        app.add_plugins((ReorderButtonPlugin, ListEventsPlugin));
     }
 }
 

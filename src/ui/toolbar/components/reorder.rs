@@ -4,8 +4,8 @@ use crate::{
     road::active_road::active_road_events::road_component_reorder::OnRoadComponentReorderRequested,
     ui::{
         list::{
+            list_events::list_reorder::ReorderIndices,
             reorder_button::{OnReorderButtonPressed, ReorderDirection},
-            reorder_list::ReorderIndices,
             ListItem,
         },
         toolbar::RoadComponentsList,

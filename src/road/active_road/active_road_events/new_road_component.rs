@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData},
-    ui::{list::add_list_item::OnListItemAdded, toolbar::RoadComponentsList},
+    ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList},
     GameRunningSet,
 };
 
