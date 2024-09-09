@@ -9,11 +9,9 @@ use selected_road_component::{
 
 use crate::{
     road::{
-        active_road::{
-            active_road_events::{
-                road_component_change::RoadComponentFieldChange, ActiveRoadChange,
-                OnActiveRoadChanged,
-            },
+        active_road::active_road_events::{
+            new_road_component::OnRoadComponentAdded,
+            road_component_change::{OnRoadComponentChanged, RoadComponentFieldChange},
             OnActiveRoadSet,
         },
         road_component::RoadComponent,
@@ -99,17 +97,12 @@ fn rebuild_road_components_on_active_road_set(
 }
 
 fn add_road_component_on_event(
-    mut on_changed: EventReader<OnActiveRoadChanged>,
+    mut on_added: EventReader<OnRoadComponentAdded>,
     mut on_component_selected: EventWriter<OnRoadComponentSelected>,
     mut commands: Commands,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
-    for event in on_changed.read() {
-        let new_road_component = match &event.change {
-            ActiveRoadChange::AddRoadComponent(new_road_component) => new_road_component,
-            _ => continue,
-        };
-
+    for event in on_added.read() {
         let road_components_list_entity = road_components_list_query.single();
         let new_road_component_index = event.new_road_data().component_count() - 1;
 
@@ -119,7 +112,7 @@ fn add_road_component_on_event(
                 let component_item_entity = spawn_road_component_item(
                     components_list,
                     new_road_component_index,
-                    &new_road_component.road_component,
+                    &event.new_component,
                 );
 
                 on_component_selected.send(OnRoadComponentSelected::new(
@@ -131,7 +124,7 @@ fn add_road_component_on_event(
 }
 
 fn update_road_component_on_change(
-    mut on_changed: EventReader<OnActiveRoadChanged>,
+    mut on_changed: EventReader<OnRoadComponentChanged>,
     road_component_item_query: Query<(Entity, &ListItem), With<RoadComponentItem>>,
     mut component_display_query: Query<
         (Entity, &mut Style, &mut BackgroundColor),
@@ -141,19 +134,14 @@ fn update_road_component_on_change(
     children_query: Query<&Children>,
 ) {
     for event in on_changed.read() {
-        let road_component_change = match &event.change {
-            ActiveRoadChange::ChangeRoadComponent(road_component_change) => road_component_change,
-            _ => continue,
-        };
-
         let Some((road_component_entity, _)) = road_component_item_query
             .iter()
-            .find(|(_, list_item)| list_item.index() == road_component_change.road_component_index)
+            .find(|(_, list_item)| list_item.index() == event.change.road_component_index)
         else {
             continue;
         };
 
-        match &road_component_change.field {
+        match &event.change.field {
             RoadComponentFieldChange::Name(name) => {
                 if let Some((_, mut text)) = find_descendant_of_entity_mut(
                     road_component_entity,
@@ -174,7 +162,7 @@ fn update_road_component_on_change(
                     let new_road_component = event
                         .new_road_data()
                         .components()
-                        .get(road_component_change.road_component_index)
+                        .get(event.change.road_component_index)
                         .unwrap();
 
                     update_component_display(&mut style, &mut background_color, new_road_component);

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::active_road::ActiveRoad,
+    road::{active_road::ActiveRoad, road_data::RoadData},
     ui::{
         list::delete_list_item::{ListItemDeletion, OnListItemDeletionRequested},
         toolbar::RoadComponentsList,
@@ -9,58 +9,78 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{ActiveRoadChange, OnActiveRoadChangeRequested, OnActiveRoadChanged, RoadDataChange};
+use super::ChangedRoadData;
 
 pub struct RoadComponentDeletionPlugin;
 
 impl Plugin for RoadComponentDeletionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            handle_component_deletion_requests.in_set(GameRunningSet::HandleCommands),
-        );
+        app.add_event::<OnRoadComponentDeletionRequested>()
+            .add_event::<OnRoadComponentDeleted>()
+            .add_systems(
+                Update,
+                handle_component_deletion_requests.in_set(GameRunningSet::HandleCommands),
+            );
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
-pub struct RoadComponentDeletion {
+#[derive(Event, Clone, PartialEq, Debug)]
+pub struct OnRoadComponentDeletionRequested {
     pub index_to_delete: usize,
 }
 
-impl RoadComponentDeletion {
+impl OnRoadComponentDeletionRequested {
     pub fn new(index_to_delete: usize) -> Self {
         Self { index_to_delete }
     }
 }
 
+#[derive(Event, Clone, PartialEq, Debug)]
+pub struct OnRoadComponentDeleted {
+    pub deleted_index: usize,
+    pub changed_road_data: ChangedRoadData,
+}
+
+impl OnRoadComponentDeleted {
+    pub fn new(deleted_index: usize, changed_road_data: ChangedRoadData) -> Self {
+        Self {
+            deleted_index,
+            changed_road_data,
+        }
+    }
+
+    pub fn previous_road_data(&self) -> &RoadData {
+        &self.changed_road_data.previous_road_data
+    }
+
+    pub fn new_road_data(&self) -> &RoadData {
+        &self.changed_road_data.new_road_data
+    }
+}
+
 fn handle_component_deletion_requests(
-    mut requests: EventReader<OnActiveRoadChangeRequested>,
-    mut on_changed: EventWriter<OnActiveRoadChanged>,
+    mut requests: EventReader<OnRoadComponentDeletionRequested>,
+    mut on_deleted: EventWriter<OnRoadComponentDeleted>,
     mut on_list_item_deleted: EventWriter<OnListItemDeletionRequested>,
     mut active_road: ResMut<ActiveRoad>,
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
     for request in requests.read() {
-        let deletion_request = match &request.change_request {
-            ActiveRoadChange::DeleteRoadComponent(request) => request,
-            _ => continue,
-        };
-
         let previous_road_data = active_road.road_data().clone();
 
-        active_road.delete_road_component(deletion_request.index_to_delete);
+        active_road.delete_road_component(request.index_to_delete);
 
         let new_road_data = active_road.road_data().clone();
 
-        on_changed.send(OnActiveRoadChanged::new(
-            request.change_request.clone(),
-            RoadDataChange::new(previous_road_data, new_road_data),
+        on_deleted.send(OnRoadComponentDeleted::new(
+            request.index_to_delete,
+            ChangedRoadData::new(previous_road_data, new_road_data),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {
             on_list_item_deleted.send(OnListItemDeletionRequested::new(ListItemDeletion::new(
                 road_components_list_entity,
-                deletion_request.index_to_delete,
+                request.index_to_delete,
             )));
         }
     }

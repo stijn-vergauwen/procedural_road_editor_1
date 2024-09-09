@@ -2,9 +2,7 @@ use bevy::prelude::*;
 
 use crate::{
     road::{
-        active_road::active_road_events::{
-            new_road_component::NewRoadComponent, ActiveRoadChange, OnActiveRoadChangeRequested,
-        },
+        active_road::active_road_events::new_road_component::OnNewRoadComponentRequested,
         road_component::RoadComponent,
     },
     ui::components::buttons::{ButtonAction, OnButtonPressed},
@@ -24,14 +22,12 @@ impl Plugin for AddRoadComponentPlugin {
 
 pub fn handle_add_road_component_button_pressed(
     mut on_pressed: EventReader<OnButtonPressed>,
-    mut on_request: EventWriter<OnActiveRoadChangeRequested>,
+    mut on_request: EventWriter<OnNewRoadComponentRequested>,
 ) {
     for _ in on_pressed
         .read()
         .filter(|event| event.is_action(ButtonAction::AddComponent))
     {
-        on_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::AddRoadComponent(NewRoadComponent::new(RoadComponent::default())),
-        ));
+        on_request.send(OnNewRoadComponentRequested::new(RoadComponent::default()));
     }
 }

@@ -50,13 +50,9 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Rework road & road_component events <- doing
-            - remove split between request and event data
-
         - Rework List module events to same structure as road events
-            - 1 main event struct: ListChange
-            - 2 events: OnListChangeRequested and OnListChanged
-            - enum for different actions
+            - request event and normal event for each action
+            - share common data in structs
 
         - Questions about event reworks:
             - can all entity and index fields from the road event structs be replaced by list event structs? In a way that road event structs only contain road data & reuse list structs

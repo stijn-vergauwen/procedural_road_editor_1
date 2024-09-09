@@ -1,18 +1,19 @@
 pub mod active_road_events;
 
-use active_road_events::{road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin};
+use active_road_events::{
+    road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin, OnActiveRoadSet,
+};
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::ui::list::reorder_list::ReorderIndices;
 
-use super::{road_data::RoadData, road_marking::RoadMarking, road_component::RoadComponent};
+use super::{road_component::RoadComponent, road_data::RoadData, road_marking::RoadMarking};
 
 pub struct ActiveRoadPlugin;
 
 impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((ActiveRoadEventsPlugin,))
-            .add_event::<OnActiveRoadSet>()
             .add_systems(Startup, setup_example_road);
     }
 }
@@ -102,20 +103,5 @@ impl ActiveRoad {
 
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
-    }
-}
-
-#[derive(Event)]
-pub struct OnActiveRoadSet {
-    road_data: RoadData,
-}
-
-impl OnActiveRoadSet {
-    pub fn new(road_data: RoadData) -> Self {
-        Self { road_data }
-    }
-
-    pub fn road_data(&self) -> &RoadData {
-        &self.road_data
     }
 }

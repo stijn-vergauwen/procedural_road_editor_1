@@ -3,9 +3,17 @@ use bevy::prelude::*;
 use crate::{utility::texture_builder::TextureBuilder, GameRunningSet};
 
 use super::{
-    active_road::{active_road_events::OnActiveRoadChanged, OnActiveRoadSet},
+    active_road::{
+        active_road_events::{
+            new_road_component::OnRoadComponentAdded,
+            road_component_change::OnRoadComponentChanged,
+            road_component_deletion::OnRoadComponentDeleted,
+            road_component_reorder::OnRoadComponentReordered, OnActiveRoadSet,
+        },
+        ActiveRoad,
+    },
     road_builder::RoadBuilder,
-    active_road::ActiveRoad, road_data::RoadData,
+    road_data::RoadData,
 };
 
 pub struct RoadPreviewPlugin;
@@ -15,9 +23,12 @@ impl Plugin for RoadPreviewPlugin {
         app.add_systems(
             Update,
             (
-                redraw_preview_on_active_road_changed,
                 redraw_preview_on_active_road_set,
                 spawn_preview_on_active_road_set,
+                redraw_preview_on_road_component_added,
+                redraw_preview_on_road_component_changed,
+                redraw_preview_on_road_component_reordered,
+                redraw_preview_on_road_component_deleted,
             )
                 .chain()
                 .in_set(GameRunningSet::UpdateEntities),
@@ -78,8 +89,32 @@ fn redraw_preview_on_active_road_set(
         );
     }
 }
-fn redraw_preview_on_active_road_changed(
-    mut on_changed: EventReader<OnActiveRoadChanged>,
+
+fn redraw_preview_on_road_component_added(
+    mut on_added: EventReader<OnRoadComponentAdded>,
+    mut road_preview_query: Query<
+        (&mut Handle<Mesh>, &Handle<StandardMaterial>),
+        With<RoadPreview>,
+    >,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for event in on_added.read() {
+        let (mut preview_mesh, preview_material) = road_preview_query
+            .get_single_mut()
+            .expect("This event should only be sent when a road preview already exists");
+
+        redraw_road_preview(
+            create_road_mesh_and_texture(&mut meshes, &mut images, event.new_road_data()),
+            &mut preview_mesh,
+            materials.get_mut(preview_material).unwrap(),
+        );
+    }
+}
+
+fn redraw_preview_on_road_component_changed(
+    mut on_changed: EventReader<OnRoadComponentChanged>,
     mut road_preview_query: Query<
         (&mut Handle<Mesh>, &Handle<StandardMaterial>),
         With<RoadPreview>,
@@ -89,9 +124,55 @@ fn redraw_preview_on_active_road_changed(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     for event in on_changed.read() {
-        let (mut preview_mesh, preview_material) = road_preview_query.get_single_mut().expect(
-            "OnActiveRoadModified should only be called when a road preview already exists",
+        let (mut preview_mesh, preview_material) = road_preview_query
+            .get_single_mut()
+            .expect("This event should only be sent when a road preview already exists");
+
+        redraw_road_preview(
+            create_road_mesh_and_texture(&mut meshes, &mut images, event.new_road_data()),
+            &mut preview_mesh,
+            materials.get_mut(preview_material).unwrap(),
         );
+    }
+}
+
+fn redraw_preview_on_road_component_reordered(
+    mut on_reordered: EventReader<OnRoadComponentReordered>,
+    mut road_preview_query: Query<
+        (&mut Handle<Mesh>, &Handle<StandardMaterial>),
+        With<RoadPreview>,
+    >,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for event in on_reordered.read() {
+        let (mut preview_mesh, preview_material) = road_preview_query
+            .get_single_mut()
+            .expect("This event should only be sent when a road preview already exists");
+
+        redraw_road_preview(
+            create_road_mesh_and_texture(&mut meshes, &mut images, event.new_road_data()),
+            &mut preview_mesh,
+            materials.get_mut(preview_material).unwrap(),
+        );
+    }
+}
+
+fn redraw_preview_on_road_component_deleted(
+    mut on_deleted: EventReader<OnRoadComponentDeleted>,
+    mut road_preview_query: Query<
+        (&mut Handle<Mesh>, &Handle<StandardMaterial>),
+        With<RoadPreview>,
+    >,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut images: ResMut<Assets<Image>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    for event in on_deleted.read() {
+        let (mut preview_mesh, preview_material) = road_preview_query
+            .get_single_mut()
+            .expect("This event should only be sent when a road preview already exists");
 
         redraw_road_preview(
             create_road_mesh_and_texture(&mut meshes, &mut images, event.new_road_data()),

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use super::{road_marking::RoadMarking, road_component::RoadComponent};
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RoadData {
     name: String,
     components: Vec<RoadComponent>,

@@ -2,12 +2,15 @@ use bevy::prelude::*;
 
 use crate::{
     road::{
-        active_road::active_road_events::{
-            road_component_change::{RoadComponentChange, RoadComponentFieldChange},
-            road_component_deletion::RoadComponentDeletion,
-            ActiveRoadChange, OnActiveRoadChangeRequested,
+        active_road::{
+            active_road_events::{
+                road_component_change::{
+                    OnRoadComponentChangeRequested, RoadComponentChange, RoadComponentFieldChange,
+                },
+                road_component_deletion::OnRoadComponentDeletionRequested,
+            },
+            ActiveRoad,
         },
-        active_road::ActiveRoad,
         road_component::RoadComponentField,
     },
     ui::{
@@ -138,7 +141,7 @@ fn despawn_config_section_on_component_deselected(
 
 fn handle_number_input_changed_events(
     mut on_input_changed: EventReader<OnNumberInputValueChanged>,
-    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
+    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     number_input_query: Query<&RoadComponentField, With<NumberInput>>,
     list_item_query: Query<&ListItem>,
@@ -157,18 +160,18 @@ fn handle_number_input_changed_events(
             _ => continue,
         };
 
-        on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
+        on_change_request.send(OnRoadComponentChangeRequested::new(
+            RoadComponentChange::new(
                 field_to_change,
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
-            )),
+            ),
         ));
     }
 }
 
 fn handle_text_input_changed_events(
     mut on_input_changed: EventReader<OnTextInputValueChanged>,
-    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
+    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     text_input_query: Query<&RoadComponentField, With<TextInput>>,
     list_item_query: Query<&ListItem>,
@@ -186,18 +189,18 @@ fn handle_text_input_changed_events(
 
         let name = event.text().to_string();
 
-        on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
+        on_change_request.send(OnRoadComponentChangeRequested::new(
+            RoadComponentChange::new(
                 RoadComponentFieldChange::Name(name),
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
-            )),
+            ),
         ));
     }
 }
 
 fn handle_color_input_changed_events(
     mut on_input_changed: EventReader<OnColorInputValueChanged>,
-    mut on_change_request: EventWriter<OnActiveRoadChangeRequested>,
+    mut on_change_request: EventWriter<OnRoadComponentChangeRequested>,
     component_config_query: Query<&RoadComponentConfig>,
     color_input_query: Query<&RoadComponentField, With<ColorInput>>,
     list_item_query: Query<&ListItem>,
@@ -214,18 +217,18 @@ fn handle_color_input_changed_events(
         let component_config = component_config_query.single();
         let color = event.new_color();
 
-        on_change_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::ChangeRoadComponent(RoadComponentChange::new(
+        on_change_request.send(OnRoadComponentChangeRequested::new(
+            RoadComponentChange::new(
                 RoadComponentFieldChange::Color(color),
                 list_item_index_from_entity(&list_item_query, component_config.component_entity),
-            )),
+            ),
         ));
     }
 }
 
 fn handle_delete_button_pressed_events(
     mut on_pressed: EventReader<OnButtonPressed>,
-    mut on_deletion_request: EventWriter<OnActiveRoadChangeRequested>,
+    mut on_deletion_request: EventWriter<OnRoadComponentDeletionRequested>,
     mut on_deselect: EventWriter<OnRoadComponentDeselected>,
     component_config_query: Query<&RoadComponentConfig>,
     list_item_query: Query<&ListItem>,
@@ -239,9 +242,7 @@ fn handle_delete_button_pressed_events(
             .get(component_config.component_entity)
             .unwrap();
 
-        on_deletion_request.send(OnActiveRoadChangeRequested::new(
-            ActiveRoadChange::DeleteRoadComponent(RoadComponentDeletion::new(list_item.index())),
-        ));
+        on_deletion_request.send(OnRoadComponentDeletionRequested::new(list_item.index()));
 
         on_deselect.send(OnRoadComponentDeselected);
     }
