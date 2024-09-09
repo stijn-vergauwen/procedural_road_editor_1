@@ -3,9 +3,10 @@ use std::{iter::Enumerate, slice::Iter};
 use bevy::{math::NormedVectorSpace, prelude::*};
 use serde::{Deserialize, Serialize};
 
-use super::{road_marking::RoadMarking, road_component::RoadComponent};
+use super::{road_component::RoadComponent, road_marking::RoadMarking};
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+#[serde(default)]
 pub struct RoadData {
     name: String,
     components: Vec<RoadComponent>,
@@ -104,5 +105,15 @@ impl RoadData {
         }
 
         result
+    }
+}
+
+impl Default for RoadData {
+    fn default() -> Self {
+        Self {
+            name: String::from("New road"),
+            components: Vec::new(),
+            markings: Vec::new(),
+        }
     }
 }
