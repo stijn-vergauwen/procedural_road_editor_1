@@ -104,4 +104,32 @@ impl ActiveRoad {
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
         self.road_preview_entity = road_preview_entity;
     }
+
+    /// Updates each road marking to keep them in the same spot relative to the road component they're on.
+    pub fn update_road_marking_positions(&mut self, previous_road_data: &RoadData) {
+        let previous_component_positions = previous_road_data.calculate_road_component_positions();
+        let current_component_positions = self.road_data.calculate_road_component_positions();
+
+        // This assumes that new components are always added at the end of the vec. It also assumes that new components & deleted components don't have markings
+        let mut delta_component_positions = Vec::new();
+
+        for (index, previous_position) in previous_component_positions.iter().enumerate() {
+            let Some(current_position) = current_component_positions.get(index) else {
+                continue;
+            };
+
+            delta_component_positions.push(current_position - previous_position);
+        }
+
+        for road_marking in self.road_data.markings_mut() {
+            let road_component_index = previous_road_data
+                .find_road_component_at_x_position(road_marking.x_position)
+                .unwrap()
+                .0;
+
+            let delta_position = delta_component_positions[road_component_index];
+
+            road_marking.x_position += delta_position;
+        }
+    }
 }

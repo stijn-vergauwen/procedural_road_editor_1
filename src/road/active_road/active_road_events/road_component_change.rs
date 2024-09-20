@@ -90,6 +90,8 @@ fn handle_component_change_requests(
             request.requested_change.field.clone(),
         );
 
+        active_road.update_road_marking_positions(&previous_road_data);
+
         let new_road_data = active_road.road_data().clone();
 
         on_changed.send(OnRoadComponentChanged::new(

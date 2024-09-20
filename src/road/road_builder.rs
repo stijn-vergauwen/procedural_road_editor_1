@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::utility::mesh_builder::MeshBuilder;
 
-use super::{road_marking::RoadMarking, road_data::RoadData};
+use super::{road_data::RoadData, road_marking::RoadMarking};
 
 const ROAD_LENGTH: f32 = 20.0;
 
@@ -84,6 +84,7 @@ impl RoadBuilder {
         let road_height = road_data
             .find_road_component_at_x_position(road_marking.x_position)
             .unwrap()
+            .1
             .size
             .y;
 

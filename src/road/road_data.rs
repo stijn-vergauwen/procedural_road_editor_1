@@ -50,6 +50,10 @@ impl RoadData {
         &self.markings
     }
 
+    pub fn markings_mut(&mut self) -> &mut Vec<RoadMarking> {
+        &mut self.markings
+    }
+
     pub fn enumerate_markings(&self) -> Enumerate<Iter<RoadMarking>> {
         self.markings.iter().enumerate()
     }
@@ -76,23 +80,25 @@ impl RoadData {
             .fold(0.0, |sum, component| sum.max(component.size.y))
     }
 
-    pub fn find_road_component_at_x_position(&self, x_position: f32) -> Option<RoadComponent> {
+    pub fn find_road_component_at_x_position(
+        &self,
+        x_position: f32,
+    ) -> Option<(usize, RoadComponent)> {
         let road_component_positions = self.calculate_road_component_positions();
 
         self.components
-            .iter()
+            .clone()
+            .into_iter()
             .enumerate()
             .find(|(index, component)| {
                 let component_position = road_component_positions[*index];
 
                 x_position.distance(component_position) <= component.half_width()
             })
-            .map(|(_, component)| component)
-            .cloned()
     }
 
     /// Returns an array describing the x_position of each component relative to the road's center.
-    fn calculate_road_component_positions(&self) -> Vec<f32> {
+    pub fn calculate_road_component_positions(&self) -> Vec<f32> {
         let mut width_of_previous_components = 0.0;
         let mut result = Vec::new();
 

@@ -66,6 +66,7 @@ fn handle_new_component_requests(
         let previous_road_data = active_road.road_data().clone();
 
         active_road.add_road_component(request.new_component.clone());
+        active_road.update_road_marking_positions(&previous_road_data);
 
         let new_road_data = active_road.road_data().clone();
 

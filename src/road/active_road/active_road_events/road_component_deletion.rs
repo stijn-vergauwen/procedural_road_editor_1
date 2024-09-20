@@ -69,6 +69,7 @@ fn handle_component_deletion_requests(
         let previous_road_data = active_road.road_data().clone();
 
         active_road.delete_road_component(request.index_to_delete);
+        active_road.update_road_marking_positions(&previous_road_data);
 
         let new_road_data = active_road.road_data().clone();
 

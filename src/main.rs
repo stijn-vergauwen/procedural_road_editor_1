@@ -51,7 +51,13 @@ use world::WorldPlugin;
 
     Backlog:
         - Lane marking support
+            - make new struct that holds x positions of an objects left side, center, and right side
+            - use new positions struct in RoadData to hold x positions of each road component
+            - add 'changed_component_indices' field to ChangedRoadData struct that maps previous indices to new indices
             - bug: road marking position messes up when changing the road data
+                - party fixed, but change it so that:
+                - road markings stick to the edge of the component if near the edge, and stick to the center if near the center (if distance to center & edge is equal, stick to edge)
+                - the 'changed_component_indices' is used, this should also make it work with reorder events
             - config ui (new sidebar screen for markings)
             - lane line events & handlers
             - spaced markings

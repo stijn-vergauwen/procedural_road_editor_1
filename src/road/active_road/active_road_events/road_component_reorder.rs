@@ -70,6 +70,9 @@ fn handle_component_reorder_requests(
 
         active_road.reorder_road_components(request.reorder);
 
+        // TODO: this doesn't work, need to check switched indices
+        active_road.update_road_marking_positions(&previous_road_data);
+
         let new_road_data = active_road.road_data().clone();
 
         on_reordered.send(OnRoadComponentReordered::new(
