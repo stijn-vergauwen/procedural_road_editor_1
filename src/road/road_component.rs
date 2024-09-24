@@ -1,3 +1,5 @@
+pub mod road_component_position;
+
 use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
 use serde::{Deserialize, Serialize};
 
@@ -7,14 +9,6 @@ pub struct RoadComponent {
     pub name: String,
     pub size: Vec2,
     pub color: Color,
-}
-
-#[derive(Component, Clone, Copy, PartialEq)]
-pub enum RoadComponentField {
-    Name,
-    Width,
-    Height,
-    Color,
 }
 
 impl RoadComponent {
@@ -63,4 +57,12 @@ impl Default for RoadComponent {
             color: GRAY_600.into(),
         }
     }
+}
+
+#[derive(Component, Clone, Copy, PartialEq)]
+pub enum RoadComponentField {
+    Name,
+    Width,
+    Height,
+    Color,
 }

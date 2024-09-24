@@ -68,16 +68,19 @@ impl ActiveRoad {
 
     pub fn add_road_component(&mut self, road_component: RoadComponent) {
         self.road_data.components_mut().push(road_component);
+        self.road_data.recalculate_road_component_positions();
     }
 
     pub fn reorder_road_components(&mut self, reorder: ReorderIndices) {
         self.road_data
             .components_mut()
             .swap(reorder.previous_index, reorder.new_index);
+        self.road_data.recalculate_road_component_positions();
     }
 
     pub fn set_road_component(&mut self, component_index: usize, component_data: RoadComponent) {
         self.road_data.components_mut()[component_index] = component_data;
+        self.road_data.recalculate_road_component_positions();
     }
 
     pub fn change_road_component_at_index(
@@ -99,6 +102,7 @@ impl ActiveRoad {
 
     pub fn delete_road_component(&mut self, component_index: usize) {
         self.road_data.components_mut().remove(component_index);
+        self.road_data.recalculate_road_component_positions();
     }
 
     pub fn set_road_preview_entity(&mut self, road_preview_entity: Option<Entity>) {
@@ -107,8 +111,8 @@ impl ActiveRoad {
 
     /// Updates each road marking to keep them in the same spot relative to the road component they're on.
     pub fn update_road_marking_positions(&mut self, previous_road_data: &RoadData) {
-        let previous_component_positions = previous_road_data.calculate_road_component_positions();
-        let current_component_positions = self.road_data.calculate_road_component_positions();
+        let previous_component_positions = previous_road_data.component_positions();
+        let current_component_positions = self.road_data.component_positions();
 
         // This assumes that new components are always added at the end of the vec. It also assumes that new components & deleted components don't have markings
         let mut delta_component_positions = Vec::new();
@@ -118,7 +122,7 @@ impl ActiveRoad {
                 continue;
             };
 
-            delta_component_positions.push(current_position - previous_position);
+            delta_component_positions.push(current_position.center - previous_position.center);
         }
 
         for road_marking in self.road_data.markings_mut() {
