@@ -1,12 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData},
-    ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList},
-    GameRunningSet,
+    road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData}, ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList}, utility::changed_value::ChangedValue, GameRunningSet
 };
-
-use super::ChangedRoadData;
 
 pub struct NewRoadComponentPlugin;
 
@@ -35,11 +31,11 @@ impl OnNewRoadComponentRequested {
 #[derive(Event, Clone, PartialEq, Debug)]
 pub struct OnRoadComponentAdded {
     pub new_component: RoadComponent,
-    pub changed_road_data: ChangedRoadData,
+    pub changed_road_data: ChangedValue<RoadData>,
 }
 
 impl OnRoadComponentAdded {
-    pub fn new(new_component: RoadComponent, changed_road_data: ChangedRoadData) -> Self {
+    pub fn new(new_component: RoadComponent, changed_road_data: ChangedValue<RoadData>) -> Self {
         Self {
             new_component,
             changed_road_data,
@@ -47,11 +43,11 @@ impl OnRoadComponentAdded {
     }
 
     pub fn previous_road_data(&self) -> &RoadData {
-        &self.changed_road_data.previous_road_data
+        &self.changed_road_data.previous_value
     }
 
     pub fn new_road_data(&self) -> &RoadData {
-        &self.changed_road_data.new_road_data
+        &self.changed_road_data.new_value
     }
 }
 
@@ -72,7 +68,7 @@ fn handle_new_component_requests(
 
         on_added.send(OnRoadComponentAdded::new(
             request.new_component.clone(),
-            ChangedRoadData::new(previous_road_data, new_road_data),
+            ChangedValue::new(previous_road_data, new_road_data),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

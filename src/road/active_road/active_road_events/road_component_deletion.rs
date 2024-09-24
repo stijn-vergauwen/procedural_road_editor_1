@@ -6,10 +6,9 @@ use crate::{
         list::list_events::list_item_deletion::{ListItemDeletion, OnListItemDeletionRequested},
         toolbar::RoadComponentsList,
     },
+    utility::changed_value::ChangedValue,
     GameRunningSet,
 };
-
-use super::ChangedRoadData;
 
 pub struct RoadComponentDeletionPlugin;
 
@@ -38,11 +37,11 @@ impl OnRoadComponentDeletionRequested {
 #[derive(Event, Clone, PartialEq, Debug)]
 pub struct OnRoadComponentDeleted {
     pub deleted_index: usize,
-    pub changed_road_data: ChangedRoadData,
+    pub changed_road_data: ChangedValue<RoadData>,
 }
 
 impl OnRoadComponentDeleted {
-    pub fn new(deleted_index: usize, changed_road_data: ChangedRoadData) -> Self {
+    pub fn new(deleted_index: usize, changed_road_data: ChangedValue<RoadData>) -> Self {
         Self {
             deleted_index,
             changed_road_data,
@@ -50,11 +49,11 @@ impl OnRoadComponentDeleted {
     }
 
     pub fn previous_road_data(&self) -> &RoadData {
-        &self.changed_road_data.previous_road_data
+        &self.changed_road_data.previous_value
     }
 
     pub fn new_road_data(&self) -> &RoadData {
-        &self.changed_road_data.new_road_data
+        &self.changed_road_data.new_value
     }
 }
 
@@ -75,7 +74,7 @@ fn handle_component_deletion_requests(
 
         on_deleted.send(OnRoadComponentDeleted::new(
             request.index_to_delete,
-            ChangedRoadData::new(previous_road_data, new_road_data),
+            ChangedValue::new(previous_road_data, new_road_data),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

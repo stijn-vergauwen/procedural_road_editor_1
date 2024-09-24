@@ -1,5 +1,6 @@
 pub mod mesh_builder;
 pub mod texture_builder;
+pub mod changed_value;
 
 use bevy::{
     ecs::query::{QueryData, QueryFilter},

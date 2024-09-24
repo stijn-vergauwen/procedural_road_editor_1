@@ -2,10 +2,9 @@ use bevy::prelude::*;
 
 use crate::{
     road::{active_road::ActiveRoad, road_data::RoadData},
+    utility::changed_value::ChangedValue,
     GameRunningSet,
 };
-
-use super::ChangedRoadData;
 
 pub struct RoadComponentChangePlugin;
 
@@ -57,11 +56,11 @@ impl OnRoadComponentChangeRequested {
 #[derive(Event, Clone, PartialEq, Debug)]
 pub struct OnRoadComponentChanged {
     pub change: RoadComponentChange,
-    pub changed_road_data: ChangedRoadData,
+    pub changed_road_data: ChangedValue<RoadData>,
 }
 
 impl OnRoadComponentChanged {
-    pub fn new(change: RoadComponentChange, changed_road_data: ChangedRoadData) -> Self {
+    pub fn new(change: RoadComponentChange, changed_road_data: ChangedValue<RoadData>) -> Self {
         Self {
             change,
             changed_road_data,
@@ -69,11 +68,11 @@ impl OnRoadComponentChanged {
     }
 
     pub fn previous_road_data(&self) -> &RoadData {
-        &self.changed_road_data.previous_road_data
+        &self.changed_road_data.previous_value
     }
 
     pub fn new_road_data(&self) -> &RoadData {
-        &self.changed_road_data.new_road_data
+        &self.changed_road_data.new_value
     }
 }
 
@@ -96,7 +95,7 @@ fn handle_component_change_requests(
 
         on_changed.send(OnRoadComponentChanged::new(
             request.requested_change.clone(),
-            ChangedRoadData::new(previous_road_data, new_road_data),
+            ChangedValue::new(previous_road_data, new_road_data),
         ));
     }
 }

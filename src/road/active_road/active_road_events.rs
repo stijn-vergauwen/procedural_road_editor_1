@@ -38,18 +38,3 @@ impl OnActiveRoadSet {
         &self.road_data
     }
 }
-
-#[derive(Clone, PartialEq, Debug)]
-pub struct ChangedRoadData {
-    pub previous_road_data: RoadData,
-    pub new_road_data: RoadData,
-}
-
-impl ChangedRoadData {
-    pub fn new(previous_road_data: RoadData, new_road_data: RoadData) -> Self {
-        Self {
-            previous_road_data,
-            new_road_data,
-        }
-    }
-}

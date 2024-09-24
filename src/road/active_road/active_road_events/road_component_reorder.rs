@@ -6,10 +6,9 @@ use crate::{
         list::list_events::list_reorder::{OnListReorderRequested, ReorderIndices},
         toolbar::RoadComponentsList,
     },
+    utility::changed_value::ChangedValue,
     GameRunningSet,
 };
-
-use super::ChangedRoadData;
 
 pub struct RoadComponentReorderPlugin;
 
@@ -38,11 +37,11 @@ impl OnRoadComponentReorderRequested {
 #[derive(Event, Clone, PartialEq, Debug)]
 pub struct OnRoadComponentReordered {
     pub reorder: ReorderIndices,
-    pub changed_road_data: ChangedRoadData,
+    pub changed_road_data: ChangedValue<RoadData>,
 }
 
 impl OnRoadComponentReordered {
-    pub fn new(reorder: ReorderIndices, changed_road_data: ChangedRoadData) -> Self {
+    pub fn new(reorder: ReorderIndices, changed_road_data: ChangedValue<RoadData>) -> Self {
         Self {
             reorder,
             changed_road_data,
@@ -50,11 +49,11 @@ impl OnRoadComponentReordered {
     }
 
     pub fn previous_road_data(&self) -> &RoadData {
-        &self.changed_road_data.previous_road_data
+        &self.changed_road_data.previous_value
     }
 
     pub fn new_road_data(&self) -> &RoadData {
-        &self.changed_road_data.new_road_data
+        &self.changed_road_data.new_value
     }
 }
 
@@ -77,7 +76,7 @@ fn handle_component_reorder_requests(
 
         on_reordered.send(OnRoadComponentReordered::new(
             request.reorder,
-            ChangedRoadData::new(previous_road_data, new_road_data),
+            ChangedValue::new(previous_road_data, new_road_data),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {
