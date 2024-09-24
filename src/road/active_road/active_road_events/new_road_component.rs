@@ -72,14 +72,14 @@ fn handle_new_component_requests(
     for request in requests.read() {
         let previous_road_data = active_road.road_data().clone();
 
-        active_road.add_road_component(request.new_component.clone());
-        active_road.update_road_marking_positions(&previous_road_data);
-
-        let new_road_data = active_road.road_data().clone();
-
-        let new_component_index = active_road.component_count() - 1;
+        let new_component_index = active_road.component_count();
         let changed_component_indices =
             ChangedComponentIndices::new(vec![ChangedValue::new(None, Some(new_component_index))]);
+
+        active_road.add_road_component(request.new_component.clone());
+        active_road.update_road_marking_positions(&previous_road_data, &changed_component_indices);
+
+        let new_road_data = active_road.road_data().clone();
 
         on_added.send(OnRoadComponentAdded::new(
             request.new_component.clone(),

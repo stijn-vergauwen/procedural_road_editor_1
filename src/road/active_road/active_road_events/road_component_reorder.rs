@@ -70,18 +70,18 @@ fn handle_component_reorder_requests(
     road_components_list_query: Query<Entity, With<RoadComponentsList>>,
 ) {
     for request in requests.read() {
+        let changed_component_indices = ChangedComponentIndices::from_reorder(request.reorder);
         let previous_road_data = active_road.road_data().clone();
 
         active_road.reorder_road_components(request.reorder);
 
-        // TODO: this doesn't work, need to check switched indices
-        active_road.update_road_marking_positions(&previous_road_data);
+        active_road.update_road_marking_positions(&previous_road_data, &changed_component_indices);
 
         let new_road_data = active_road.road_data().clone();
 
         on_reordered.send(OnRoadComponentReordered::new(
             ChangedValue::new(previous_road_data, new_road_data),
-            ChangedComponentIndices::from_reorder(request.reorder),
+            changed_component_indices,
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

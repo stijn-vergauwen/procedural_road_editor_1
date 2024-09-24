@@ -6,6 +6,8 @@ use crate::{
     GameRunningSet,
 };
 
+use super::changed_component_indices::ChangedComponentIndices;
+
 pub struct RoadComponentChangePlugin;
 
 impl Plugin for RoadComponentChangePlugin {
@@ -89,7 +91,10 @@ fn handle_component_change_requests(
             request.requested_change.field.clone(),
         );
 
-        active_road.update_road_marking_positions(&previous_road_data);
+        active_road.update_road_marking_positions(
+            &previous_road_data,
+            &ChangedComponentIndices::default(),
+        );
 
         let new_road_data = active_road.road_data().clone();
 

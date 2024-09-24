@@ -75,15 +75,15 @@ fn handle_component_deletion_requests(
     for request in requests.read() {
         let previous_road_data = active_road.road_data().clone();
 
-        active_road.delete_road_component(request.index_to_delete);
-        active_road.update_road_marking_positions(&previous_road_data);
-
-        let new_road_data = active_road.road_data().clone();
-
         let changed_component_indices = calculate_changed_component_indices(
             request.index_to_delete,
             previous_road_data.component_count(),
         );
+
+        active_road.delete_road_component(request.index_to_delete);
+        active_road.update_road_marking_positions(&previous_road_data, &changed_component_indices);
+
+        let new_road_data = active_road.road_data().clone();
 
         on_deleted.send(OnRoadComponentDeleted::new(
             request.index_to_delete,

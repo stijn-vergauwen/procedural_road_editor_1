@@ -2,7 +2,7 @@ use crate::{
     ui::list::list_events::list_reorder::ReorderIndices, utility::changed_value::ChangedValue,
 };
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Debug, Default)]
 pub struct ChangedComponentIndices(pub Vec<ChangedValue<Option<usize>>>);
 
 impl ChangedComponentIndices {
@@ -18,10 +18,10 @@ impl ChangedComponentIndices {
     }
 
     pub fn from_reorder(reorder: ReorderIndices) -> Self {
-        Self::new(vec![ChangedValue::new(
-            Some(reorder.previous_index),
-            Some(reorder.new_index),
-        )])
+        Self::new(vec![
+            ChangedValue::new(Some(reorder.previous_index), Some(reorder.new_index)),
+            ChangedValue::new(Some(reorder.new_index), Some(reorder.previous_index)),
+        ])
     }
 
     /// Returns an iterator over all the newly added indices.

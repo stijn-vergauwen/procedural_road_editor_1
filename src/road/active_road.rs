@@ -1,6 +1,7 @@
 pub mod active_road_events;
 
 use active_road_events::{
+    changed_component_indices::ChangedComponentIndices,
     road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin, OnActiveRoadSet,
 };
 use bevy::{color::palettes::tailwind::*, prelude::*};
@@ -109,8 +110,13 @@ impl ActiveRoad {
         self.road_preview_entity = road_preview_entity;
     }
 
+    // TODO: move to road_marking module
     /// Updates each road marking to keep them in the same spot relative to the road component they're on.
-    pub fn update_road_marking_positions(&mut self, previous_road_data: &RoadData) {
+    pub fn update_road_marking_positions(
+        &mut self,
+        previous_road_data: &RoadData,
+        changed_component_indices: &ChangedComponentIndices,
+    ) {
         let previous_component_positions = previous_road_data.component_positions();
         let current_component_positions = self.road_data.component_positions();
 
@@ -118,7 +124,13 @@ impl ActiveRoad {
         let mut delta_component_positions = Vec::new();
 
         for (index, previous_position) in previous_component_positions.iter().enumerate() {
-            let Some(current_position) = current_component_positions.get(index) else {
+            let Some(mapped_index) = changed_component_indices.map_index(index) else {
+                // TODO: temp fix, marking should be deleted together with the road component. I don't 100% understand what pushing 0.0 does but I think it works for now.
+                delta_component_positions.push(0.0);
+                continue;
+            };
+
+            let Some(current_position) = current_component_positions.get(mapped_index) else {
                 continue;
             };
 
