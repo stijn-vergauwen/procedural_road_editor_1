@@ -1,8 +1,13 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData}, ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList}, utility::changed_value::ChangedValue, GameRunningSet
+    road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData},
+    ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList},
+    utility::changed_value::ChangedValue,
+    GameRunningSet,
 };
+
+use super::changed_component_indices::ChangedComponentIndices;
 
 pub struct NewRoadComponentPlugin;
 
@@ -32,13 +37,19 @@ impl OnNewRoadComponentRequested {
 pub struct OnRoadComponentAdded {
     pub new_component: RoadComponent,
     pub changed_road_data: ChangedValue<RoadData>,
+    pub changed_component_indices: ChangedComponentIndices,
 }
 
 impl OnRoadComponentAdded {
-    pub fn new(new_component: RoadComponent, changed_road_data: ChangedValue<RoadData>) -> Self {
+    pub fn new(
+        new_component: RoadComponent,
+        changed_road_data: ChangedValue<RoadData>,
+        changed_component_indices: ChangedComponentIndices,
+    ) -> Self {
         Self {
             new_component,
             changed_road_data,
+            changed_component_indices,
         }
     }
 
@@ -66,9 +77,14 @@ fn handle_new_component_requests(
 
         let new_road_data = active_road.road_data().clone();
 
+        let new_component_index = active_road.component_count() - 1;
+        let changed_component_indices =
+            ChangedComponentIndices::new(vec![ChangedValue::new(None, Some(new_component_index))]);
+
         on_added.send(OnRoadComponentAdded::new(
             request.new_component.clone(),
             ChangedValue::new(previous_road_data, new_road_data),
+            changed_component_indices,
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

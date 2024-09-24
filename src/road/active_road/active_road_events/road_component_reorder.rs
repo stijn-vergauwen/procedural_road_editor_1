@@ -10,6 +10,8 @@ use crate::{
     GameRunningSet,
 };
 
+use super::changed_component_indices::ChangedComponentIndices;
+
 pub struct RoadComponentReorderPlugin;
 
 impl Plugin for RoadComponentReorderPlugin {
@@ -36,15 +38,18 @@ impl OnRoadComponentReorderRequested {
 
 #[derive(Event, Clone, PartialEq, Debug)]
 pub struct OnRoadComponentReordered {
-    pub reorder: ReorderIndices,
     pub changed_road_data: ChangedValue<RoadData>,
+    pub changed_component_indices: ChangedComponentIndices,
 }
 
 impl OnRoadComponentReordered {
-    pub fn new(reorder: ReorderIndices, changed_road_data: ChangedValue<RoadData>) -> Self {
+    pub fn new(
+        changed_road_data: ChangedValue<RoadData>,
+        changed_component_indices: ChangedComponentIndices,
+    ) -> Self {
         Self {
-            reorder,
             changed_road_data,
+            changed_component_indices,
         }
     }
 
@@ -75,8 +80,8 @@ fn handle_component_reorder_requests(
         let new_road_data = active_road.road_data().clone();
 
         on_reordered.send(OnRoadComponentReordered::new(
-            request.reorder,
             ChangedValue::new(previous_road_data, new_road_data),
+            ChangedComponentIndices::from_reorder(request.reorder),
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {

@@ -1,3 +1,4 @@
+pub mod changed_component_indices;
 pub mod new_road_component;
 pub mod road_component_change;
 pub mod road_component_deletion;

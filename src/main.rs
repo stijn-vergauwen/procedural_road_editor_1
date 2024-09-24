@@ -51,7 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Lane marking support
-            - add 'changed_component_indices' field to ChangedRoadData struct that maps previous indices to new indices
             - bug: road marking position messes up when changing the road data
                 - party fixed, but change it so that:
                 - road markings stick to the edge of the component if near the edge, and stick to the center if near the center (if distance to center & edge is equal, stick to edge)

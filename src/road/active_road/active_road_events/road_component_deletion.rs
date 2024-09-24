@@ -10,6 +10,8 @@ use crate::{
     GameRunningSet,
 };
 
+use super::changed_component_indices::ChangedComponentIndices;
+
 pub struct RoadComponentDeletionPlugin;
 
 impl Plugin for RoadComponentDeletionPlugin {
@@ -38,13 +40,19 @@ impl OnRoadComponentDeletionRequested {
 pub struct OnRoadComponentDeleted {
     pub deleted_index: usize,
     pub changed_road_data: ChangedValue<RoadData>,
+    pub changed_component_indices: ChangedComponentIndices,
 }
 
 impl OnRoadComponentDeleted {
-    pub fn new(deleted_index: usize, changed_road_data: ChangedValue<RoadData>) -> Self {
+    pub fn new(
+        deleted_index: usize,
+        changed_road_data: ChangedValue<RoadData>,
+        changed_component_indices: ChangedComponentIndices,
+    ) -> Self {
         Self {
             deleted_index,
             changed_road_data,
+            changed_component_indices,
         }
     }
 
@@ -72,9 +80,15 @@ fn handle_component_deletion_requests(
 
         let new_road_data = active_road.road_data().clone();
 
+        let changed_component_indices = calculate_changed_component_indices(
+            request.index_to_delete,
+            previous_road_data.component_count(),
+        );
+
         on_deleted.send(OnRoadComponentDeleted::new(
             request.index_to_delete,
             ChangedValue::new(previous_road_data, new_road_data),
+            changed_component_indices,
         ));
 
         if let Ok(road_components_list_entity) = road_components_list_query.get_single() {
@@ -84,4 +98,22 @@ fn handle_component_deletion_requests(
             )));
         }
     }
+}
+
+fn calculate_changed_component_indices(
+    index_to_delete: usize,
+    previous_component_count: usize,
+) -> ChangedComponentIndices {
+    let mut changed_indices = Vec::new();
+
+    changed_indices.push(ChangedValue::new(Some(index_to_delete), None));
+
+    for index_to_shift in (index_to_delete + 1)..previous_component_count {
+        changed_indices.push(ChangedValue::new(
+            Some(index_to_shift),
+            Some(index_to_shift - 1),
+        ));
+    }
+
+    ChangedComponentIndices::new(changed_indices)
 }
