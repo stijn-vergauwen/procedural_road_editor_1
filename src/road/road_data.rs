@@ -116,7 +116,7 @@ impl Default for RoadData {
     }
 }
 
-pub fn calculate_road_component_positions(
+fn calculate_road_component_positions(
     road_components: &[RoadComponent],
 ) -> Vec<RoadComponentPosition> {
     let half_width = calculate_width_of_road_components(road_components) / 2.0;

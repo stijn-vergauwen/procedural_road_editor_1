@@ -291,7 +291,6 @@ fn update_number_display(
     parent_query: Query<&Parent>,
 ) {
     for event in on_changed.read() {
-        // TODO: replace with utility method
         let (_, _, mut text) = number_display_query.iter_mut()
         .find(|(entity, _, _)| entity_is_descendant_of(&parent_query, *entity, event.number_input_entity()))
         .expect("NumberInputValueChanged event should always match NumberInput entity with a display node.");

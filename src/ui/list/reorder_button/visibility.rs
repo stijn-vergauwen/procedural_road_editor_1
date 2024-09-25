@@ -28,13 +28,6 @@ impl Plugin for ReorderButtonVisibilityPlugin {
 
 // TODO: refactor this module
 
-/*
-    TODO: I have a question related to event architecture:
-    Logic like recalculating these reorder buttons or redrawing the preview road should respond to more than 1 event in the same way,
-    The nice thing about events is that many systems can respond to 1 event, but in this case 1 system should respond to many events.
-    It's the other way around, What is a clean way to handle these cases? This is something I'm struggling to find a good answer for atm.
-*/
-
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnListItemAdded>,
     mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
