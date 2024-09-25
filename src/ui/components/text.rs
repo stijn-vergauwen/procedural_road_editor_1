@@ -12,6 +12,13 @@ pub struct TextConfig {
 }
 
 impl TextConfig {
+    pub fn centered() -> Self {
+        Self {
+            justify: JustifyText::Center,
+            ..default()
+        }
+    }
+
     pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
         self.text = text.into();
         self

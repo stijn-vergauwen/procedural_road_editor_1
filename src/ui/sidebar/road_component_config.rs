@@ -21,6 +21,7 @@ use crate::{
                 color_input::{
                     ColorInput, ColorInputBuilder, ColorInputConfig, OnColorInputValueChanged,
                 },
+                labeled_element::LabeledElementBuilder,
                 number_input::{NumberInput, NumberInputBuilder, OnNumberInputValueChanged},
             },
             UiComponentBuilder, UiComponentWithChildrenBuilder,
@@ -102,22 +103,38 @@ fn generate_config_section_for_selected_component(
                             component_data.name.clone(),
                         );
 
-                        // TODO: add "Width" label
-                        NumberInputBuilder::default()
-                            .with_values(component_data.size.x, 0.0..10.0)
-                            .spawn(config_container, RoadComponentField::Width);
+                        LabeledElementBuilder::centered_top_label("Width").spawn(
+                            config_container,
+                            (),
+                            |width_label| {
+                                NumberInputBuilder::default()
+                                    .with_values(component_data.size.x, 0.0..10.0)
+                                    .spawn(width_label, RoadComponentField::Width);
+                            },
+                        );
 
-                        // TODO: add "Height" label
-                        NumberInputBuilder::default()
-                            .with_values(component_data.size.y, 0.0..10.0)
-                            .spawn(config_container, RoadComponentField::Height);
+                        LabeledElementBuilder::centered_top_label("Height").spawn(
+                            config_container,
+                            (),
+                            |height_label| {
+                                NumberInputBuilder::default()
+                                    .with_values(component_data.size.y, 0.0..10.0)
+                                    .spawn(height_label, RoadComponentField::Height);
+                            },
+                        );
 
-                        // TODO: add "Color" label
-                        ColorInputBuilder::new(
-                            ColorInputConfig::default().with_start_color(component_data.color),
-                            &mut images,
-                        )
-                        .spawn(config_container, RoadComponentField::Color);
+                        LabeledElementBuilder::centered_top_label("Color").spawn(
+                            config_container,
+                            (),
+                            |color_label| {
+                                ColorInputBuilder::new(
+                                    ColorInputConfig::default()
+                                        .with_start_color(component_data.color),
+                                    &mut images,
+                                )
+                                .spawn(color_label, RoadComponentField::Color);
+                            },
+                        );
 
                         TextButtonBuilder::default_with_text("Delete")
                             .spawn(config_container, ButtonAction::DeleteComponent);

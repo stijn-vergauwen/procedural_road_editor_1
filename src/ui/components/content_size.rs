@@ -22,9 +22,7 @@ impl ContentSizeConfig {
     pub fn full_width() -> Self {
         Self {
             width: Val::Percent(100.0),
-            height: Val::Auto,
-            min_width: Val::Auto,
-            min_height: Val::Auto,
+            ..default()
         }
     }
 

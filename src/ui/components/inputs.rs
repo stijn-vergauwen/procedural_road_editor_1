@@ -1,6 +1,7 @@
 pub mod color_input;
 pub mod number_input;
 pub mod slider_input;
+pub mod labeled_element;
 
 use bevy::prelude::*;
 use color_input::ColorInputPlugin;

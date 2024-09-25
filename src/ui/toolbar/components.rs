@@ -213,9 +213,8 @@ fn spawn_road_component_item(
 
 fn spawn_road_component_name(builder: &mut ChildBuilder, road_component: &RoadComponent) -> Entity {
     TextBuilder::new(
-        TextConfig::default()
+        TextConfig::centered()
             .with_text(road_component.name.clone())
-            .with_justify(JustifyText::Center)
             .clone(),
     )
     .spawn(builder, RoadComponentName)
