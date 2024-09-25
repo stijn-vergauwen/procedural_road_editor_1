@@ -26,8 +26,6 @@ impl Plugin for ReorderButtonVisibilityPlugin {
     }
 }
 
-// TODO: refactor this module
-
 fn update_reorder_buttons_on_add_event(
     mut on_added: EventReader<OnListItemAdded>,
     mut reorder_button_query: Query<(Entity, &ReorderButton, &mut Visibility)>,
@@ -82,7 +80,6 @@ fn update_visibility_of_reorder_buttons(
     list_entity: Entity,
     list_length: usize,
 ) {
-    // TODO: replace query params with "reorder_buttons", then filter on parent entity outside this fn
     for (reorder_button_entity, reorder_button, mut button_visibility) in
         filter_descendants_of_entity_mut(
             list_entity,

@@ -8,8 +8,6 @@ use color_input::ColorInputPlugin;
 use number_input::NumberInputPlugin;
 use slider_input::SliderInputPlugin;
 
-// TODO: "labeled_element" component, puts a text label above (or next to) the given children
-
 pub struct InputComponentsPlugin;
 
 impl Plugin for InputComponentsPlugin {
