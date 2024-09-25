@@ -3,7 +3,8 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::GameRunningSet;
 
 use super::{
-    content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+    content_size::ContentSizeConfig,
+    content_wrap::ContentWrapConfig,
     text::{TextBuilder, TextConfig},
     UiComponentBuilder, UiComponentWithChildrenBuilder,
 };
@@ -25,6 +26,7 @@ impl Plugin for ButtonsPlugin {
 pub struct ButtonConfig {
     pub background_image: Option<Handle<Image>>,
     pub wrap: ContentWrapConfig,
+    pub size: ContentSizeConfig,
 }
 
 impl ButtonConfig {
@@ -32,6 +34,7 @@ impl ButtonConfig {
         Self {
             background_image: None,
             wrap: ContentWrapConfig::empty(),
+            size: ContentSizeConfig::empty(),
         }
     }
 
@@ -46,33 +49,8 @@ impl ButtonConfig {
         self
     }
 
-    /// Returns this component but with the given width
-    /// 
-    /// - Use only percentage values for consistency.
-    pub fn with_width(mut self, width: Val) -> Self {
-        self.wrap = self.wrap.with_width(width);
-        self
-    }
-
-    /// Returns this component but with the width set to 100%.
-    pub fn with_full_width(mut self) -> Self {
-        self.wrap = self.wrap.with_full_width();
-        self
-    }
-
-    /// Returns this component but with the given minimum width
-    /// 
-    /// - Use only pixel values for consistency.
-    pub fn with_min_width(mut self, min_width: Val) -> Self {
-        self.wrap = self.wrap.with_min_width(min_width);
-        self
-    }
-
-    /// Returns this component but with the given height
-    /// 
-    /// - Use only percentage values for consistency.
-    pub fn with_height(mut self, height: Val) -> Self {
-        self.wrap = self.wrap.with_height(height);
+    pub fn with_content_size_config(mut self, content_size_config: ContentSizeConfig) -> Self {
+        self.size = content_size_config;
         self
     }
 }
@@ -84,6 +62,7 @@ impl Default for ButtonConfig {
             wrap: ContentWrapConfig::wide_element()
                 .with_background_color(NEUTRAL_500)
                 .with_all_px_border_radius(8.0),
+            size: ContentSizeConfig::default(),
         }
     }
 }
@@ -117,24 +96,32 @@ impl ButtonBuilder {
 }
 
 impl UiComponentWithChildrenBuilder for ButtonBuilder {
-    fn spawn(
-        &self,
-        builder: &mut ChildBuilder,
-        components: impl Bundle,
-        children: impl FnOnce(&mut ChildBuilder),
-    ) -> Entity {
-        ContentWrapBuilder::new(self.config.wrap).spawn(
-            builder,
-            (components, self.build()),
-            children,
-        )
-    }
-
     fn build(&self) -> impl Bundle {
-        match self.config.background_image.clone() {
-            Some(image_handle) => (Button, Interaction::default(), UiImage::new(image_handle)),
-            None => (Button, Interaction::default(), UiImage::default()),
-        }
+        let image_component = match self.config.background_image.clone() {
+            Some(image_handle) => UiImage::new(image_handle),
+            None => UiImage::default(),
+        };
+
+        (
+            Button,
+            Interaction::default(),
+            image_component,
+            NodeBundle {
+                style: Style {
+                    padding: self.config.wrap.padding,
+                    border: self.config.wrap.border_size,
+                    width: self.config.size.width,
+                    height: self.config.size.height,
+                    min_width: self.config.size.min_width,
+                    min_height: self.config.size.min_height,
+                    ..default()
+                },
+                background_color: self.config.wrap.background_color,
+                border_color: self.config.wrap.border_color,
+                border_radius: self.config.wrap.border_radius,
+                ..default()
+            },
+        )
     }
 }
 

@@ -12,6 +12,7 @@ use save::SavePlugin;
 use super::{
     components::{
         buttons::{ButtonAction, TextButtonBuilder},
+        content_wrap::ContentWrapConfig,
         flexbox::{FlexboxBuilder, FlexboxConfig},
         section::{SectionBuilder, SectionConfig},
         UiComponentBuilder, UiComponentWithChildrenBuilder,
@@ -40,9 +41,10 @@ pub struct RoadComponentsList;
 
 pub fn spawn_toolbar(builder: &mut ChildBuilder) {
     let flexbox_config = FlexboxConfig::row().with_justify(JustifyContent::SpaceBetween);
+    let content_wrap_config = ContentWrapConfig::default().with_all_px_padding(20.0);
     let section_config = SectionConfig::default()
         .with_flexbox_config(flexbox_config)
-        .squared();
+        .with_content_wrap_config(content_wrap_config);
 
     SectionBuilder::new(section_config).spawn(builder, Toolbar, |toolbar| {
         spawn_action_buttons(toolbar);

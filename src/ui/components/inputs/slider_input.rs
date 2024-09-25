@@ -3,6 +3,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*, ui::RelativeCursorPosition}
 use crate::{
     ui::components::{
         buttons::{ButtonBuilder, ButtonConfig},
+        content_size::ContentSizeConfig,
         content_wrap::ContentWrapConfig,
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
@@ -46,11 +47,6 @@ impl SliderInputConfig {
         self.button.with_background_image(image_handle);
         self
     }
-
-    pub fn with_width(&mut self, width: Val) -> &mut Self {
-        self.button.wrap = self.button.wrap.with_width(width);
-        self
-    }
 }
 
 impl Default for SliderInputConfig {
@@ -58,15 +54,13 @@ impl Default for SliderInputConfig {
         Self {
             start_value: 0.0,
             handle_bar_width: 6.0,
-            button: ButtonConfig::empty()
-                .with_content_wrap_config(
-                    ContentWrapConfig::empty()
-                        .with_background_color(NEUTRAL_800)
-                        .with_full_width()
-                        .with_height(Val::Px(12.0))
-                        .rounded(),
-                )
-                .clone(),
+            button: ButtonConfig {
+                wrap: ContentWrapConfig::empty()
+                    .with_background_color(NEUTRAL_800)
+                    .rounded(),
+                size: ContentSizeConfig::full_width().with_min_height(12.0),
+                ..ButtonConfig::empty()
+            },
         }
     }
 }

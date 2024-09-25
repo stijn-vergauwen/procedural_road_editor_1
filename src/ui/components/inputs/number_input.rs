@@ -5,6 +5,7 @@ use bevy::{prelude::*, text::BreakLineOn};
 use crate::{
     ui::components::{
         buttons::ButtonBuilder,
+        content_size::ContentSizeConfig,
         content_wrap::ContentWrapConfig,
         flexbox::FlexboxConfig,
         section::{SectionBuilder, SectionConfig},
@@ -142,42 +143,42 @@ impl NumberInputBuilder {
 
 impl UiComponentBuilder for NumberInputBuilder {
     fn spawn(&self, builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
-        SectionBuilder::new(SectionConfig::empty().with_full_width()).spawn(
-            builder,
-            (components, self.build()),
-            |number_input| {
-                // Down button
-                ButtonBuilder::spawn_default(
-                    number_input,
-                    NumberInputButton::new(NumberInputDirection::Down),
-                    |down_button| {
-                        TextBuilder::new(TextConfig::from(self.config.down_button.clone()))
-                            .spawn(down_button, ());
-                    },
-                );
-
-                // Number input display
-                SectionBuilder::new(SectionConfig {
-                    wrap: ContentWrapConfig::empty().with_full_width(),
-                    flexbox: FlexboxConfig::centered(),
-                })
-                .spawn(number_input, (), |display_wrap| {
-                    TextBuilder::new(TextConfig::from(self.config.display))
-                        .with_text(format_display_value(self.config.start_value))
-                        .spawn(display_wrap, NumberInputDisplay);
-                });
-
-                // Up button
-                ButtonBuilder::spawn_default(
-                    number_input,
-                    NumberInputButton::new(NumberInputDirection::Up),
-                    |up_button| {
-                        TextBuilder::new(TextConfig::from(self.config.up_button.clone()))
-                            .spawn(up_button, ());
-                    },
-                );
-            },
+        SectionBuilder::new(
+            SectionConfig::empty().with_content_size_config(ContentSizeConfig::full_width()),
         )
+        .spawn(builder, (components, self.build()), |number_input| {
+            // Down button
+            ButtonBuilder::spawn_default(
+                number_input,
+                NumberInputButton::new(NumberInputDirection::Down),
+                |down_button| {
+                    TextBuilder::new(TextConfig::from(self.config.down_button.clone()))
+                        .spawn(down_button, ());
+                },
+            );
+
+            // Number input display
+            SectionBuilder::new(SectionConfig {
+                wrap: ContentWrapConfig::empty(),
+                flexbox: FlexboxConfig::centered(),
+                size: ContentSizeConfig::empty().with_full_width(),
+            })
+            .spawn(number_input, (), |display_wrap| {
+                TextBuilder::new(TextConfig::from(self.config.display))
+                    .with_text(format_display_value(self.config.start_value))
+                    .spawn(display_wrap, NumberInputDisplay);
+            });
+
+            // Up button
+            ButtonBuilder::spawn_default(
+                number_input,
+                NumberInputButton::new(NumberInputDirection::Up),
+                |up_button| {
+                    TextBuilder::new(TextConfig::from(self.config.up_button.clone()))
+                        .spawn(up_button, ());
+                },
+            );
+        })
     }
 
     fn build(&self) -> impl Bundle {

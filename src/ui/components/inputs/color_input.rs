@@ -2,7 +2,8 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     ui::components::{
-        content_wrap::{ContentWrapBuilder, ContentWrapConfig},
+        content_size::ContentSizeConfig,
+        content_wrap::ContentWrapConfig,
         flexbox::FlexboxConfig,
         inputs::slider_input::{OnSliderInputValueChanged, SliderInputBuilder, SliderInputConfig},
         section::{SectionBuilder, SectionConfig},
@@ -59,10 +60,11 @@ impl Default for ColorInputConfig {
             section: SectionConfig {
                 wrap: ContentWrapConfig::default()
                     .with_all_px_border_radius(8.0)
-                    .with_full_width()
-                    .with_min_width(Val::Px(160.0))
                     .with_background_color(NEUTRAL_500),
                 flexbox: FlexboxConfig::horizontally_centered_column().with_px_gap(4.0),
+                size: ContentSizeConfig::empty()
+                    .with_full_width()
+                    .with_min_width(160.0),
             },
         }
     }
@@ -86,6 +88,21 @@ impl ColorInputBuilder {
             config,
         }
     }
+
+    fn get_color_input_display_config(&self) -> SectionConfig {
+        SectionConfig {
+            wrap: ContentWrapConfig {
+                background_color: self.config.start_color.into(),
+                border_size: UiRect::all(Val::Px(4.0)),
+                border_color: NEUTRAL_700.into(),
+                ..ContentWrapConfig::empty()
+            },
+            flexbox: FlexboxConfig::default(),
+            size: ContentSizeConfig::empty()
+                .with_min_width(40.0)
+                .with_min_height(40.0),
+        }
+    }
 }
 
 impl UiComponentBuilder for ColorInputBuilder {
@@ -94,15 +111,11 @@ impl UiComponentBuilder for ColorInputBuilder {
             builder,
             (components, self.build()),
             |color_input| {
-                ContentWrapBuilder::new(ContentWrapConfig {
-                    background_color: self.config.start_color.into(),
-                    width: Val::Px(40.0),
-                    height: Val::Px(40.0),
-                    border_size: UiRect::all(Val::Px(4.0)),
-                    border_color: NEUTRAL_700.into(),
-                    ..ContentWrapConfig::empty()
-                })
-                .spawn(color_input, ColorInputDisplay, |_| {});
+                SectionBuilder::new(self.get_color_input_display_config()).spawn(
+                    color_input,
+                    ColorInputDisplay,
+                    |_| {},
+                );
 
                 spawn_slider_input(
                     color_input,

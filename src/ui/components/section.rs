@@ -1,13 +1,15 @@
 use bevy::prelude::*;
 
 use super::{
-    content_wrap::ContentWrapConfig, flexbox::FlexboxConfig, UiComponentWithChildrenBuilder,
+    content_size::ContentSizeConfig, content_wrap::ContentWrapConfig, flexbox::FlexboxConfig,
+    UiComponentWithChildrenBuilder,
 };
 
 #[derive(Clone, Copy)]
 pub struct SectionConfig {
     pub wrap: ContentWrapConfig,
     pub flexbox: FlexboxConfig,
+    pub size: ContentSizeConfig,
 }
 
 impl SectionConfig {
@@ -15,6 +17,7 @@ impl SectionConfig {
         Self {
             wrap: ContentWrapConfig::empty(),
             flexbox: FlexboxConfig::default(),
+            size: ContentSizeConfig::empty(),
         }
     }
 
@@ -28,43 +31,8 @@ impl SectionConfig {
         self
     }
 
-    /// Returns this component but with the given width
-    /// 
-    /// - Use only percentage values for consistency.
-    pub fn with_width(mut self, width: Val) -> Self {
-        self.wrap = self.wrap.with_width(width);
-        self
-    }
-
-    /// Returns this component but with the width set to 100%.
-    pub fn with_full_width(mut self) -> Self {
-        self.wrap = self.wrap.with_full_width();
-        self
-    }
-
-    /// Returns this component but with the given minimum width
-    /// 
-    /// - Use only pixel values for consistency.
-    pub fn with_min_width(mut self, min_width: Val) -> Self {
-        self.wrap = self.wrap.with_min_width(min_width);
-        self
-    }
-
-    /// Returns this component but with the given height
-    /// 
-    /// - Use only percentage values for consistency.
-    pub fn with_height(mut self, height: Val) -> Self {
-        self.wrap = self.wrap.with_height(height);
-        self
-    }
-
-    pub fn with_background_color(mut self, background_color: impl Into<BackgroundColor>) -> Self {
-        self.wrap = self.wrap.with_background_color(background_color);
-        self
-    }
-
-    pub fn squared(mut self) -> Self {
-        self.wrap = self.wrap.with_border_radius(BorderRadius::ZERO);
+    pub fn with_content_size_config(mut self, content_size_config: ContentSizeConfig) -> Self {
+        self.size = content_size_config;
         self
     }
 }
@@ -76,11 +44,12 @@ impl Default for SectionConfig {
                 .with_all_px_padding(20.0)
                 .with_all_px_border_radius(16.0),
             flexbox: FlexboxConfig::horizontally_centered_column().with_px_gap(12.0),
+            size: ContentSizeConfig::default(),
         }
     }
 }
 
-/// A general section UiComponent for content, with content wrap and layout.
+/// A general section UiComponent for content, with content wrap, size, and layout.
 #[derive(Default)]
 pub struct SectionBuilder {
     config: SectionConfig,
@@ -104,9 +73,10 @@ impl UiComponentWithChildrenBuilder for SectionBuilder {
                 column_gap: self.config.flexbox.column_gap,
                 padding: self.config.wrap.padding,
                 border: self.config.wrap.border_size,
-                width: self.config.wrap.width,
-                min_width: self.config.wrap.min_width,
-                height: self.config.wrap.height,
+                width: self.config.size.width,
+                height: self.config.size.height,
+                min_width: self.config.size.min_width,
+                min_height: self.config.size.min_height,
                 ..default()
             },
             background_color: self.config.wrap.background_color,

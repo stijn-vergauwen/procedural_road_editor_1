@@ -1,4 +1,5 @@
 pub mod buttons;
+pub mod content_size;
 pub mod content_wrap;
 pub mod flexbox;
 pub mod inputs;
@@ -8,10 +9,6 @@ pub mod text;
 use bevy::prelude::*;
 use buttons::ButtonsPlugin;
 use inputs::InputComponentsPlugin;
-
-// TODO: "content_size" component that has width, height, and min_width
-//      - idea: I think sticking to percentages for width & height, and sticking to pixels for min_width, simplifies UI layout in a way I haven't done before?
-//        I can't describe this idea well but I feel like this approach is "closest to reality" when you think of what looks "correct" visually
 
 pub struct UiComponentsPlugin;
 
