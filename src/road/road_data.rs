@@ -1,10 +1,13 @@
 use std::{iter::Enumerate, slice::Iter};
 
-use bevy::prelude::*;
+use bevy::{math::NormedVectorSpace, prelude::*};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    road_component::{road_component_position::RoadComponentPosition, RoadComponent},
+    road_component::{
+        road_component_position::{RoadComponentPosition, RoadComponentPositionField},
+        RoadComponent,
+    },
     road_marking::RoadMarking,
 };
 
@@ -13,6 +16,7 @@ use super::{
 pub struct RoadData {
     name: String,
     components: Vec<RoadComponent>,
+    /// RoadComponentPositions relative to the roads center.
     component_positions: Vec<RoadComponentPosition>,
     markings: Vec<RoadMarking>,
 }
@@ -93,15 +97,29 @@ impl RoadData {
         self.component_positions = calculate_road_component_positions(&self.components);
     }
 
-    pub fn find_road_component_at_x_position(
-        &self,
-        x_position: f32,
-    ) -> Option<(usize, &RoadComponent)> {
-        self.components.iter().enumerate().find(|(index, _)| {
-            let component_position = self.component_positions[*index];
+    /// Returns information about the road component under the given `point`.
+    ///
+    /// - `point` is the horizontal position on the road, relative to the roads center.
+    pub fn find_road_component_under_point(&self, point: f32) -> Option<RoadComponentUnderPoint> {
+        self.components
+            .iter()
+            .enumerate()
+            .find_map(|(index, road_component)| {
+                let component_position = self.component_positions[index];
 
-            x_position >= component_position.left && x_position <= component_position.right
-        })
+                if point < component_position.left || point > component_position.right {
+                    return None;
+                }
+
+                let closest_position_field =
+                    get_closest_road_component_position_field(point, &component_position);
+
+                Some(RoadComponentUnderPoint {
+                    road_component: road_component.clone(),
+                    road_component_index: index,
+                    closest_position_field,
+                })
+            })
     }
 }
 
@@ -116,6 +134,14 @@ impl Default for RoadData {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct RoadComponentUnderPoint {
+    pub road_component: RoadComponent,
+    pub road_component_index: usize,
+    pub closest_position_field: RoadComponentPositionField,
+}
+
+/// Returns a vec of RoadComponentPositions that holds each given road component's position relative to the roads center.
 fn calculate_road_component_positions(
     road_components: &[RoadComponent],
 ) -> Vec<RoadComponentPosition> {
@@ -145,4 +171,31 @@ fn calculate_width_of_road_components(road_components: &[RoadComponent]) -> f32 
     road_components
         .iter()
         .fold(0.0, |sum, component| sum + component.size.x)
+}
+
+fn get_closest_road_component_position_field(
+    point: f32,
+    road_component_position: &RoadComponentPosition,
+) -> RoadComponentPositionField {
+    // center is put as last element so the min_by iterator prefers the edges
+    let distances = vec![
+        (
+            point.distance(road_component_position.left),
+            RoadComponentPositionField::Left,
+        ),
+        (
+            point.distance(road_component_position.right),
+            RoadComponentPositionField::Right,
+        ),
+        (
+            point.distance(road_component_position.center),
+            RoadComponentPositionField::Center,
+        ),
+    ];
+
+    distances
+        .iter()
+        .min_by(|x, y| x.0.total_cmp(&y.0))
+        .unwrap()
+        .1
 }

@@ -1,10 +1,11 @@
 pub mod active_road_events;
+pub mod changed_component_indices;
 
 use active_road_events::{
-    changed_component_indices::ChangedComponentIndices,
     road_component_change::RoadComponentFieldChange, ActiveRoadEventsPlugin, OnActiveRoadSet,
 };
 use bevy::{color::palettes::tailwind::*, prelude::*};
+use changed_component_indices::ChangedComponentIndices;
 
 use crate::ui::list::list_events::list_reorder::ReorderIndices;
 
@@ -110,42 +111,33 @@ impl ActiveRoad {
         self.road_preview_entity = road_preview_entity;
     }
 
-    // TODO: move to road_marking module
     /// Updates each road marking to keep them in the same spot relative to the road component they're on.
     pub fn update_road_marking_positions(
         &mut self,
         previous_road_data: &RoadData,
         changed_component_indices: &ChangedComponentIndices,
     ) {
-        let previous_component_positions = previous_road_data.component_positions();
-        let current_component_positions = self.road_data.component_positions();
-
-        // This assumes that new components are always added at the end of the vec. It also assumes that new components & deleted components don't have markings
-        let mut delta_component_positions = Vec::new();
-
-        for (index, previous_position) in previous_component_positions.iter().enumerate() {
-            let Some(mapped_index) = changed_component_indices.map_index(index) else {
-                // TODO: temp fix, marking should be deleted together with the road component. I don't 100% understand what pushing 0.0 does but I think it works for now.
-                delta_component_positions.push(0.0);
-                continue;
-            };
-
-            let Some(current_position) = current_component_positions.get(mapped_index) else {
-                continue;
-            };
-
-            delta_component_positions.push(current_position.center - previous_position.center);
-        }
+        let delta_component_positions = changed_component_indices
+            .calculate_delta_component_positions(
+                previous_road_data.component_positions(),
+                self.road_data.component_positions(),
+            );
 
         for road_marking in self.road_data.markings_mut() {
-            let road_component_index = previous_road_data
-                .find_road_component_at_x_position(road_marking.x_position)
-                .unwrap()
-                .0;
+            let Some(road_component_under_point) =
+                previous_road_data.find_road_component_under_point(road_marking.x_position)
+            else {
+                continue;
+            };
 
-            let delta_position = delta_component_positions[road_component_index];
+            let Some(Some(delta_position)) =
+                delta_component_positions.get(road_component_under_point.road_component_index)
+            else {
+                continue;
+            };
 
-            road_marking.x_position += delta_position;
+            road_marking.x_position +=
+                delta_position.get_field(road_component_under_point.closest_position_field);
         }
     }
 }

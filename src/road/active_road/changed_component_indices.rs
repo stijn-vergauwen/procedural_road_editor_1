@@ -1,4 +1,5 @@
 use crate::{
+    road::road_component::road_component_position::RoadComponentPosition,
     ui::list::list_events::list_reorder::ReorderIndices, utility::changed_value::ChangedValue,
 };
 
@@ -52,5 +53,40 @@ impl ChangedComponentIndices {
         }
 
         Some(index)
+    }
+
+    /// Returns a vec with the delta position of each road component.
+    ///
+    /// The components are in the same order as the given `previous_component_positions` vec.
+    ///
+    /// Newly added components aren't included, and deleted components are None values.
+    pub fn calculate_delta_component_positions(
+        &self,
+        previous_component_positions: &[RoadComponentPosition],
+        new_component_positions: &[RoadComponentPosition],
+    ) -> Vec<Option<RoadComponentPosition>> {
+        previous_component_positions
+            .iter()
+            .enumerate()
+            .map(|(index, previous_component_position)| {
+                self.calculate_delta_component_position(
+                    index,
+                    previous_component_position,
+                    new_component_positions,
+                )
+            })
+            .collect()
+    }
+
+    pub fn calculate_delta_component_position(
+        &self,
+        index: usize,
+        previous_component_position: &RoadComponentPosition,
+        new_component_positions: &[RoadComponentPosition],
+    ) -> Option<RoadComponentPosition> {
+        let new_component_position = new_component_positions.get(self.map_index(index)?)?;
+
+        let delta_position = *new_component_position - *previous_component_position;
+        Some(delta_position)
     }
 }

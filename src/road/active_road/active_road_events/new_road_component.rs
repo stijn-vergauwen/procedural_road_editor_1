@@ -1,13 +1,15 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{active_road::ActiveRoad, road_component::RoadComponent, road_data::RoadData},
+    road::{
+        active_road::{changed_component_indices::ChangedComponentIndices, ActiveRoad},
+        road_component::RoadComponent,
+        road_data::RoadData,
+    },
     ui::{list::list_events::new_list_item::OnListItemAdded, toolbar::RoadComponentsList},
     utility::changed_value::ChangedValue,
     GameRunningSet,
 };
-
-use super::changed_component_indices::ChangedComponentIndices;
 
 pub struct NewRoadComponentPlugin;
 

@@ -82,9 +82,9 @@ impl RoadBuilder {
 
     fn build_road_marking(&mut self, road_marking: RoadMarking, uv: Vec2, road_data: &RoadData) {
         let road_height = road_data
-            .find_road_component_at_x_position(road_marking.x_position)
+            .find_road_component_under_point(road_marking.x_position)
             .unwrap()
-            .1
+            .road_component
             .size
             .y;
 

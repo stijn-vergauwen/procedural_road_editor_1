@@ -51,9 +51,6 @@ use world::WorldPlugin;
 
     Backlog:
         - Lane marking support
-            - bug: road marking position messes up when changing the road data
-                - party fixed, but change it so that:
-                - road markings stick to the edge of the component if near the edge, and stick to the center if near the center (if distance to center & edge is equal, stick to edge)
             - config ui (new sidebar screen for markings)
             - lane line events & handlers
             - spaced markings

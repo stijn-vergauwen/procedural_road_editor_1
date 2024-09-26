@@ -1,7 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{active_road::ActiveRoad, road_data::RoadData},
+    road::{
+        active_road::{changed_component_indices::ChangedComponentIndices, ActiveRoad},
+        road_data::RoadData,
+    },
     ui::{
         list::list_events::list_item_deletion::{ListItemDeletion, OnListItemDeletionRequested},
         toolbar::RoadComponentsList,
@@ -9,8 +12,6 @@ use crate::{
     utility::changed_value::ChangedValue,
     GameRunningSet,
 };
-
-use super::changed_component_indices::ChangedComponentIndices;
 
 pub struct RoadComponentDeletionPlugin;
 
