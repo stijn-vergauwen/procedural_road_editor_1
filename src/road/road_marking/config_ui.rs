@@ -1,15 +1,15 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     road::{active_road::ActiveRoad, road_data::RoadData},
     ui::{
         components::{
-            flexbox::{FlexboxBuilder, FlexboxConfig},
             inputs::{
                 color_input::{ColorInputBuilder, ColorInputConfig},
                 labeled_element::LabeledElementBuilder,
                 number_input::NumberInputBuilder,
             },
+            section::{SectionBuilder, SectionConfig},
             UiComponentBuilder, UiComponentWithChildrenBuilder,
         },
         sidebar::Sidebar,
@@ -53,19 +53,18 @@ fn handle_show_config_requests(
             .entity(sidebar)
             .despawn_descendants()
             .with_children(|sidebar| {
-                FlexboxBuilder::new(
-                    FlexboxConfig::horizontally_centered_column().with_px_gap(20.0),
-                )
-                .spawn(sidebar, (), |config_container| {
-                    for road_marking in road_markings {
-                        spawn_road_marking_config(
-                            config_container,
-                            road_marking,
-                            road_data,
-                            &mut images,
-                        );
-                    }
-                });
+                sidebar
+                    .spawn(build_scrollable_list_node())
+                    .with_children(|config_container| {
+                        for road_marking in road_markings {
+                            spawn_road_marking_config(
+                                config_container,
+                                road_marking,
+                                road_data,
+                                &mut images,
+                            );
+                        }
+                    });
             });
     }
 }
@@ -78,25 +77,40 @@ fn spawn_road_marking_config(
 ) {
     let x_position_value_range = -road_data.half_width()..road_data.half_width();
 
-    LabeledElementBuilder::centered_top_label("X position").spawn(builder, (), |position_label| {
-        NumberInputBuilder::default()
-            .with_values(road_marking.x_position, x_position_value_range)
-            .spawn(position_label, RoadMarkingField::XPosition);
-    });
+    // TODO: make section foldable, so config options are only shown for desired items
+    SectionBuilder::new(SectionConfig::default().with_background_color(NEUTRAL_600)).spawn(
+        builder,
+        (),
+        |section| {
+            LabeledElementBuilder::centered_top_label("X position").spawn(
+                section,
+                (),
+                |position_label| {
+                    NumberInputBuilder::default()
+                        .with_values(road_marking.x_position, x_position_value_range)
+                        .spawn(position_label, RoadMarkingField::XPosition);
+                },
+            );
 
-    LabeledElementBuilder::centered_top_label("Segment width").spawn(builder, (), |width_label| {
-        NumberInputBuilder::default()
-            .with_values(road_marking.segment_width, 0.0..1.0)
-            .spawn(width_label, RoadMarkingField::SegmentWidth);
-    });
+            LabeledElementBuilder::centered_top_label("Segment width").spawn(
+                section,
+                (),
+                |width_label| {
+                    NumberInputBuilder::default()
+                        .with_values(road_marking.segment_width, 0.0..1.0)
+                        .spawn(width_label, RoadMarkingField::SegmentWidth);
+                },
+            );
 
-    LabeledElementBuilder::centered_top_label("Color").spawn(builder, (), |color_label| {
-        ColorInputBuilder::new(
-            ColorInputConfig::default().with_start_color(road_marking.color),
-            images,
-        )
-        .spawn(color_label, RoadMarkingField::Color);
-    });
+            LabeledElementBuilder::centered_top_label("Color").spawn(section, (), |color_label| {
+                ColorInputBuilder::new(
+                    ColorInputConfig::default().with_start_color(road_marking.color),
+                    images,
+                )
+                .spawn(color_label, RoadMarkingField::Color);
+            });
+        },
+    );
 }
 
 fn handle_hide_config_requests(
@@ -108,5 +122,18 @@ fn handle_hide_config_requests(
         let sidebar = sidebar_query.single();
 
         commands.entity(sidebar).despawn_descendants();
+    }
+}
+
+// TODO: wanted to make the list scrollable but overflow doesn't seem to work as I thought, delete fn if not gonna use anymore
+fn build_scrollable_list_node() -> impl Bundle {
+    NodeBundle {
+        style: Style {
+            flex_direction: FlexDirection::Column,
+            align_items: AlignItems::Center,
+            row_gap: Val::Px(20.0),
+            ..default()
+        },
+        ..default()
     }
 }

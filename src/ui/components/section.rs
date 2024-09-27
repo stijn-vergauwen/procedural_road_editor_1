@@ -35,6 +35,11 @@ impl SectionConfig {
         self.size = content_size_config;
         self
     }
+
+    pub fn with_background_color(mut self, background_color: impl Into<BackgroundColor>) -> Self {
+        self.wrap = self.wrap.with_background_color(background_color);
+        self
+    }
 }
 
 impl Default for SectionConfig {
