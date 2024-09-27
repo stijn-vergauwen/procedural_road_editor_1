@@ -51,7 +51,7 @@ use world::WorldPlugin;
 
     Backlog:
         - Lane marking support
-            - config ui (new sidebar screen for markings)
+            - config ui (new sidebar screen for markings) <- doing
             - lane line events & handlers
             - spaced markings
         - Goal: Have a multilane highway road design with grass median

@@ -29,8 +29,8 @@ fn setup_example_road(mut commands: Commands, mut on_road_set: EventWriter<OnAct
     ];
 
     let road_markings = vec![
-        RoadMarking::new(Color::WHITE, 0.15, -3.7),
-        RoadMarking::new(Color::WHITE, 0.15, 3.7),
+        RoadMarking::new(-3.7, 0.15, Color::WHITE),
+        RoadMarking::new(3.7, 0.15, Color::WHITE),
     ];
 
     let road = RoadData::new(String::from("Example road"), road_components, road_markings);

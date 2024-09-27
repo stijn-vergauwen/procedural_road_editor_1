@@ -2,7 +2,7 @@ pub mod components;
 mod inputs;
 pub mod list;
 mod modal;
-mod sidebar;
+pub mod sidebar;
 pub mod toolbar;
 
 use bevy::prelude::*;

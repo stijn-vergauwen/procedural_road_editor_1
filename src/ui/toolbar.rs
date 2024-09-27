@@ -62,6 +62,8 @@ pub fn spawn_toolbar(builder: &mut ChildBuilder) {
 
 fn spawn_action_buttons(builder: &mut ChildBuilder) {
     FlexboxBuilder::new(FlexboxConfig::column().with_px_gap(4.0)).spawn(builder, (), |container| {
+        TextButtonBuilder::default_with_text("Markings")
+            .spawn(container, ButtonAction::ShowRoadMarkingConfig);
         TextButtonBuilder::default_with_text("Save").spawn(container, ButtonAction::SaveRoad);
         TextButtonBuilder::default_with_text("Load").spawn(container, ButtonAction::LoadRoad);
     });

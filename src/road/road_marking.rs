@@ -1,11 +1,16 @@
+pub mod config_ui;
+pub mod road_marking_events;
+
 use bevy::prelude::*;
+use config_ui::RoadMarkingConfigUiPlugin;
+use road_marking_events::RoadMarkingEventsPlugin;
 use serde::{Deserialize, Serialize};
 
 pub struct RoadMarkingPlugin;
 
 impl Plugin for RoadMarkingPlugin {
-    fn build(&self, _app: &mut App) {
-        // app.add_systems(Update, ());
+    fn build(&self, app: &mut App) {
+        app.add_plugins((RoadMarkingConfigUiPlugin, RoadMarkingEventsPlugin));
     }
 }
 
@@ -14,23 +19,23 @@ impl Plugin for RoadMarkingPlugin {
 
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RoadMarking {
-    pub color: Color,
-    pub segment_width: f32,
     /// This marking's horizontal position relative to the road center.
     pub x_position: f32,
+    pub segment_width: f32,
+    pub color: Color,
 }
 
 impl RoadMarking {
-    pub fn new(color: impl Into<Color>, segment_width: f32, x_position: f32) -> Self {
+    pub fn new(x_position: f32, segment_width: f32, color: impl Into<Color>) -> Self {
         Self {
-            color: color.into(),
-            segment_width,
             x_position,
+            segment_width,
+            color: color.into(),
         }
     }
 
-    pub fn with_color(mut self, color: Color) -> Self {
-        self.color = color;
+    pub fn with_x_position(mut self, x_position: f32) -> Self {
+        self.x_position = x_position;
         self
     }
 
@@ -39,9 +44,15 @@ impl RoadMarking {
         self
     }
 
-    pub fn with_x_position(mut self, x_position: f32) -> Self {
-        self.x_position = x_position;
+    pub fn with_color(mut self, color: Color) -> Self {
+        self.color = color;
         self
     }
 }
 
+#[derive(Component, Clone, Copy, PartialEq)]
+pub enum RoadMarkingField {
+    XPosition,
+    SegmentWidth,
+    Color,
+}

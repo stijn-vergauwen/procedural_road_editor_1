@@ -216,6 +216,7 @@ pub enum ButtonAction {
     LoadRoad,
     AddComponent,
     DeleteComponent,
+    ShowRoadMarkingConfig,
 }
 
 fn send_button_pressed_events(
