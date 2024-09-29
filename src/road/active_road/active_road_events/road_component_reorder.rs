@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    game_modes::GameMode,
     road::{
         active_road::{changed_component_indices::ChangedComponentIndices, ActiveRoad},
         road_data::RoadData,
@@ -21,7 +22,9 @@ impl Plugin for RoadComponentReorderPlugin {
             .add_event::<OnRoadComponentReordered>()
             .add_systems(
                 Update,
-                handle_component_reorder_requests.in_set(GameRunningSet::HandleCommands),
+                handle_component_reorder_requests
+                    .in_set(GameRunningSet::HandleCommands)
+                    .run_if(in_state(GameMode::RoadEditor)),
             );
     }
 }

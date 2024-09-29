@@ -2,7 +2,7 @@ use std::{fs, io};
 
 use bevy::prelude::*;
 
-use crate::GameRunningSet;
+use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::{
     active_road::{active_road_events::OnActiveRoadSet, ActiveRoad},
@@ -17,7 +17,9 @@ impl Plugin for LoadRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_event::<OnLoadRoadRequested>().add_systems(
             Update,
-            handle_load_requests.in_set(GameRunningSet::HandleCommands),
+            handle_load_requests
+                .in_set(GameRunningSet::HandleCommands)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

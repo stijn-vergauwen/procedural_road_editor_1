@@ -6,6 +6,7 @@ use std::{
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
+    game_modes::GameMode,
     road::load::OnLoadRoadRequested,
     ui::{
         components::buttons::{ButtonAction, OnButtonPressed},
@@ -21,7 +22,8 @@ impl Plugin for LoadPlugin {
         app.add_systems(
             Update,
             (send_load_requests, show_modal_on_load_button_pressed)
-                .in_set(GameRunningSet::SendCommands),
+                .in_set(GameRunningSet::SendCommands)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

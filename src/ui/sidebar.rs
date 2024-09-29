@@ -3,7 +3,7 @@ mod road_component_config;
 use bevy::prelude::*;
 use road_component_config::RoadComponentConfigPlugin;
 
-use crate::GameRunningSet;
+use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::components::{section::SectionBuilder, UiComponentWithChildrenBuilder};
 
@@ -13,7 +13,9 @@ impl Plugin for SidebarPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(RoadComponentConfigPlugin).add_systems(
             Update,
-            toggle_sidebar_visibility_based_on_content.after(GameRunningSet::DespawnEntities),
+            toggle_sidebar_visibility_based_on_content
+                .after(GameRunningSet::DespawnEntities)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

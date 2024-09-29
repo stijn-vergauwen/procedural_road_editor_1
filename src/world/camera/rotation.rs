@@ -6,7 +6,7 @@ use bevy::{
     window::{CursorGrabMode, PrimaryWindow},
 };
 
-use crate::{utility::add_rotations_as_eulers, GameRunningSet};
+use crate::{game_modes::GameMode, utility::add_rotations_as_eulers, GameRunningSet};
 
 use super::CameraAnchor;
 
@@ -24,7 +24,8 @@ impl Plugin for CameraRotationPlugin {
                 listen_to_rotation_input.in_set(GameRunningSet::GetUserInput),
                 handle_rotation_requests.in_set(GameRunningSet::HandleCommands),
                 grab_cursor_on_rotation_input.in_set(GameRunningSet::UpdateEntities),
-            ),
+            )
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

@@ -1,6 +1,6 @@
+pub mod changed_value;
 pub mod mesh_builder;
 pub mod texture_builder;
-pub mod changed_value;
 
 use bevy::{
     ecs::query::{QueryData, QueryFilter},
@@ -32,6 +32,15 @@ fn shutdown_on_control_q(
         window.cursor.grab_mode = CursorGrabMode::None;
 
         on_exit.send(AppExit::Success);
+    }
+}
+
+pub fn despawn_component_recursive<T: Component>(
+    mut commands: Commands,
+    query: Query<Entity, With<T>>,
+) {
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
 

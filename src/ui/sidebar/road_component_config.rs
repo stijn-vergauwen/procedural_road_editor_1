@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    game_modes::GameMode,
     road::{
         active_road::{
             active_road_events::{
@@ -56,7 +57,8 @@ impl Plugin for RoadComponentConfigPlugin {
                     despawn_config_section_on_component_deselected,
                 )
                     .in_set(GameRunningSet::DespawnEntities),
-            ),
+            )
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

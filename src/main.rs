@@ -1,5 +1,7 @@
+mod game_modes;
 mod road;
-mod schedule;
+mod road_drawer;
+mod system_sets;
 mod ui;
 mod utility;
 mod world;
@@ -7,9 +9,10 @@ mod world;
 use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
+use game_modes::GameModesPlugin;
 use road::RoadPlugin;
-pub use schedule::GameRunningSet;
-use schedule::SchedulePlugin;
+pub use system_sets::GameRunningSet;
+use system_sets::SystemSetPlugin;
 use ui::UiPlugin;
 use utility::UtilityPlugin;
 use world::WorldPlugin;
@@ -50,8 +53,12 @@ use world::WorldPlugin;
 
 
     Backlog:
+        - modal in editor to go back to main menu
+        - setup empty world for road drawer mode
+        - button to go to road drawer from main menu
+
         - Lane marking support
-            - config ui (new sidebar screen for markings) <- doing
+            - config ui (new sidebar screen for markings)
             - lane line events & handlers
             - spaced markings
         - Goal: Have a multilane highway road design with grass median
@@ -68,10 +75,11 @@ fn main() {
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
             UtilityPlugin,
-            SchedulePlugin,
+            SystemSetPlugin,
             WorldPlugin,
             RoadPlugin,
             UiPlugin,
+            GameModesPlugin,
         ))
         .run();
 }

@@ -26,6 +26,14 @@ impl ContentSizeConfig {
         }
     }
 
+    pub fn full() -> Self {
+        Self {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            ..default()
+        }
+    }
+
     /// Returns this component but with the given width in percentages.
     pub fn with_width(mut self, width: f32) -> Self {
         self.width = Val::Percent(width);

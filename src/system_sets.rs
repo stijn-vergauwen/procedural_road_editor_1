@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
-pub struct SchedulePlugin;
+pub struct SystemSetPlugin;
 
-impl Plugin for SchedulePlugin {
+impl Plugin for SystemSetPlugin {
     fn build(&self, app: &mut App) {
         app.configure_sets(
             Update,

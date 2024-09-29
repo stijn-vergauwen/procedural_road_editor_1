@@ -10,7 +10,7 @@ pub struct EditorCameraPlugin;
 impl Plugin for EditorCameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((CameraRotationPlugin, CameraZoomPlugin))
-            .add_systems(Startup, spawn_camera);
+            .add_systems(Startup, spawn_editor_camera);
     }
 }
 
@@ -20,7 +20,7 @@ pub struct CameraAnchor;
 #[derive(Component)]
 pub struct EditorCamera;
 
-fn spawn_camera(mut commands: Commands) {
+fn spawn_editor_camera(mut commands: Commands) {
     commands
         .spawn((
             CameraAnchor,

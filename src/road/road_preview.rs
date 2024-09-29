@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{utility::texture_builder::TextureBuilder, GameRunningSet};
+use crate::{game_modes::GameMode, utility::texture_builder::TextureBuilder, GameRunningSet};
 
 use super::{
     active_road::{
@@ -31,7 +31,8 @@ impl Plugin for RoadPreviewPlugin {
                 redraw_preview_on_road_component_deleted,
             )
                 .chain()
-                .in_set(GameRunningSet::UpdateEntities),
+                .in_set(GameRunningSet::UpdateEntities)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

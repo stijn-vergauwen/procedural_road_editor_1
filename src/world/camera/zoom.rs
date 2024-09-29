@@ -1,6 +1,6 @@
 use bevy::{input::mouse::MouseWheel, prelude::*};
 
-use crate::GameRunningSet;
+use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::EditorCamera;
 
@@ -15,7 +15,8 @@ impl Plugin for CameraZoomPlugin {
             (
                 listen_to_zoom_input.in_set(GameRunningSet::GetUserInput),
                 handle_zoom_requests.in_set(GameRunningSet::HandleCommands),
-            ),
+            )
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

@@ -1,7 +1,9 @@
 use bevy::prelude::*;
 
 use crate::{
-    road::{active_road::ActiveRoad, save::OnSaveRoadRequested}, ui::{
+    game_modes::GameMode,
+    road::{active_road::ActiveRoad, save::OnSaveRoadRequested},
+    ui::{
         components::{
             buttons::{ButtonAction, OnButtonPressed, TextButtonBuilder},
             flexbox::{FlexboxBuilder, FlexboxConfig},
@@ -9,7 +11,8 @@ use crate::{
         },
         inputs::text_input::{spawn_text_input_node, TextInput},
         modal::{OnHideModalRequested, OnShowModalRequested},
-    }, GameRunningSet
+    },
+    GameRunningSet,
 };
 
 pub struct SavePlugin;
@@ -19,7 +22,8 @@ impl Plugin for SavePlugin {
         app.add_systems(
             Update,
             (send_save_requests, show_modal_on_save_button_pressed)
-                .in_set(GameRunningSet::SendCommands),
+                .in_set(GameRunningSet::SendCommands)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }

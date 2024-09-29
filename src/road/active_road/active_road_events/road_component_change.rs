@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 
 use crate::{
+    game_modes::GameMode,
     road::{
         active_road::{changed_component_indices::ChangedComponentIndices, ActiveRoad},
         road_data::RoadData,
@@ -17,7 +18,9 @@ impl Plugin for RoadComponentChangePlugin {
             .add_event::<OnRoadComponentChanged>()
             .add_systems(
                 Update,
-                handle_component_change_requests.in_set(GameRunningSet::HandleCommands),
+                handle_component_change_requests
+                    .in_set(GameRunningSet::HandleCommands)
+                    .run_if(in_state(GameMode::RoadEditor)),
             );
     }
 }

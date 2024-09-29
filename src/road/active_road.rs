@@ -7,7 +7,7 @@ use active_road_events::{
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use changed_component_indices::ChangedComponentIndices;
 
-use crate::ui::list::list_events::list_reorder::ReorderIndices;
+use crate::{game_modes::GameMode, ui::list::list_events::list_reorder::ReorderIndices};
 
 use super::{road_component::RoadComponent, road_data::RoadData, road_marking::RoadMarking};
 
@@ -16,7 +16,7 @@ pub struct ActiveRoadPlugin;
 impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((ActiveRoadEventsPlugin,))
-            .add_systems(Startup, setup_example_road);
+            .add_systems(OnEnter(GameMode::RoadEditor), setup_example_road);
     }
 }
 

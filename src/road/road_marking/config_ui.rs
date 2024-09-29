@@ -1,6 +1,7 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
+    game_modes::GameMode,
     road::{active_road::ActiveRoad, road_data::RoadData},
     ui::{
         components::{
@@ -32,7 +33,8 @@ impl Plugin for RoadMarkingConfigUiPlugin {
         app.add_systems(
             Update,
             (handle_show_config_requests, handle_hide_config_requests)
-                .in_set(GameRunningSet::HandleCommands),
+                .in_set(GameRunningSet::HandleCommands)
+                .run_if(in_state(GameMode::RoadEditor)),
         );
     }
 }
