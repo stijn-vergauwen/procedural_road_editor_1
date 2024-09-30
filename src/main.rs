@@ -63,9 +63,15 @@ use world::WorldPlugin;
             - spaced markings
         - Goal: Have a multilane highway road design with grass median
         - General road markings support
+        - Road component presets to choose from when adding road component
+            - Open list on "add" button clicked
+            - Add selected preset
         - Spaced elements support
         - Support for assets in spaced elements
         - Goal: Have a road design that includes trees
+
+
+
 */
 
 /*
@@ -78,7 +84,6 @@ use world::WorldPlugin;
             - road marking
             - road data -> merge into road
             - road builder
-            -
 
         - road editor
             - active road
