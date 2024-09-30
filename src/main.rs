@@ -66,7 +66,82 @@ use world::WorldPlugin;
         - Spaced elements support
         - Support for assets in spaced elements
         - Goal: Have a road design that includes trees
+*/
 
+/*
+    Ideal project file structure:
+
+    - main
+        - road
+            - road component
+                - road component position
+            - road marking
+            - road data -> merge into road
+            - road builder
+            -
+
+        - road editor
+            - active road
+                - road marking
+                    - update road markings
+                    - events
+                        - show road marking config
+                        - hide road marking config
+                - events
+                    - load active road
+                    - save active road
+                    - set active road
+                    - add road component
+                    - change road component
+                    - delete road component
+                    - reorder road component
+                    - utility -> for all shared logic (can move some stuff out of ActiveRoad or RoadData)
+                        - changed component indices
+                - bottom ui
+                    - road components list
+                    - actions
+                - selected component ui
+                    - events
+                        - select road component
+            - road preview
+            - sidebar
+
+        - road drawer
+
+        - world
+            - camera
+                - rotation
+                - zoom
+                - movement
+
+        - main menu
+
+        - utility
+            - ui components
+                - content wrap, content size, flexbox, section etc
+                - inputs
+                    - text, number, slider, color
+                - buttons
+                    - button
+                    - text button
+                - text
+                - modal
+                - list
+                    - events
+                    - reorder button
+            - system sets
+            - states
+            - mesh builder
+            - texture builder
+            - changed value
+            - entity hierarchy (find ascendant descendant etc)
+
+    This would group related code together much better than how it is currently,
+    and make it easier to refactor and have each module only responsible for 1 thing.
+
+    I didn't realise how much logic will only be used in either the editor or drawer parts of this project.
+    I also didn't realise how much logic will only be relevant to CRUD operations,
+    I tend to put CRUD code together with it's data, but currently I think it's better to put it together with code that activates this logic (so in the road editor events)
 */
 
 fn main() {
