@@ -3,6 +3,7 @@ mod inputs;
 pub mod list;
 pub mod main_menu;
 mod modal;
+pub mod pause_menu;
 pub mod sidebar;
 pub mod toolbar;
 
@@ -15,6 +16,7 @@ use inputs::UiInputsPlugin;
 use list::ListPlugin;
 use main_menu::MainMenuPlugin;
 use modal::ModalPlugin;
+use pause_menu::PauseMenuPlugin;
 use sidebar::{spawn_sidebar, SidebarPlugin};
 use toolbar::{spawn_toolbar, ToolbarPlugin};
 
@@ -32,6 +34,7 @@ impl Plugin for UiPlugin {
             ModalPlugin,
             ListPlugin,
             MainMenuPlugin,
+            PauseMenuPlugin,
         ))
         .add_systems(OnEnter(GameMode::RoadEditor), spawn_editor_layout)
         .add_systems(

@@ -1,0 +1,67 @@
+use bevy::prelude::*;
+
+use crate::{game_modes::GameMode, GameRunningSet};
+
+use super::{
+    components::{
+        buttons::TextButtonBuilder,
+        flexbox::{FlexboxBuilder, FlexboxConfig},
+        UiComponentBuilder, UiComponentWithChildrenBuilder,
+    },
+    modal::OnShowModalRequested,
+};
+
+pub struct PauseMenuPlugin;
+
+impl Plugin for PauseMenuPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (show_pause_menu_on_esc, handle_pause_menu_actions)
+                .in_set(GameRunningSet::GetUserInput)
+                .run_if(in_state(GameMode::RoadEditor)),
+        );
+    }
+}
+
+// todo: make show and hide events
+
+#[derive(Component, Clone, Copy)]
+enum PauseMenuAction {
+    ExitToMainMenu,
+}
+
+fn show_pause_menu_on_esc(
+    mut on_show_modal: EventWriter<OnShowModalRequested>,
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut commands: Commands,
+) {
+    if keyboard_input.just_pressed(KeyCode::Escape) {
+        let flexbox_node =
+            FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column()).build();
+
+        let modal_content = commands
+            .spawn(flexbox_node)
+            .with_children(|container| {
+                TextButtonBuilder::default_with_text("Exit to main menu")
+                    .spawn(container, PauseMenuAction::ExitToMainMenu);
+            })
+            .id();
+
+        on_show_modal.send(OnShowModalRequested::new(modal_content));
+    }
+}
+
+fn handle_pause_menu_actions(
+    button_query: Query<(&Interaction, &PauseMenuAction), Changed<Interaction>>,
+    mut next_game_mode: ResMut<NextState<GameMode>>,
+) {
+    for (_, action) in button_query
+        .iter()
+        .filter(|(interaction, _)| **interaction == Interaction::Pressed)
+    {
+        match action {
+            PauseMenuAction::ExitToMainMenu => next_game_mode.set(GameMode::MainMenu),
+        }
+    }
+}

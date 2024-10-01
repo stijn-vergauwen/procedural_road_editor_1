@@ -1,6 +1,7 @@
 mod game_modes;
 mod road;
 mod road_drawer;
+mod road_editor;
 mod system_sets;
 mod ui;
 mod utility;
@@ -11,6 +12,7 @@ use bevy_rapier3d::prelude::*;
 
 use game_modes::GameModesPlugin;
 use road::RoadPlugin;
+use road_editor::RoadEditorPlugin;
 pub use system_sets::GameRunningSet;
 use system_sets::SystemSetPlugin;
 use ui::UiPlugin;
@@ -53,7 +55,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - modal in editor to go back to main menu
         - setup empty world for road drawer mode
         - button to go to road drawer from main menu
 
@@ -160,6 +161,7 @@ fn main() {
             RoadPlugin,
             UiPlugin,
             GameModesPlugin,
+            RoadEditorPlugin,
         ))
         .run();
 }

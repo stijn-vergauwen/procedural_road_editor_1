@@ -1,6 +1,6 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::{game_modes::GameMode, utility::despawn_component_recursive};
+use crate::{game_modes::GameMode, utility::despawn_component_recursive, GameRunningSet};
 
 use super::components::{
     buttons::TextButtonBuilder,
@@ -22,7 +22,9 @@ impl Plugin for MainMenuPlugin {
             )
             .add_systems(
                 Update,
-                handle_state_transitions.run_if(in_state(GameMode::MainMenu)),
+                handle_main_menu_actions
+                    .in_set(GameRunningSet::GetUserInput)
+                    .run_if(in_state(GameMode::MainMenu)),
             );
     }
 }
@@ -34,13 +36,14 @@ pub struct MainMenu;
 #[derive(Component)]
 pub enum MainMenuAction {
     LoadEditorMode,
+    ExitGame,
 }
 
 fn spawn_main_menu(mut commands: Commands) {
     let section_node = SectionBuilder::new(SectionConfig {
         flexbox: FlexboxConfig::centered(),
         size: ContentSizeConfig::full(),
-        wrap: ContentWrapConfig::empty().with_background_color(CYAN_300),
+        wrap: ContentWrapConfig::empty().with_background_color(TEAL_700),
     })
     .build();
 
@@ -50,20 +53,29 @@ fn spawn_main_menu(mut commands: Commands) {
             SectionBuilder::default().spawn(container, (), |section| {
                 TextButtonBuilder::default_with_text("Load editor")
                     .spawn(section, MainMenuAction::LoadEditorMode);
+
+                TextButtonBuilder::default_with_text("Exit to desktop")
+                    .spawn(section, MainMenuAction::ExitGame);
             });
         });
 }
 
-fn handle_state_transitions(
+fn handle_main_menu_actions(
     button_query: Query<(&Interaction, &MainMenuAction), Changed<Interaction>>,
     mut next_game_mode: ResMut<NextState<GameMode>>,
+    mut on_exit: EventWriter<AppExit>,
 ) {
     for (_, action) in button_query
         .iter()
         .filter(|(interaction, _)| **interaction == Interaction::Pressed)
     {
         match action {
-            MainMenuAction::LoadEditorMode => next_game_mode.set(GameMode::RoadEditor),
+            MainMenuAction::LoadEditorMode => {
+                next_game_mode.set(GameMode::RoadEditor);
+            }
+            MainMenuAction::ExitGame => {
+                on_exit.send(AppExit::Success);
+            }
         }
     }
 }
