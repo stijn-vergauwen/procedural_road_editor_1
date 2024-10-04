@@ -36,6 +36,7 @@ pub struct MainMenu;
 #[derive(Component)]
 pub enum MainMenuAction {
     LoadEditorMode,
+    LoadDrawerMode,
     ExitGame,
 }
 
@@ -53,6 +54,9 @@ fn spawn_main_menu(mut commands: Commands) {
             SectionBuilder::default().spawn(container, (), |section| {
                 TextButtonBuilder::default_with_text("Load editor")
                     .spawn(section, MainMenuAction::LoadEditorMode);
+
+                TextButtonBuilder::default_with_text("Load drawer")
+                    .spawn(section, MainMenuAction::LoadDrawerMode);
 
                 TextButtonBuilder::default_with_text("Exit to desktop")
                     .spawn(section, MainMenuAction::ExitGame);
@@ -72,6 +76,9 @@ fn handle_main_menu_actions(
         match action {
             MainMenuAction::LoadEditorMode => {
                 next_game_mode.set(GameMode::RoadEditor);
+            }
+            MainMenuAction::LoadDrawerMode => {
+                next_game_mode.set(GameMode::RoadDrawer);
             }
             MainMenuAction::ExitGame => {
                 on_exit.send(AppExit::Success);

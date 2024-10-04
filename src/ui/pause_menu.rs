@@ -6,6 +6,7 @@ use super::{
     components::{
         buttons::TextButtonBuilder,
         flexbox::{FlexboxBuilder, FlexboxConfig},
+        text::TextBuilder,
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
     modal::OnShowModalRequested,
@@ -19,7 +20,7 @@ impl Plugin for PauseMenuPlugin {
             Update,
             (show_pause_menu_on_esc, handle_pause_menu_actions)
                 .in_set(GameRunningSet::GetUserInput)
-                .run_if(in_state(GameMode::RoadEditor)),
+                .run_if(in_state(GameMode::RoadEditor).or_else(in_state(GameMode::RoadDrawer))),
         );
     }
 }
@@ -38,11 +39,16 @@ fn show_pause_menu_on_esc(
 ) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         let flexbox_node =
-            FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column()).build();
+            FlexboxBuilder::new(FlexboxConfig::horizontally_centered_column().with_px_gap(16.0))
+                .build();
 
         let modal_content = commands
             .spawn(flexbox_node)
             .with_children(|container| {
+                TextBuilder::default()
+                    .with_text("Pause menu")
+                    .spawn(container, ());
+
                 TextButtonBuilder::default_with_text("Exit to main menu")
                     .spawn(container, PauseMenuAction::ExitToMainMenu);
             })

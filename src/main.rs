@@ -12,6 +12,7 @@ use bevy_rapier3d::prelude::*;
 
 use game_modes::GameModesPlugin;
 use road::RoadPlugin;
+use road_drawer::RoadDrawerPlugin;
 use road_editor::RoadEditorPlugin;
 pub use system_sets::GameRunningSet;
 use system_sets::SystemSetPlugin;
@@ -55,8 +56,11 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - setup empty world for road drawer mode
-        - button to go to road drawer from main menu
+        - bottom ui bar
+        - button to select road (same as load road in editor)
+        - show name of selected road
+        - add camera movement to road drawer, but not to editor
+        - 
 
         - Lane marking support
             - config ui (new sidebar screen for markings)
@@ -162,6 +166,7 @@ fn main() {
             UiPlugin,
             GameModesPlugin,
             RoadEditorPlugin,
+            RoadDrawerPlugin,
         ))
         .run();
 }
