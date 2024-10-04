@@ -9,7 +9,7 @@ use super::{
         text::TextBuilder,
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
-    modal::OnShowModalRequested,
+    modal::{OnHideModalRequested, OnShowModalRequested},
 };
 
 pub struct PauseMenuPlugin;
@@ -59,8 +59,9 @@ fn show_pause_menu_on_esc(
 }
 
 fn handle_pause_menu_actions(
-    button_query: Query<(&Interaction, &PauseMenuAction), Changed<Interaction>>,
+    mut on_hide_modal: EventWriter<OnHideModalRequested>,
     mut next_game_mode: ResMut<NextState<GameMode>>,
+    button_query: Query<(&Interaction, &PauseMenuAction), Changed<Interaction>>,
 ) {
     for (_, action) in button_query
         .iter()
@@ -69,5 +70,7 @@ fn handle_pause_menu_actions(
         match action {
             PauseMenuAction::ExitToMainMenu => next_game_mode.set(GameMode::MainMenu),
         }
+
+        on_hide_modal.send(OnHideModalRequested);
     }
 }

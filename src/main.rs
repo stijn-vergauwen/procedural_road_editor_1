@@ -59,7 +59,7 @@ use world::WorldPlugin;
         - button to select road (same as load road in editor)
         - show name of selected road
         - add camera movement to road drawer, but not to editor
-        - 
+        - despawn ActiveRoad stuff when leaving editor mode
 
         - Lane marking support
             - config ui (new sidebar screen for markings)
