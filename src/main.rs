@@ -56,7 +56,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - bottom ui bar
         - button to select road (same as load road in editor)
         - show name of selected road
         - add camera movement to road drawer, but not to editor

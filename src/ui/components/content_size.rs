@@ -19,6 +19,7 @@ impl ContentSizeConfig {
         Self::default()
     }
 
+    /// Creates a config with width of 100%
     pub fn full_width() -> Self {
         Self {
             width: Val::Percent(100.0),
@@ -26,6 +27,7 @@ impl ContentSizeConfig {
         }
     }
 
+    /// Creates a config with width & height of 100%
     pub fn full() -> Self {
         Self {
             width: Val::Percent(100.0),
