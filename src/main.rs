@@ -56,8 +56,9 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - button to select road (same as load road in editor)
         - show name of selected road
+            - event for when road is selected
+            - change selected road text to road name
         - add camera movement to road drawer, but not to editor
         - despawn ActiveRoad stuff when leaving editor mode
 

@@ -1,4 +1,4 @@
-mod selected_road;
+pub mod selected_road;
 
 use bevy::prelude::*;
 use selected_road::SelectedRoadPlugin;

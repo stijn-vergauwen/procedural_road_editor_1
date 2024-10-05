@@ -8,6 +8,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 use crate::{
     game_modes::GameMode,
     road::load::OnLoadRoadRequested,
+    road_drawer::selected_road::OnSelectRoadRequested,
     ui::{
         components::buttons::{ButtonAction, OnButtonPressed},
         modal::{OnHideModalRequested, OnShowModalRequested},
@@ -23,7 +24,7 @@ impl Plugin for LoadPlugin {
             Update,
             (send_load_requests, show_modal_on_load_button_pressed)
                 .in_set(GameRunningSet::SendCommands)
-                .run_if(in_state(GameMode::RoadEditor)),
+                .run_if(in_state(GameMode::RoadEditor).or_else(in_state(GameMode::RoadDrawer))),
         );
     }
 }
@@ -61,9 +62,11 @@ fn show_modal_on_load_button_pressed(
 
 fn send_load_requests(
     mut on_load_request: EventWriter<OnLoadRoadRequested>,
+    mut on_select_request: EventWriter<OnSelectRoadRequested>,
     mut on_hide_request: EventWriter<OnHideModalRequested>,
     button_query: Query<(&Interaction, &Children), (With<RoadNameItem>, Changed<Interaction>)>,
     text_query: Query<&Text>,
+    game_mode: Res<State<GameMode>>,
 ) {
     for (_, button_children) in button_query
         .iter()
@@ -72,7 +75,15 @@ fn send_load_requests(
         let text = text_query.get(button_children[0]).unwrap();
         let road_name = text.sections[0].value.clone();
 
-        on_load_request.send(OnLoadRoadRequested::new(road_name));
+        match game_mode.get() {
+            GameMode::RoadEditor => {
+                on_load_request.send(OnLoadRoadRequested::new(road_name));
+            }
+            GameMode::RoadDrawer => {
+                on_select_request.send(OnSelectRoadRequested::new(road_name));
+            }
+            _ => (),
+        }
 
         on_hide_request.send(OnHideModalRequested);
     }

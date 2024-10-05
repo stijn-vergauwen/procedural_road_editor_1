@@ -1,12 +1,10 @@
-use std::{fs, io};
-
 use bevy::prelude::*;
 
 use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::{
     active_road::{active_road_events::OnActiveRoadSet, ActiveRoad},
-    road_data::RoadData,
+    persistance::load_road_data,
 };
 
 // TODO: see if I can use the Bevy asset systems for saving / loading (instead of fs)
@@ -45,26 +43,11 @@ fn handle_load_requests(
     mut active_road: ResMut<ActiveRoad>,
 ) {
     for request in requests.read() {
-        let Ok(serialized_data) = load_data_from_asset_folder(request.road_name()) else {
-            warn!("Something went wrong while loading road data!");
-            return;
-        };
-
-        let Ok(road_data) = deserialize_road_data(&serialized_data) else {
-            warn!("Something went wrong while deserializing road data!");
-            return;
-        };
+        let road_data =
+            load_road_data(request.road_name()).expect("RoadData should load from file");
 
         active_road.set_road_data(road_data.clone());
 
         on_road_set.send(OnActiveRoadSet::new(road_data));
     }
-}
-
-fn deserialize_road_data(serialized_data: &str) -> Result<RoadData, ron::Error> {
-    Ok(ron::from_str::<RoadData>(serialized_data)?)
-}
-
-fn load_data_from_asset_folder(file_name: &str) -> Result<String, io::Error> {
-    fs::read_to_string(format!("assets/roads/{file_name}.ron"))
 }

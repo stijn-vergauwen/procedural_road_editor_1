@@ -6,6 +6,7 @@ pub mod road_data;
 mod road_marking;
 mod road_preview;
 pub mod save;
+pub mod persistance;
 
 use active_road::ActiveRoadPlugin;
 use bevy::prelude::*;
