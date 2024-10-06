@@ -25,7 +25,7 @@ impl Plugin for CameraRotationPlugin {
                 handle_rotation_requests.in_set(GameRunningSet::HandleCommands),
                 grab_cursor_on_rotation_input.in_set(GameRunningSet::UpdateEntities),
             )
-                .run_if(in_state(GameMode::RoadEditor)),
+                .run_if(in_state(GameMode::RoadEditor).or_else(in_state(GameMode::RoadDrawer))),
         );
     }
 }

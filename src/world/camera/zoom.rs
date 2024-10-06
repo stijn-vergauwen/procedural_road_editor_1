@@ -16,7 +16,7 @@ impl Plugin for CameraZoomPlugin {
                 listen_to_zoom_input.in_set(GameRunningSet::GetUserInput),
                 handle_zoom_requests.in_set(GameRunningSet::HandleCommands),
             )
-                .run_if(in_state(GameMode::RoadEditor)),
+                .run_if(in_state(GameMode::RoadEditor).or_else(in_state(GameMode::RoadDrawer))),
         );
     }
 }
