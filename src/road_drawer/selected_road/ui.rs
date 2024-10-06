@@ -12,7 +12,10 @@ use crate::{
         UiComponentBuilder, UiComponentWithChildrenBuilder,
     },
     utility::despawn_component_recursive,
+    GameRunningSet,
 };
+
+use super::events::OnRoadSelected;
 
 pub struct SelectedRoadUiPlugin;
 
@@ -22,12 +25,21 @@ impl Plugin for SelectedRoadUiPlugin {
             .add_systems(
                 OnExit(GameMode::RoadDrawer),
                 despawn_component_recursive::<SelectedRoadUi>,
+            )
+            .add_systems(
+                Update,
+                update_selected_road_name_on_road_selected
+                    .in_set(GameRunningSet::UpdateEntities)
+                    .run_if(in_state(GameMode::RoadDrawer)),
             );
     }
 }
 
 #[derive(Component)]
 struct SelectedRoadUi;
+
+#[derive(Component)]
+struct SelectedRoadName;
 
 fn spawn_selected_road_ui(mut commands: Commands) {
     let selected_road_container_node = SectionBuilder::new(SectionConfig {
@@ -50,7 +62,20 @@ fn spawn_selected_road_ui(mut commands: Commands) {
 
                 TextBuilder::default()
                     .with_text("Selected road name")
-                    .spawn(section, ());
+                    .spawn(section, SelectedRoadName);
             });
         });
+}
+
+fn update_selected_road_name_on_road_selected(
+    mut on_selected: EventReader<OnRoadSelected>,
+    mut selected_road_name_query: Query<&mut Text, With<SelectedRoadName>>,
+) {
+    for event in on_selected.read() {
+        let Ok(mut selected_road_name) = selected_road_name_query.get_single_mut() else {
+            continue;
+        };
+
+        selected_road_name.sections[0].value = event.road_data.name().to_string();
+    }
 }
