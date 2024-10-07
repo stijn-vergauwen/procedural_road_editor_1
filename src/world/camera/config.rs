@@ -2,22 +2,35 @@ use std::ops::Range;
 
 use bevy::prelude::{KeyCode, MouseButton};
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug)]
 pub struct TopDownCameraConfig {
-    movement: TopDownCameraMovementConfig,
-    rotation: TopDownCameraRotationConfig,
-    zoom: TopDownCameraZoomConfig,
+    pub movement: TopDownCameraMovementConfig,
+    pub rotation: TopDownCameraRotationConfig,
+    pub zoom: TopDownCameraZoomConfig,
+    /// The MouseButton the user needs to hold to activate camera movement and rotation.
+    pub activate_button: MouseButton,
+}
+
+impl Default for TopDownCameraConfig {
+    fn default() -> Self {
+        Self {
+            movement: Default::default(),
+            rotation: Default::default(),
+            zoom: Default::default(),
+            activate_button: MouseButton::Right,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct TopDownCameraMovementConfig {
     /// If this camera will react to movement input.
-    enable_input: bool,
+    pub enable_input: bool,
 
     /// A modifier for how fast the camera anchor moves.
-    movement_speed: f32,
+    pub movement_speed: f32,
 
-    keybinds: MovementKeybinds,
+    pub keybinds: MovementKeybinds,
 }
 
 impl Default for TopDownCameraMovementConfig {
@@ -33,16 +46,13 @@ impl Default for TopDownCameraMovementConfig {
 #[derive(Clone, Debug)]
 pub struct TopDownCameraRotationConfig {
     /// If this camera will react to rotation input.
-    enable_input: bool,
+    pub enable_input: bool,
 
     /// A modifier for how fast this camera turns.
-    rotation_speed: f32,
-
-    /// The MouseButton the user needs to hold to activate camera rotation.
-    rotation_button: MouseButton,
+    pub rotation_speed: f32,
 
     /// The range to clamp the camera's pitch to, in degrees.
-    pitch_range_degrees: Range<f32>,
+    pub pitch_range_degrees: Range<f32>,
 }
 
 impl Default for TopDownCameraRotationConfig {
@@ -50,7 +60,6 @@ impl Default for TopDownCameraRotationConfig {
         Self {
             enable_input: true,
             rotation_speed: 0.0015,
-            rotation_button: MouseButton::Right,
             pitch_range_degrees: -80.0..-1.0,
         }
     }
@@ -59,10 +68,10 @@ impl Default for TopDownCameraRotationConfig {
 #[derive(Clone, Copy, Debug)]
 pub struct TopDownCameraZoomConfig {
     /// If this camera will react to zoom input.
-    enable_input: bool,
+    pub enable_input: bool,
 
     /// A modifier for how fast this camera zooms in and out.
-    zoom_speed: f32,
+    pub zoom_speed: f32,
 }
 
 impl Default for TopDownCameraZoomConfig {
