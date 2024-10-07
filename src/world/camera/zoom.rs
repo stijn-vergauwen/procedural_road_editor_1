@@ -2,8 +2,9 @@ use bevy::{input::mouse::MouseWheel, prelude::*};
 
 use crate::{game_modes::GameMode, GameRunningSet};
 
-use super::EditorCamera;
+use super::TopDownCamera;
 
+// TODO: replace with config
 const ZOOM_MULTIPLIER: f32 = 2.0;
 
 pub struct CameraZoomPlugin;
@@ -28,7 +29,7 @@ struct OnCameraZoomRequested {
 
 fn listen_to_zoom_input(
     mut mouse_wheel: EventReader<MouseWheel>,
-    mut rotation_request: EventWriter<OnCameraZoomRequested>,
+    mut zoom_request: EventWriter<OnCameraZoomRequested>,
 ) {
     let delta_scroll = sum_mouse_scroll(mouse_wheel.read());
 
@@ -38,12 +39,12 @@ fn listen_to_zoom_input(
 
     let delta_zoom = calculate_delta_zoom(delta_scroll, ZOOM_MULTIPLIER);
 
-    rotation_request.send(OnCameraZoomRequested { delta_zoom });
+    zoom_request.send(OnCameraZoomRequested { delta_zoom });
 }
 
 fn handle_zoom_requests(
     mut requests: EventReader<OnCameraZoomRequested>,
-    mut camera_query: Query<&mut Transform, With<EditorCamera>>,
+    mut camera_query: Query<&mut Transform, With<TopDownCamera>>,
 ) {
     let mut camera_transform = camera_query.single_mut();
 

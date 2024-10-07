@@ -8,8 +8,9 @@ use bevy::{
 
 use crate::{game_modes::GameMode, utility::add_rotations_as_eulers, GameRunningSet};
 
-use super::CameraAnchor;
+use super::TopDownCameraAnchor;
 
+// TODO: replace with config
 const ROTATION_MULTIPLIER: f32 = 0.0015;
 const ACTIVATE_ROTATION_INPUT_BUTTON: MouseButton = MouseButton::Right;
 const CAMERA_PITCH_RANGE_DEGREES: Range<f32> = -80.0..-1.0;
@@ -71,20 +72,20 @@ fn listen_to_rotation_input(
 
 fn handle_rotation_requests(
     mut requests: EventReader<OnCameraRotationRequested>,
-    mut camera_query: Query<&mut Transform, With<CameraAnchor>>,
+    mut camera_anchor_query: Query<&mut Transform, With<TopDownCameraAnchor>>,
 ) {
-    let mut camera_transform = camera_query.single_mut();
+    let mut anchor_transform = camera_anchor_query.single_mut();
 
     for request in requests.read() {
         let new_rotation = add_rotations_as_eulers(
-            camera_transform.rotation,
+            anchor_transform.rotation,
             request.delta_rotation,
             EulerRot::YXZ,
         );
 
         let clamped_rotation = clamp_camera_pitch(new_rotation, CAMERA_PITCH_RANGE_DEGREES);
 
-        camera_transform.rotation = clamped_rotation;
+        anchor_transform.rotation = clamped_rotation;
     }
 }
 
