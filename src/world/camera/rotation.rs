@@ -8,12 +8,7 @@ use bevy::{
 
 use crate::{game_modes::GameMode, utility::add_rotations_as_eulers, GameRunningSet};
 
-use super::TopDownCameraAnchor;
-
-// TODO: replace with config
-const ROTATION_MULTIPLIER: f32 = 0.0015;
-const ACTIVATE_ROTATION_INPUT_BUTTON: MouseButton = MouseButton::Right;
-const CAMERA_PITCH_RANGE_DEGREES: Range<f32> = -80.0..-1.0;
+use super::{config::TopDownCameraConfig, TopDownCamera, TopDownCameraAnchor};
 
 pub struct CameraRotationPlugin;
 
@@ -39,15 +34,21 @@ struct OnCameraRotationRequested {
 fn grab_cursor_on_rotation_input(
     mouse_input: Res<ButtonInput<MouseButton>>,
     mut window_query: Query<&mut Window, With<PrimaryWindow>>,
+    camera_query: Query<&TopDownCamera>,
 ) {
-    if mouse_input.just_pressed(ACTIVATE_ROTATION_INPUT_BUTTON) {
+    let Ok(camera) = camera_query.get_single() else {
+        return;
+    };
+    let activate_button = camera.config.activate_button;
+
+    if mouse_input.just_pressed(activate_button) {
         let mut window = window_query.single_mut();
 
         window.cursor.visible = false;
         window.cursor.grab_mode = CursorGrabMode::Locked;
     }
 
-    if mouse_input.just_released(ACTIVATE_ROTATION_INPUT_BUTTON) {
+    if mouse_input.just_released(activate_button) {
         let mut window = window_query.single_mut();
 
         window.cursor.visible = true;
@@ -59,22 +60,35 @@ fn listen_to_rotation_input(
     mouse_input: Res<ButtonInput<MouseButton>>,
     mut mouse_motion: EventReader<MouseMotion>,
     mut rotation_request: EventWriter<OnCameraRotationRequested>,
+    camera_query: Query<&TopDownCamera>,
 ) {
-    if !has_rotation_input(mouse_motion.is_empty(), &mouse_input) {
+    let Ok(camera) = camera_query.get_single() else {
         return;
-    }
+    };
 
-    let mouse_delta = sum_mouse_delta(mouse_motion.read());
-    let delta_rotation = rotation_from_mouse_delta(mouse_delta, ROTATION_MULTIPLIER);
+    let Some(rotation_input) =
+        calculate_rotation_input(&camera.config, &mut mouse_motion, &mouse_input)
+    else {
+        return;
+    };
 
-    rotation_request.send(OnCameraRotationRequested { delta_rotation });
+    rotation_request.send(OnCameraRotationRequested {
+        delta_rotation: rotation_input,
+    });
 }
 
 fn handle_rotation_requests(
     mut requests: EventReader<OnCameraRotationRequested>,
     mut camera_anchor_query: Query<&mut Transform, With<TopDownCameraAnchor>>,
+    camera_query: Query<&TopDownCamera>,
 ) {
-    let mut anchor_transform = camera_anchor_query.single_mut();
+    let Ok(camera) = camera_query.get_single() else {
+        return;
+    };
+
+    let Ok(mut anchor_transform) = camera_anchor_query.get_single_mut() else {
+        return;
+    };
 
     for request in requests.read() {
         let new_rotation = add_rotations_as_eulers(
@@ -83,14 +97,34 @@ fn handle_rotation_requests(
             EulerRot::YXZ,
         );
 
-        let clamped_rotation = clamp_camera_pitch(new_rotation, CAMERA_PITCH_RANGE_DEGREES);
+        let clamped_rotation = clamp_camera_pitch(
+            new_rotation,
+            camera.config.rotation.pitch_range_degrees.clone(),
+        );
 
         anchor_transform.rotation = clamped_rotation;
     }
 }
 
-fn has_rotation_input(mouse_motion_is_empty: bool, mouse_input: &ButtonInput<MouseButton>) -> bool {
-    !mouse_motion_is_empty && mouse_input.pressed(ACTIVATE_ROTATION_INPUT_BUTTON)
+// Rotation input calculations
+
+fn calculate_rotation_input(
+    config: &TopDownCameraConfig,
+    mouse_motion: &mut EventReader<MouseMotion>,
+    mouse_input: &ButtonInput<MouseButton>,
+) -> Option<Quat> {
+    if mouse_motion.is_empty()
+        || !config.rotation.enable_input
+        || !mouse_input.pressed(config.activate_button)
+        || config.rotation.rotation_speed <= 0.0
+    {
+        return None;
+    }
+
+    Some(rotation_from_mouse_delta(
+        sum_mouse_delta(mouse_motion.read()),
+        config.rotation.rotation_speed,
+    ))
 }
 
 fn sum_mouse_delta<'a>(motion_events: impl Iterator<Item = &'a MouseMotion>) -> Vec2 {
@@ -101,6 +135,8 @@ fn rotation_from_mouse_delta(mouse_delta: Vec2, rotation_multiplier: f32) -> Qua
     let scaled = mouse_delta * rotation_multiplier;
     Quat::from_euler(EulerRot::YXZ, scaled.x, scaled.y, 0.0)
 }
+
+// Rotation calculations
 
 fn clamp_camera_pitch(camera_rotation: Quat, pitch_range_degrees: Range<f32>) -> Quat {
     let as_euler = camera_rotation.to_euler(EulerRot::YXZ);

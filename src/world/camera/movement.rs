@@ -43,13 +43,13 @@ fn listen_to_movement_input(
         return;
     };
 
-    let Some(movement_request) =
-        calculate_movement_request(&camera.config, &keyboard_input, &mouse_input)
+    let Some(movement_input) =
+        calculate_movement_input(&camera.config, &keyboard_input, &mouse_input)
     else {
         return;
     };
 
-    on_movement_request.send(movement_request);
+    on_movement_request.send(OnCameraMovementRequested::new(movement_input));
 }
 
 fn handle_movement_requests(
@@ -68,11 +68,11 @@ fn handle_movement_requests(
 
 // Movement input calculations
 
-fn calculate_movement_request(
+fn calculate_movement_input(
     config: &TopDownCameraConfig,
     keyboard_input: &ButtonInput<KeyCode>,
     mouse_input: &ButtonInput<MouseButton>,
-) -> Option<OnCameraMovementRequested> {
+) -> Option<Vec3> {
     if !config.movement.enable_input
         || !mouse_input.pressed(config.activate_button)
         || config.movement.movement_speed <= 0.0
@@ -85,10 +85,10 @@ fn calculate_movement_request(
         return None;
     }
 
-    Some(OnCameraMovementRequested::new(calculate_delta_movement(
+    Some(calculate_delta_movement(
         movement_input,
         config.movement.movement_speed,
-    )))
+    ))
 }
 
 fn calculate_delta_movement(movement_input: Vec3, multiplier: f32) -> Vec3 {
