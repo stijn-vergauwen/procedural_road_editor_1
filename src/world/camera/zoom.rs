@@ -4,9 +4,6 @@ use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::TopDownCamera;
 
-// TODO: replace with config
-const ZOOM_MULTIPLIER: f32 = 2.0;
-
 pub struct CameraZoomPlugin;
 
 impl Plugin for CameraZoomPlugin {
@@ -30,14 +27,23 @@ struct OnCameraZoomRequested {
 fn listen_to_zoom_input(
     mut mouse_wheel: EventReader<MouseWheel>,
     mut zoom_request: EventWriter<OnCameraZoomRequested>,
+    camera_query: Query<&TopDownCamera>,
 ) {
+    let Ok(camera) = camera_query.get_single() else {
+        return;
+    };
+
+    if !camera.config.zoom.enable_input || camera.config.zoom.zoom_speed <= 0.0 {
+        return;
+    }
+
     let delta_scroll = sum_mouse_scroll(mouse_wheel.read());
 
     if delta_scroll == 0.0 {
         return;
     }
 
-    let delta_zoom = calculate_delta_zoom(delta_scroll, ZOOM_MULTIPLIER);
+    let delta_zoom = calculate_delta_zoom(delta_scroll, camera.config.zoom.zoom_speed);
 
     zoom_request.send(OnCameraZoomRequested { delta_zoom });
 }
@@ -46,7 +52,9 @@ fn handle_zoom_requests(
     mut requests: EventReader<OnCameraZoomRequested>,
     mut camera_query: Query<&mut Transform, With<TopDownCamera>>,
 ) {
-    let mut camera_transform = camera_query.single_mut();
+    let Ok(mut camera_transform) = camera_query.get_single_mut() else {
+        return;
+    };
 
     for request in requests.read() {
         camera_transform.translation =
