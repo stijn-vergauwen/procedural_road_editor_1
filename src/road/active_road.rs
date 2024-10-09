@@ -16,7 +16,8 @@ pub struct ActiveRoadPlugin;
 impl Plugin for ActiveRoadPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((ActiveRoadEventsPlugin,))
-            .add_systems(OnEnter(GameMode::RoadEditor), setup_example_road);
+            .add_systems(OnEnter(GameMode::RoadEditor), setup_example_road)
+            .add_systems(OnExit(GameMode::RoadEditor), despawn_active_road);
     }
 }
 
@@ -43,6 +44,14 @@ fn setup_example_road(mut commands: Commands, mut on_road_set: EventWriter<OnAct
     commands.insert_resource(active_road);
 
     on_road_set.send(OnActiveRoadSet::new(road));
+}
+
+fn despawn_active_road(mut commands: Commands, active_road: Res<ActiveRoad>) {
+    if let Some(road_preview_entity) = active_road.road_preview_entity {
+        commands.entity(road_preview_entity).despawn_recursive();
+    }
+
+    commands.remove_resource::<ActiveRoad>();
 }
 
 #[derive(Resource)]
