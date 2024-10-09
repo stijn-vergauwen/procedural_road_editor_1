@@ -41,6 +41,7 @@ use world::WorldPlugin;
 
 
     Future idea's:
+        - Undo functionality
         - Thumbnail images of roads
         - Transitions between roads
         - Intersections
@@ -56,8 +57,23 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - despawn ActiveRoad stuff when leaving editor mode
-
+        - track 3D mouse position on the ground
+        - draw sphere gizmo at mouse position
+        - setup road sections, section is a piece of road between 2 points, either straight or curved (each curve is its own section)
+        - create sections by dragging mouse (only straight for now)
+        - draw debug gizmo box from start to end of section
+        - start drawing next section at end of completed section
+        - cancel drawing (prob right click)
+        - add 'bulldozer' tool
+            - add 'drawer tool' enum
+            - button to switch bulldozer tool
+            - delete road sections when clicking on them
+        - snap to road section ends when drawing
+        - draw mesh of selected road for sections
+        - curved roads
+        - debug gizmos for curved roads
+        - align curved sections with connected sections
+    
         - Lane marking support
             - config ui (new sidebar screen for markings)
             - lane line events & handlers
