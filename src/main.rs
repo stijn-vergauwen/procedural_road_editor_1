@@ -56,7 +56,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - add camera movement to road drawer, but not to editor
         - despawn ActiveRoad stuff when leaving editor mode
 
         - Lane marking support
