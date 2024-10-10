@@ -1,14 +1,16 @@
 mod camera;
+mod world_interaction;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use bevy_rapier3d::prelude::*;
 use camera::EditorCameraPlugin;
+use world_interaction::WorldInteractionPlugin;
 
 pub struct WorldPlugin;
 
 impl Plugin for WorldPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EditorCameraPlugin)
+        app.add_plugins((EditorCameraPlugin, WorldInteractionPlugin))
             .add_systems(Startup, spawn_objects);
     }
 }
