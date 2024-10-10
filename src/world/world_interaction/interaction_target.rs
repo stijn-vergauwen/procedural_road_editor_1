@@ -10,6 +10,7 @@ impl Plugin for InteractionTargetPlugin {
 
 // TODO: add system to check if interaction ray hits target each frame, then set target if something hit
 
+#[derive(Debug)]
 pub struct InteractionTarget {
     pub point: Vec3,
     pub normal: Direction,

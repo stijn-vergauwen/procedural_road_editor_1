@@ -1,25 +1,52 @@
 mod interaction_target;
 
-use bevy::prelude::*;
+use bevy::{prelude::*, window::PrimaryWindow};
 use interaction_target::InteractionTarget;
+
+use crate::GameRunningSet;
 
 pub struct WorldInteractionPlugin;
 
 impl Plugin for WorldInteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(WorldInteractionPlugin);
+        app.add_plugins(WorldInteractionPlugin).add_systems(
+            Update,
+            update_interaction_ray.in_set(GameRunningSet::GetUserInput),
+        );
     }
 }
 
 // TODO: add worldInteractionConfig for max distance
-// TODO: add system to calculate the ray from camera each frame
 
-#[derive(Resource)]
+#[derive(Resource, Default, Debug)]
 pub struct WorldInteraction {
     interaction_ray: Option<Ray3d>,
     interaction_target: Option<InteractionTarget>,
 }
 
-fn update_interaction_ray(mut world_interaction: ResMut<WorldInteraction>) {
-    // TODO: implement
+fn update_interaction_ray(
+    mut world_interaction: ResMut<WorldInteraction>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
+) {
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+
+    let Ok((camera, camera_global_transform)) = camera_query.get_single() else {
+        return;
+    };
+
+    world_interaction.interaction_ray =
+        get_ray_through_cursor(camera, camera_global_transform, window);
+}
+
+// Utility
+
+fn get_ray_through_cursor(
+    camera: &Camera,
+    camera_global_transform: &GlobalTransform,
+    window: &Window,
+) -> Option<Ray3d> {
+    camera.viewport_to_world(camera_global_transform, window.cursor_position()?)
 }
