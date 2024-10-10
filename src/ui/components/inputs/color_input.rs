@@ -40,13 +40,6 @@ pub struct ColorInputConfig {
 }
 
 impl ColorInputConfig {
-    pub fn new(start_color: Color, section: SectionConfig) -> Self {
-        Self {
-            start_color,
-            section,
-        }
-    }
-
     pub fn with_start_color(mut self, start_color: impl Into<Color>) -> Self {
         self.start_color = start_color.into();
         self

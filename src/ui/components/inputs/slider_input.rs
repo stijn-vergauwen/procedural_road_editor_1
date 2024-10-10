@@ -38,6 +38,7 @@ impl SliderInputConfig {
         self
     }
 
+    #[expect(unused)]
     pub fn with_button_config(&mut self, button_config: ButtonConfig) -> &mut Self {
         self.button = button_config;
         self
@@ -109,14 +110,6 @@ pub struct SliderInput {
 impl SliderInput {
     fn new(value: f32) -> Self {
         Self { value }
-    }
-
-    pub fn value(&self) -> f32 {
-        self.value
-    }
-
-    pub fn value_as_percentage(&self) -> f32 {
-        self.value * 100.0
     }
 }
 

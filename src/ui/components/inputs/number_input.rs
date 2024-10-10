@@ -130,10 +130,6 @@ pub struct NumberInputBuilder {
 }
 
 impl NumberInputBuilder {
-    pub fn new(config: NumberInputConfig) -> Self {
-        Self { config }
-    }
-
     pub fn with_values(&mut self, start_value: f32, value_range: Range<f32>) -> &mut Self {
         self.config.start_value = start_value;
         self.config.value_range = value_range;

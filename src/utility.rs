@@ -121,7 +121,7 @@ where
 /// - In this case we have the parent entity, and are searching for the first matching descendant in the given search query.
 ///
 /// - This assumes that there will be at most 1 matching entity.
-#[allow(unused)]
+#[expect(unused)]
 pub fn find_descendant_of_entity<'a, Data, Filter, Closure: Fn(&Data::Item<'a>) -> Entity>(
     start_entity: Entity,
     entities_to_search: &'a Query<Data, Filter>,

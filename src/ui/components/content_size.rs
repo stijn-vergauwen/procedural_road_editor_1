@@ -48,6 +48,7 @@ impl ContentSizeConfig {
     }
 
     /// Returns this component but with the given height in percentages.
+    #[expect(unused)]
     pub fn with_height(mut self, height: f32) -> Self {
         self.height = Val::Percent(height);
         self
@@ -81,12 +82,6 @@ impl Default for ContentSizeConfig {
 #[derive(Default)]
 pub struct ContentSizeBuilder {
     config: ContentSizeConfig,
-}
-
-impl ContentSizeBuilder {
-    pub fn new(config: ContentSizeConfig) -> Self {
-        Self { config }
-    }
 }
 
 impl UiComponentWithChildrenBuilder for ContentSizeBuilder {

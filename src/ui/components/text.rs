@@ -24,6 +24,7 @@ impl TextConfig {
         self
     }
 
+    #[expect(unused)]
     pub fn with_justify(&mut self, justify: JustifyText) -> &mut Self {
         self.justify = justify;
         self

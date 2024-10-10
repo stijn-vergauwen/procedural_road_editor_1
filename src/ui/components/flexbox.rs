@@ -24,6 +24,7 @@ impl FlexboxConfig {
         }
     }
 
+    #[expect(unused)]
     pub fn vertically_centered_row() -> Self {
         Self {
             align_items: AlignItems::Center,
@@ -46,6 +47,7 @@ impl FlexboxConfig {
         }
     }
 
+    #[expect(unused)]
     pub fn vertically_centered_column() -> Self {
         Self {
             flex_direction: FlexDirection::Column,
@@ -72,11 +74,13 @@ impl FlexboxConfig {
         self
     }
 
+    #[expect(unused)]
     pub fn with_row_gap(mut self, gap: Val) -> Self {
         self.row_gap = gap;
         self
     }
 
+    #[expect(unused)]
     pub fn with_column_gap(mut self, gap: Val) -> Self {
         self.column_gap = gap;
         self

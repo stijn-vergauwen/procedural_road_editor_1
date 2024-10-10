@@ -26,16 +26,19 @@ impl ChangedComponentIndices {
     }
 
     /// Returns an iterator over all the newly added indices.
+    #[expect(unused)]
     pub fn iter_added(&self) -> impl Iterator<Item = &ChangedValue<Option<usize>>> {
         self.0.iter().filter(|item| item.previous_value.is_none())
     }
 
     /// Returns an iterator over all the deleted indices.
+    #[expect(unused)]
     pub fn iter_deleted(&self) -> impl Iterator<Item = &ChangedValue<Option<usize>>> {
         self.0.iter().filter(|item| item.new_value.is_none())
     }
 
     /// Returns an iterator over all the indices that already existed and aren't deleted.
+    #[expect(unused)]
     pub fn iter_existing(&self) -> impl Iterator<Item = ChangedValue<usize>> + '_ {
         self.0
             .iter()

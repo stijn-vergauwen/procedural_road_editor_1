@@ -73,7 +73,7 @@ impl RoadData {
         self.markings.iter().enumerate()
     }
 
-    #[allow(unused)]
+    #[expect(unused)]
     fn total_size(&self) -> Vec2 {
         Vec2::new(self.total_width(), self.total_height())
     }
@@ -86,7 +86,6 @@ impl RoadData {
         self.total_width() / 2.0
     }
 
-    #[allow(unused)]
     fn total_height(&self) -> f32 {
         self.components
             .iter()

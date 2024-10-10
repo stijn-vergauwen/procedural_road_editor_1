@@ -57,16 +57,6 @@ pub struct RoadComponentItem {
     is_selected: bool,
 }
 
-impl RoadComponentItem {
-    pub fn new(is_selected: bool) -> Self {
-        Self { is_selected }
-    }
-
-    pub fn is_selected(&self) -> bool {
-        self.is_selected
-    }
-}
-
 #[derive(Component)]
 struct RoadComponentName;
 

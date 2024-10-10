@@ -40,6 +40,7 @@ impl OnListItemDeletionRequested {
         Self { deletion }
     }
 
+    #[expect(unused)]
     pub fn list_entity(&self) -> Entity {
         self.deletion.list_entity
     }
@@ -59,10 +60,12 @@ impl OnListItemDeleted {
         Self { deletion }
     }
 
+    #[expect(unused)]
     pub fn list_entity(&self) -> Entity {
         self.deletion.list_entity
     }
 
+    #[expect(unused)]
     pub fn deleted_index(&self) -> usize {
         self.deletion.index_to_delete
     }

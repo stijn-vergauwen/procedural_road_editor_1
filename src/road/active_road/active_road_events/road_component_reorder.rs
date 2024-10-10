@@ -57,10 +57,6 @@ impl OnRoadComponentReordered {
         }
     }
 
-    pub fn previous_road_data(&self) -> &RoadData {
-        &self.changed_road_data.previous_value
-    }
-
     pub fn new_road_data(&self) -> &RoadData {
         &self.changed_road_data.new_value
     }

@@ -40,6 +40,7 @@ impl LabeledElementConfig {
         }
     }
 
+    #[expect(unused)]
     pub fn with_content_size_config(
         mut self,
         content_size_config: ContentSizeConfig,
@@ -70,6 +71,7 @@ impl LabeledElementBuilder {
         Self { config }
     }
 
+    #[expect(unused)]
     pub fn top_label(text: impl Into<String>) -> Self {
         Self::new(LabeledElementConfig::top_label(text))
     }
@@ -78,6 +80,7 @@ impl LabeledElementBuilder {
         Self::new(LabeledElementConfig::centered_top_label(text))
     }
 
+    #[expect(unused)]
     pub fn side_label(text: impl Into<String>) -> Self {
         Self::new(LabeledElementConfig::side_label(text))
     }

@@ -36,6 +36,7 @@ impl ContentWrapConfig {
         self.with_padding(UiRect::all(Val::Px(padding)))
     }
 
+    #[expect(unused)]
     pub fn without_padding(self) -> Self {
         self.with_padding(UiRect::ZERO)
     }
@@ -54,6 +55,7 @@ impl ContentWrapConfig {
         self.with_border_radius(BorderRadius::all(Val::Px(border_radius)))
     }
 
+    #[expect(unused)]
     pub fn squared(self) -> Self {
         self.with_border_radius(BorderRadius::ZERO)
     }
@@ -79,12 +81,6 @@ impl Default for ContentWrapConfig {
 #[derive(Default)]
 pub struct ContentWrapBuilder {
     config: ContentWrapConfig,
-}
-
-impl ContentWrapBuilder {
-    pub fn new(config: ContentWrapConfig) -> Self {
-        Self { config }
-    }
 }
 
 impl UiComponentWithChildrenBuilder for ContentWrapBuilder {

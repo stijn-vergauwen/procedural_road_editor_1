@@ -34,16 +34,19 @@ impl RoadMarking {
         }
     }
 
+    #[expect(unused)]
     pub fn with_x_position(mut self, x_position: f32) -> Self {
         self.x_position = x_position;
         self
     }
 
+    #[expect(unused)]
     pub fn with_segment_width(mut self, segment_width: f32) -> Self {
         self.segment_width = segment_width;
         self
     }
 
+    #[expect(unused)]
     pub fn with_color(mut self, color: Color) -> Self {
         self.color = color;
         self

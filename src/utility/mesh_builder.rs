@@ -65,15 +65,6 @@ impl MeshBuilder {
         self.triangle_count += 1;
     }
 
-    /// Adds a triangle consisting of 3 indices in both directions, so both the front & back sides get rendered.
-    ///
-    /// For consistency, the indices should go in counter-clockwise order.
-    #[allow(unused)]
-    pub fn add_double_triangle(&mut self, triangle: TriangleIndices) {
-        self.add_triangle(triangle);
-        self.add_triangle(triangle.reversed());
-    }
-
     /// Builds a quad and adds it's vertices, normals, uvs, and triangles to the mesh
     ///
     /// Note: The uv parameter is used on every corner of the quad, color gradients are not possible with this function
@@ -107,7 +98,7 @@ impl MeshBuilder {
     /// Generates a `MeshDebugData` object from the current mesh data
     ///
     /// * Uses `origin` to determine where in world space the mesh should be rendered
-    #[allow(unused)]
+    #[expect(unused)]
     pub fn to_debug_data(
         &self,
         origin: Vec3,
@@ -121,6 +112,7 @@ impl MeshBuilder {
     }
 
     /// Generates a rapier `Collider` component from the current mesh data
+    #[expect(unused)]
     pub fn to_collider(&self) -> Collider {
         Collider::trimesh(
             self.vertices.clone(),
@@ -207,18 +199,6 @@ mod tests {
 
         assert_eq!(builder.triangles[0], triangle_a);
         assert_eq!(builder.triangles[1], triangle_b);
-    }
-
-    #[test]
-    fn can_add_double_triangle() {
-        let mut builder = MeshBuilder::new();
-        let triangle = TriangleIndices(5, 6, 7);
-
-        builder.add_double_triangle(triangle);
-
-        assert_eq!(builder.triangle_count, 2);
-        assert_eq!(builder.triangles[0], triangle);
-        assert_eq!(builder.triangles[1], triangle.reversed());
     }
 
     #[test]

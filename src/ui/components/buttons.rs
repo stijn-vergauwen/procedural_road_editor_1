@@ -44,11 +44,13 @@ impl ButtonConfig {
         self
     }
 
+    #[expect(unused)]
     pub fn with_content_wrap_config(&mut self, wrap: ContentWrapConfig) -> &mut Self {
         self.wrap = wrap;
         self
     }
 
+    #[expect(unused)]
     pub fn with_content_size_config(mut self, content_size_config: ContentSizeConfig) -> Self {
         self.size = content_size_config;
         self
@@ -78,6 +80,7 @@ impl ButtonBuilder {
         Self { config }
     }
 
+    #[expect(unused)]
     pub fn with_content_wrap_config(
         &mut self,
         content_wrap_config: ContentWrapConfig,
@@ -86,6 +89,7 @@ impl ButtonBuilder {
         self
     }
 
+    #[expect(unused)]
     pub fn with_background_color(
         &mut self,
         background_color: impl Into<BackgroundColor>,
@@ -165,16 +169,19 @@ impl TextButtonBuilder {
         Self::new(TextButtonConfig::default_with_text(text))
     }
 
+    #[expect(unused)]
     pub fn with_button_config(&mut self, button_config: ButtonConfig) -> &mut Self {
         self.config.button = button_config;
         self
     }
 
+    #[expect(unused)]
     pub fn with_text_config(&mut self, text_config: TextConfig) -> &mut Self {
         self.config.text = text_config;
         self
     }
 
+    #[expect(unused)]
     pub fn with_text(&mut self, text: impl Into<String>) -> &mut Self {
         self.config.text.with_text(text);
         self

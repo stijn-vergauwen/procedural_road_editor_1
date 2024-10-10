@@ -54,11 +54,11 @@ pub struct OnListReordered {
     pub list_entity: Entity,
 
     /// Entity of the list item that moved from previous index to new index.
-    #[allow(unused)]
+    #[expect(unused)]
     pub target_list_item_entity: Entity,
 
     /// Entity of the list item that moved from new index to previous index.
-    #[allow(unused)]
+    #[expect(unused)]
     pub swapped_list_item_entity: Entity,
 }
 
@@ -81,10 +81,12 @@ impl OnListReordered {
         self.list_entity
     }
 
+    #[expect(unused)]
     pub fn previous_index(&self) -> usize {
         self.reorder.previous_index
     }
 
+    #[expect(unused)]
     pub fn new_index(&self) -> usize {
         self.reorder.new_index
     }

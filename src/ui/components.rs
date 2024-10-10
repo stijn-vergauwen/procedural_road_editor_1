@@ -27,7 +27,7 @@ pub trait UiComponentBuilder: Default {
     }
 
     /// Shorthand for spawning this component with default config.
-    #[allow(unused)]
+    #[expect(unused)]
     fn spawn_default(builder: &mut ChildBuilder, components: impl Bundle) -> Entity {
         Self::default().spawn(builder, components)
     }
