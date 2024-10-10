@@ -1,7 +1,9 @@
+mod gizmos;
 mod interaction_target;
 
 use bevy::{prelude::*, window::PrimaryWindow};
-use interaction_target::InteractionTarget;
+use gizmos::WorldInteractionGizmosPlugin;
+use interaction_target::{InteractionTarget, InteractionTargetPlugin};
 
 use crate::GameRunningSet;
 
@@ -9,10 +11,12 @@ pub struct WorldInteractionPlugin;
 
 impl Plugin for WorldInteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(WorldInteractionPlugin).add_systems(
-            Update,
-            update_interaction_ray.in_set(GameRunningSet::GetUserInput),
-        );
+        app.add_plugins((InteractionTargetPlugin, WorldInteractionGizmosPlugin))
+            .insert_resource(WorldInteraction::default())
+            .add_systems(
+                Update,
+                update_interaction_ray.in_set(GameRunningSet::FetchData),
+            );
     }
 }
 
