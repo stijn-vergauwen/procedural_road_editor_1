@@ -57,9 +57,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - track 3D mouse position on the ground
-        - draw sphere gizmo at mouse position
-        - setup road sections, section is a piece of road between 2 points, either straight or curved (each curve is its own section)
         - create sections by dragging mouse (only straight for now)
         - draw debug gizmo box from start to end of section
         - start drawing next section at end of completed section
@@ -96,11 +93,13 @@ use world::WorldPlugin;
 
     - main
         - road
-            - road component
-                - road component position
-            - road marking
-            - road data -> merge into road
+            - road design -> renamed from road data, since the data is specifically the design
+                - road design component
+                - road marking
+            - road component position
             - road builder
+            - road section -> describes a road piece in 3D and what nodes it connects
+            - road node -> points in 3D that are connected by sections, would also be used in road transitions and intersections
 
         - road editor
             - active road
@@ -132,9 +131,7 @@ use world::WorldPlugin;
 
         - world
             - camera
-                - rotation
-                - zoom
-                - movement
+            - world interaction
 
         - main menu
 

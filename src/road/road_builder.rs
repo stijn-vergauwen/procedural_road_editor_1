@@ -6,6 +6,7 @@ use super::{road_data::RoadData, road_marking::RoadMarking};
 
 const ROAD_LENGTH: f32 = 20.0;
 
+/// Builds the 3D road mesh from the given road data.
 pub struct RoadBuilder {
     mesh_builder: MeshBuilder,
 }

@@ -7,6 +7,8 @@ mod road_marking;
 mod road_preview;
 pub mod save;
 pub mod persistance;
+mod road_section;
+mod road_node;
 
 use active_road::ActiveRoadPlugin;
 use bevy::prelude::*;

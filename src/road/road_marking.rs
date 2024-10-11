@@ -17,6 +17,7 @@ impl Plugin for RoadMarkingPlugin {
 // TODO: add segment_length field
 // TODO: add segment_spacing field
 
+/// Flat markings like lane lines.
 #[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RoadMarking {
     /// This marking's horizontal position relative to the road center.

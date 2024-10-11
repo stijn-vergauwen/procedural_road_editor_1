@@ -3,6 +3,7 @@ pub mod road_component_position;
 use bevy::{color::palettes::tailwind::GRAY_600, prelude::*};
 use serde::{Deserialize, Serialize};
 
+/// The pieces that a road design consists of, like lanes or sidewalks.
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 #[serde(default)]
 pub struct RoadComponent {
