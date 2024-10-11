@@ -16,8 +16,6 @@ impl Plugin for InteractionTargetPlugin {
     }
 }
 
-// TODO: add system to check if interaction ray hits target each frame, then set target if something hit
-
 #[derive(Debug)]
 pub struct InteractionTarget {
     pub point: Vec3,
@@ -50,7 +48,10 @@ fn calculate_interaction_target(
     let intersection = raycast_from_ray(
         rapier_context,
         world_interaction.interaction_ray?,
-        100.0, // TODO: replace with config
+        world_interaction
+            .config
+            .max_interaction_distance
+            .as_meters(),
     )?;
 
     Some(InteractionTarget::from_raycast(intersection))

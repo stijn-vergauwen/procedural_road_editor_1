@@ -5,7 +5,7 @@ use bevy::{prelude::*, window::PrimaryWindow};
 use gizmos::WorldInteractionGizmosPlugin;
 use interaction_target::{InteractionTarget, InteractionTargetPlugin};
 
-use crate::GameRunningSet;
+use crate::{utility::distance::Distance, GameRunningSet};
 
 pub struct WorldInteractionPlugin;
 
@@ -20,12 +20,34 @@ impl Plugin for WorldInteractionPlugin {
     }
 }
 
-// TODO: add worldInteractionConfig for max distance
-
-#[derive(Resource, Default, Debug)]
+#[derive(Resource, Debug)]
 pub struct WorldInteraction {
     interaction_ray: Option<Ray3d>,
     interaction_target: Option<InteractionTarget>,
+    config: WorldInteractionConfig,
+}
+
+impl Default for WorldInteraction {
+    fn default() -> Self {
+        Self {
+            interaction_ray: None,
+            interaction_target: None,
+            config: WorldInteractionConfig::new(Distance(40.0)),
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub struct WorldInteractionConfig {
+    pub max_interaction_distance: Distance,
+}
+
+impl WorldInteractionConfig {
+    pub fn new(max_interaction_distance: Distance) -> Self {
+        Self {
+            max_interaction_distance,
+        }
+    }
 }
 
 fn update_interaction_ray(
