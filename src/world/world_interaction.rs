@@ -1,9 +1,11 @@
 mod gizmos;
 mod interaction_target;
+pub mod mouse_interaction_events;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use gizmos::WorldInteractionGizmosPlugin;
 use interaction_target::{InteractionTarget, InteractionTargetPlugin};
+use mouse_interaction_events::MouseInteractionEventsPlugin;
 
 use crate::{utility::distance::Distance, GameRunningSet};
 
@@ -11,12 +13,16 @@ pub struct WorldInteractionPlugin;
 
 impl Plugin for WorldInteractionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((InteractionTargetPlugin, WorldInteractionGizmosPlugin))
-            .insert_resource(WorldInteraction::default())
-            .add_systems(
-                Update,
-                update_interaction_ray.in_set(GameRunningSet::FetchData),
-            );
+        app.add_plugins((
+            InteractionTargetPlugin,
+            WorldInteractionGizmosPlugin,
+            MouseInteractionEventsPlugin,
+        ))
+        .insert_resource(WorldInteraction::default())
+        .add_systems(
+            Update,
+            update_interaction_ray.in_set(GameRunningSet::FetchData),
+        );
     }
 }
 
