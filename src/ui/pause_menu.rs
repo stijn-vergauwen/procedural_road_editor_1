@@ -25,7 +25,7 @@ impl Plugin for PauseMenuPlugin {
     }
 }
 
-// todo: make show and hide events
+// todo: hide pause menu when pressing esc while it's open
 
 #[derive(Component, Clone, Copy)]
 enum PauseMenuAction {
