@@ -1,5 +1,5 @@
 mod camera;
-mod world_interaction;
+pub mod world_interaction;
 
 use bevy::{color::palettes::tailwind::*, prelude::*};
 use bevy_rapier3d::prelude::*;
@@ -26,7 +26,7 @@ fn spawn_objects(
         PbrBundle {
             mesh: meshes.add(Cuboid::new(200.0, 0.2, 200.0)),
             material: materials.add(StandardMaterial {
-                base_color: LIME_600.into(),
+                base_color: NEUTRAL_100.into(),
                 perceptual_roughness: 1.0,
                 ..default()
             }),

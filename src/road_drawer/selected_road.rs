@@ -17,6 +17,7 @@ impl Plugin for SelectedRoadPlugin {
     }
 }
 
+// TODO: only have resource exist in RoadDrawer mode
 #[derive(Resource, Debug, Default)]
 pub struct SelectedRoad {
     selected_road: Option<RoadData>,

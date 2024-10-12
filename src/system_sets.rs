@@ -14,6 +14,7 @@ impl Plugin for SystemSetPlugin {
                 GameRunningSet::HandleCommands,
                 GameRunningSet::UpdateEntities,
                 GameRunningSet::DespawnEntities,
+                GameRunningSet::DrawGizmos,
             )
                 .chain(),
         );
@@ -29,4 +30,5 @@ pub enum GameRunningSet {
     HandleCommands,
     UpdateEntities,
     DespawnEntities,
+    DrawGizmos,
 }

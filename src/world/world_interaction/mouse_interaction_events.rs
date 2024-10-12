@@ -13,7 +13,7 @@ impl Plugin for MouseInteractionEventsPlugin {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum InteractionPhase {
     Started,
     Held,

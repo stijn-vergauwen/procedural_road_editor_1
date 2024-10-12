@@ -33,6 +33,12 @@ pub struct WorldInteraction {
     config: WorldInteractionConfig,
 }
 
+impl WorldInteraction {
+    pub fn interaction_target(&self) -> Option<&InteractionTarget> {
+        self.interaction_target.as_ref()
+    }
+}
+
 impl Default for WorldInteraction {
     fn default() -> Self {
         Self {
