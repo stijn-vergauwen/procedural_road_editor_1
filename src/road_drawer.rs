@@ -7,6 +7,8 @@ use gizmos::RoadDrawerGizmosPlugin;
 use road_being_drawn::{RoadBeingDrawn, RoadBeingDrawnPlugin};
 use selected_road::SelectedRoadPlugin;
 
+use crate::game_modes::GameMode;
+
 pub struct RoadDrawerPlugin;
 
 impl Plugin for RoadDrawerPlugin {
@@ -16,12 +18,20 @@ impl Plugin for RoadDrawerPlugin {
             RoadDrawerGizmosPlugin,
             RoadBeingDrawnPlugin,
         ))
-        .init_resource::<RoadDrawer>();
+        .add_systems(OnEnter(GameMode::RoadDrawer), init_road_drawer)
+        .add_systems(OnExit(GameMode::RoadDrawer), remove_road_drawer);
     }
 }
 
-// TODO: only have resource exist in RoadDrawer mode
 #[derive(Resource, Default, Debug)]
 pub struct RoadDrawer {
     road_being_drawn: Option<RoadBeingDrawn>,
+}
+
+fn init_road_drawer(mut commands: Commands) {
+    commands.init_resource::<RoadDrawer>();
+}
+
+fn remove_road_drawer(mut commands: Commands) {
+    commands.remove_resource::<RoadDrawer>();
 }
