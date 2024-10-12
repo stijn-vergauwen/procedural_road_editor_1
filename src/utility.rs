@@ -1,19 +1,22 @@
 pub mod changed_value;
-pub mod mesh_builder;
-pub mod texture_builder;
 pub mod distance;
+pub mod mesh_builder;
+pub mod mouse_on_ui;
+pub mod texture_builder;
 
 use bevy::{
     ecs::query::{QueryData, QueryFilter},
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
+use mouse_on_ui::MouseOnUiPlugin;
 
 pub struct UtilityPlugin;
 
 impl Plugin for UtilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, shutdown_on_control_q);
+        app.add_plugins(MouseOnUiPlugin)
+            .add_systems(Update, shutdown_on_control_q);
     }
 }
 
