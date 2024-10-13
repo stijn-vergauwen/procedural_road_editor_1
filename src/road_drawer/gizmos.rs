@@ -20,7 +20,7 @@ impl Plugin for RoadDrawerGizmosPlugin {
 }
 
 fn draw_gizmos_for_road_being_drawn(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
-    if let Some(road_being_drawn) = road_drawer.road_being_drawn {
+    if let Some(road_being_drawn) = road_drawer.section_being_drawn {
         if road_being_drawn.start.existing_node_entity.is_none() {
             draw_road_node_gizmo(&mut gizmos, road_being_drawn.start.position);
         }

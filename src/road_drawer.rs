@@ -4,7 +4,7 @@ pub mod selected_road;
 
 use bevy::prelude::*;
 use gizmos::RoadDrawerGizmosPlugin;
-use road_being_drawn::{RoadBeingDrawn, RoadBeingDrawnPlugin};
+use road_being_drawn::{RoadBeingDrawnPlugin, RoadSectionBeingDrawn};
 use selected_road::SelectedRoadPlugin;
 
 use crate::game_modes::GameMode;
@@ -25,7 +25,7 @@ impl Plugin for RoadDrawerPlugin {
 
 #[derive(Resource, Default, Debug)]
 pub struct RoadDrawer {
-    road_being_drawn: Option<RoadBeingDrawn>,
+    section_being_drawn: Option<RoadSectionBeingDrawn>,
 }
 
 fn init_road_drawer(mut commands: Commands) {

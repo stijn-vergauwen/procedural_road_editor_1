@@ -1,3 +1,5 @@
+mod road_section_builder;
+
 use bevy::prelude::*;
 
 // TODO: enum for straight or curved (each curve is its own section)
