@@ -44,8 +44,6 @@ impl Plugin for UiPlugin {
     }
 }
 
-// TODO: add LayoutContainer marker component, remove recursive when leaving editor mode
-
 /// Marker component for the editor layout.
 #[derive(Component)]
 pub struct EditorLayoutContainer;

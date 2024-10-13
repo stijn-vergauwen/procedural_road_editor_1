@@ -44,7 +44,7 @@ impl Default for WorldInteraction {
         Self {
             interaction_ray: None,
             interaction_target: None,
-            config: WorldInteractionConfig::new(Distance(40.0)),
+            config: WorldInteractionConfig::new(Distance(100.0)),
         }
     }
 }
