@@ -1,12 +1,10 @@
 use bevy::prelude::*;
 
 use crate::{
-    game_modes::GameMode,
-    world::world_interaction::{
+    game_modes::GameMode, road::{road_node::RequestedRoadNode, road_section::{road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection}}, world::world_interaction::{
         mouse_interaction_events::{InteractionPhase, OnMouseInteraction},
         WorldInteraction,
-    },
-    GameRunningSet,
+    }, GameRunningSet
 };
 
 use super::RoadDrawer;
@@ -17,53 +15,18 @@ pub struct RoadBeingDrawnPlugin;
 
 impl Plugin for RoadBeingDrawnPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<OnRoadSectionDrawn>().add_systems(
+        app.add_systems(
             Update,
             (
                 start_drawing_road_on_mouse_press,
                 update_road_being_drawn_on_mouse_drag,
-                send_road_section_drawn_event_on_mouse_release,
+                send_build_section_request_on_mouse_release,
                 reset_section_being_drawn_on_esc,
             )
                 .chain()
                 .in_set(GameRunningSet::UpdateEntities)
                 .run_if(in_state(GameMode::RoadDrawer)),
         );
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RoadSectionBeingDrawn {
-    pub start: RoadNodeBeingDrawn,
-    pub end: RoadNodeBeingDrawn,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct RoadNodeBeingDrawn {
-    pub position: Vec3,
-    /// Entity of an existing RoadNode if the road starts / ends on an existing node, otherwise None.
-    pub existing_node_entity: Option<Entity>,
-}
-
-impl RoadNodeBeingDrawn {
-    fn new(position: Vec3, existing_node_entity: Option<Entity>) -> Self {
-        Self {
-            position,
-            existing_node_entity,
-        }
-    }
-}
-
-#[derive(Event, Clone, Copy, Debug)]
-pub struct OnRoadSectionDrawn {
-    pub section_being_drawn: RoadSectionBeingDrawn,
-}
-
-impl OnRoadSectionDrawn {
-    pub fn new(section_being_drawn: RoadSectionBeingDrawn) -> Self {
-        Self {
-            section_being_drawn,
-        }
     }
 }
 
@@ -82,9 +45,9 @@ fn start_drawing_road_on_mouse_press(
     {
         let interaction_position = interaction_target.point;
 
-        road_drawer.section_being_drawn = Some(RoadSectionBeingDrawn {
-            start: RoadNodeBeingDrawn::new(interaction_position, None),
-            end: RoadNodeBeingDrawn::new(interaction_position, None),
+        road_drawer.section_being_drawn = Some(RequestedRoadSection {
+            start: RequestedRoadNode::new(interaction_position, None),
+            end: RequestedRoadNode::new(interaction_position, None),
         });
     }
 }
@@ -110,9 +73,9 @@ fn update_road_being_drawn_on_mouse_drag(
     }
 }
 
-fn send_road_section_drawn_event_on_mouse_release(
+fn send_build_section_request_on_mouse_release(
     mut on_interaction: EventReader<OnMouseInteraction>,
-    mut on_drawn: EventWriter<OnRoadSectionDrawn>,
+    mut on_request_section: EventWriter<OnBuildRoadSectionRequested>,
     mut road_drawer: ResMut<RoadDrawer>,
 ) {
     let Some(section_being_drawn) = road_drawer.section_being_drawn else {
@@ -123,7 +86,7 @@ fn send_road_section_drawn_event_on_mouse_release(
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Released, Some(false)))
     {
-        on_drawn.send(OnRoadSectionDrawn::new(section_being_drawn));
+        on_request_section.send(OnBuildRoadSectionRequested::new(section_being_drawn));
         road_drawer.section_being_drawn = None;
     }
 }
