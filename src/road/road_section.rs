@@ -1,6 +1,8 @@
+pub mod gizmos;
 pub mod road_section_builder;
 
 use bevy::prelude::*;
+use gizmos::RoadSectionGizmosPlugin;
 use road_section_builder::RoadSectionBuilderPlugin;
 
 use super::road_node::RequestedRoadNode;
@@ -9,7 +11,7 @@ pub struct RoadSectionPlugin;
 
 impl Plugin for RoadSectionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(RoadSectionBuilderPlugin);
+        app.add_plugins((RoadSectionBuilderPlugin, RoadSectionGizmosPlugin));
     }
 }
 

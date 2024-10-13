@@ -1,10 +1,16 @@
 use bevy::prelude::*;
 
 use crate::{
-    game_modes::GameMode, road::{road_node::RequestedRoadNode, road_section::{road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection}}, world::world_interaction::{
+    game_modes::GameMode,
+    road::{
+        road_node::RequestedRoadNode,
+        road_section::{road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection},
+    },
+    world::world_interaction::{
         mouse_interaction_events::{InteractionPhase, OnMouseInteraction},
         WorldInteraction,
-    }, GameRunningSet
+    },
+    GameRunningSet,
 };
 
 use super::RoadDrawer;
@@ -18,13 +24,15 @@ impl Plugin for RoadBeingDrawnPlugin {
         app.add_systems(
             Update,
             (
-                start_drawing_road_on_mouse_press,
-                update_road_being_drawn_on_mouse_drag,
-                send_build_section_request_on_mouse_release,
-                reset_section_being_drawn_on_esc,
+                send_build_section_request_on_mouse_release.in_set(GameRunningSet::SendCommands),
+                (
+                    start_drawing_road_on_mouse_press,
+                    update_road_being_drawn_on_mouse_drag,
+                    reset_section_being_drawn_on_esc,
+                )
+                    .chain()
+                    .in_set(GameRunningSet::UpdateEntities),
             )
-                .chain()
-                .in_set(GameRunningSet::UpdateEntities)
                 .run_if(in_state(GameMode::RoadDrawer)),
         );
     }

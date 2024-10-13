@@ -1,6 +1,16 @@
+pub mod gizmos;
 pub mod road_node_builder;
 
 use bevy::prelude::*;
+use gizmos::RoadNodeGizmosPlugin;
+
+pub struct RoadNodePlugin;
+
+impl Plugin for RoadNodePlugin {
+    fn build(&self, app: &mut App) {
+        app.add_plugins(RoadNodeGizmosPlugin);
+    }
+}
 
 /// RoadNodes are the points in a road network, they're connected by RoadSections.
 /// - Nodes describe start & end position while Sections describe how they're connected.

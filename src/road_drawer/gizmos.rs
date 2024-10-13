@@ -1,11 +1,18 @@
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
-use crate::{game_modes::GameMode, GameRunningSet};
+use crate::{
+    game_modes::GameMode,
+    road::{
+        road_node::gizmos::draw_road_node_gizmo,
+        road_section::gizmos::calculate_road_section_gizmo_transform,
+    },
+    GameRunningSet,
+};
 
 use super::RoadDrawer;
 
-const ROAD_NODE_GIZMO_COLOR: Srgba = CYAN_400;
-const ROAD_NODE_GIZMO_SCALE: f32 = 0.5;
+const ROAD_NODE_GIZMO_COLOR: Srgba = CYAN_300;
+const ROAD_SECTION_GIZMO_COLOR: Srgba = ORANGE_300;
 
 pub struct RoadDrawerGizmosPlugin;
 
@@ -13,24 +20,35 @@ impl Plugin for RoadDrawerGizmosPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (draw_gizmos_for_road_being_drawn.in_set(GameRunningSet::DrawGizmos),)
+            (draw_road_section_gizmo, draw_road_node_gizmos)
+                .in_set(GameRunningSet::DrawGizmos)
                 .run_if(in_state(GameMode::RoadDrawer)),
         );
     }
 }
 
-fn draw_gizmos_for_road_being_drawn(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
+fn draw_road_section_gizmo(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
     if let Some(road_being_drawn) = road_drawer.section_being_drawn {
-        if road_being_drawn.start.existing_node_entity.is_none() {
-            draw_road_node_gizmo(&mut gizmos, road_being_drawn.start.position);
-        }
-        draw_road_node_gizmo(&mut gizmos, road_being_drawn.end.position);
+        let road_section_transform = calculate_road_section_gizmo_transform(
+            road_being_drawn.start.position,
+            road_being_drawn.end.position,
+        );
+
+        gizmos.cuboid(road_section_transform, ROAD_SECTION_GIZMO_COLOR);
     }
 }
 
-fn draw_road_node_gizmo(gizmos: &mut Gizmos, position: Vec3) {
-    gizmos.cuboid(
-        Transform::from_translation(position).with_scale(Vec3::splat(ROAD_NODE_GIZMO_SCALE)),
-        ROAD_NODE_GIZMO_COLOR,
-    );
+fn draw_road_node_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
+    if let Some(road_being_drawn) = road_drawer.section_being_drawn {
+        draw_road_node_gizmo(
+            &mut gizmos,
+            road_being_drawn.start.position,
+            ROAD_NODE_GIZMO_COLOR,
+        );
+        draw_road_node_gizmo(
+            &mut gizmos,
+            road_being_drawn.end.position,
+            ROAD_NODE_GIZMO_COLOR,
+        );
+    }
 }

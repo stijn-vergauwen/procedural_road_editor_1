@@ -57,10 +57,10 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - create sections by dragging mouse (only straight for now)
-        - draw debug gizmo box from start to end of section
-        - start drawing next section at end of completed section
-        - cancel drawing (prob right click)
+        - start drawing next section at end of completed section -> doesn't work when you need to drag to draw
+            - change drawing logic to: left click to start drawing section, another left click to complete section
+            - start next section when previous section is completed
+        - cancel drawing with right click
         - add 'bulldozer' tool
             - add 'drawer tool' enum
             - button to switch bulldozer tool

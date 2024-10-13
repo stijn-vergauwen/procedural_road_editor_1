@@ -2,6 +2,8 @@ use bevy::prelude::*;
 
 use crate::GameRunningSet;
 
+// TODO: fix problem: I forgot that not all UI elements have the Interaction component, only those that can be interacted with, change it so that this check iterates over every UI node
+
 pub struct MouseOnUiPlugin;
 
 impl Plugin for MouseOnUiPlugin {

@@ -14,6 +14,7 @@ use active_road::ActiveRoadPlugin;
 use bevy::prelude::*;
 use load::LoadRoadPlugin;
 use road_marking::RoadMarkingPlugin;
+use road_node::RoadNodePlugin;
 use road_preview::RoadPreviewPlugin;
 use road_section::RoadSectionPlugin;
 use save::SaveRoadPlugin;
@@ -29,6 +30,7 @@ impl Plugin for RoadPlugin {
             RoadPreviewPlugin,
             RoadMarkingPlugin,
             RoadSectionPlugin,
+            RoadNodePlugin,
         ));
     }
 }
