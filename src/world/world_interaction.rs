@@ -35,8 +35,8 @@ pub struct WorldInteraction {
 }
 
 impl WorldInteraction {
-    pub fn interaction_target(&self) -> Option<&InteractionTarget> {
-        self.interaction_target.as_ref()
+    pub fn interaction_target(&self) -> Option<InteractionTarget> {
+        self.interaction_target
     }
 }
 
@@ -45,7 +45,7 @@ impl Default for WorldInteraction {
         Self {
             interaction_ray: None,
             interaction_target: None,
-            config: WorldInteractionConfig::new(Distance(100.0)),
+            config: WorldInteractionConfig::new(Distance(150.0)),
         }
     }
 }

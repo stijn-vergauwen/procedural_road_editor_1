@@ -66,6 +66,8 @@ use world::WorldPlugin;
         - curved roads
         - debug gizmos for curved roads
         - align curved sections with connected sections
+
+        - clear road drawer nodes and sections when leaving drawer mode
     
         - Lane marking support
             - config ui (new sidebar screen for markings)

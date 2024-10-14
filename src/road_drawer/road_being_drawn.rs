@@ -3,11 +3,11 @@ use bevy::prelude::*;
 use crate::{
     game_modes::GameMode,
     road::{
-        road_node::RequestedRoadNode,
+        road_node::{RequestedRoadNode, RoadNode},
         road_section::{road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection},
     },
     world::world_interaction::{
-        interaction_target::OnWorldInteractionTargetUpdated,
+        interaction_target::{InteractionTarget, OnWorldInteractionTargetUpdated},
         mouse_interaction_events::{InteractionPhase, OnMouseInteraction},
         WorldInteraction,
     },
@@ -17,6 +17,7 @@ use crate::{
 use super::RoadDrawer;
 
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
+const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
 
 pub struct RoadBeingDrawnPlugin;
 
@@ -43,20 +44,26 @@ fn start_drawing_road_on_mouse_press(
     mut on_interaction: EventReader<OnMouseInteraction>,
     mut road_drawer: ResMut<RoadDrawer>,
     world_interaction: Res<WorldInteraction>,
+    road_node_query: Query<(Entity, &Transform), With<RoadNode>>,
 ) {
     for _ in on_interaction
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
+        if road_drawer.section_being_drawn.is_some() {
+            return;
+        }
+
         let Some(interaction_target) = world_interaction.interaction_target() else {
             return;
         };
-    
-        let interaction_position = interaction_target.point;
 
         road_drawer.section_being_drawn = Some(RequestedRoadSection {
-            start: RequestedRoadNode::new(interaction_position, None),
-            end: RequestedRoadNode::new(interaction_position, None),
+            start: snap_interaction_target_to_nearest_road_node(
+                &road_node_query,
+                &interaction_target,
+            ),
+            end: RequestedRoadNode::new(interaction_target.point, None),
         });
     }
 }
@@ -64,6 +71,7 @@ fn start_drawing_road_on_mouse_press(
 fn update_road_being_drawn_on_target_update(
     mut on_target_updated: EventReader<OnWorldInteractionTargetUpdated>,
     mut road_drawer: ResMut<RoadDrawer>,
+    road_node_query: Query<(Entity, &Transform), With<RoadNode>>,
 ) {
     for interaction_target in on_target_updated
         .read()
@@ -72,8 +80,9 @@ fn update_road_being_drawn_on_target_update(
         let Some(section_being_drawn) = &mut road_drawer.section_being_drawn else {
             return;
         };
-    
-        section_being_drawn.end.position = interaction_target.point;
+
+        section_being_drawn.end =
+            snap_interaction_target_to_nearest_road_node(&road_node_query, &interaction_target);
     }
 }
 
@@ -106,10 +115,56 @@ fn stop_drawing_road_on_right_click(
     }
 }
 
-// TODO: if all 'desired_on_ui' values are the same, remove param etc
-fn filter_mouse_interaction(
-    event: &&OnMouseInteraction,
-    phase: InteractionPhase,
-) -> bool {
+// Utility
+
+fn filter_mouse_interaction(event: &&OnMouseInteraction, phase: InteractionPhase) -> bool {
     event.button == MOUSE_BUTTON_TO_DRAW && event.phase == phase && !event.is_on_ui
+}
+
+#[derive(Clone, Copy)]
+struct NearestRoadNode {
+    position: Vec3,
+    entity: Entity,
+}
+
+impl NearestRoadNode {
+    fn to_requested_road_node(&self) -> RequestedRoadNode {
+        RequestedRoadNode::new(self.position, Some(self.entity))
+    }
+}
+
+fn snap_interaction_target_to_nearest_road_node(
+    road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
+    interaction_target: &InteractionTarget,
+) -> RequestedRoadNode {
+    match find_road_node_nearest_to_point(
+        road_node_query,
+        interaction_target.point,
+        ROAD_NODE_SNAP_DISTANCE,
+    ) {
+        Some(nearest_node) => nearest_node.to_requested_road_node(),
+        None => RequestedRoadNode::new(interaction_target.point, None),
+    }
+}
+
+fn find_road_node_nearest_to_point(
+    road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
+    point: Vec3,
+    max_distance: f32,
+) -> Option<NearestRoadNode> {
+    let (node_entity, node_transform, node_distance) = road_node_query
+        .iter()
+        .map(|(node_entity, node_transform)| {
+            (
+                node_entity,
+                node_transform,
+                node_transform.translation.distance(point),
+            )
+        })
+        .min_by(|(_, _, distance_a), (_, _, distance_b)| distance_a.total_cmp(&distance_b))?;
+
+    (node_distance < max_distance).then_some(NearestRoadNode {
+        position: node_transform.translation,
+        entity: node_entity,
+    })
 }
