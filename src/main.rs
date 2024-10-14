@@ -61,7 +61,6 @@ use world::WorldPlugin;
             - add 'drawer tool' enum
             - button to switch bulldozer tool
             - delete road sections when clicking on them
-        - snap to road section ends when drawing
         - draw mesh of selected road for sections
         - curved roads
         - debug gizmos for curved roads
