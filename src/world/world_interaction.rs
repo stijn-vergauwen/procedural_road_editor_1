@@ -1,5 +1,5 @@
 mod gizmos;
-mod interaction_target;
+pub mod interaction_target;
 pub mod mouse_interaction_events;
 
 use bevy::{prelude::*, window::PrimaryWindow};
@@ -18,6 +18,7 @@ impl Plugin for WorldInteractionPlugin {
             WorldInteractionGizmosPlugin,
             MouseInteractionEventsPlugin,
         ))
+        .add_event::<OnWorldInteractionRayUpdated>()
         .insert_resource(WorldInteraction::default())
         .add_systems(
             Update,
@@ -62,7 +63,19 @@ impl WorldInteractionConfig {
     }
 }
 
+#[derive(Event, Clone, Copy)]
+pub struct OnWorldInteractionRayUpdated {
+    pub interaction_ray: Option<Ray3d>,
+}
+
+impl OnWorldInteractionRayUpdated {
+    pub fn new(interaction_ray: Option<Ray3d>) -> Self {
+        Self { interaction_ray }
+    }
+}
+
 fn update_interaction_ray(
+    mut on_updated: EventWriter<OnWorldInteractionRayUpdated>,
     mut world_interaction: ResMut<WorldInteraction>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     window_query: Query<&Window, With<PrimaryWindow>>,
@@ -75,8 +88,12 @@ fn update_interaction_ray(
         return;
     };
 
-    world_interaction.interaction_ray =
-        get_ray_through_cursor(camera, camera_global_transform, window);
+    let new_ray = get_ray_through_cursor(camera, camera_global_transform, window);
+
+    if world_interaction.interaction_ray != new_ray {
+        world_interaction.interaction_ray = new_ray;
+        on_updated.send(OnWorldInteractionRayUpdated::new(new_ray));
+    }
 }
 
 // Utility

@@ -3,20 +3,21 @@ use bevy_rapier3d::{plugin::RapierContext, prelude::*};
 
 use crate::GameRunningSet;
 
-use super::WorldInteraction;
+use super::{OnWorldInteractionRayUpdated, WorldInteraction};
 
 pub struct InteractionTargetPlugin;
 
 impl Plugin for InteractionTargetPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (update_interaction_target).after(GameRunningSet::FetchData),
-        );
+        app.add_event::<OnWorldInteractionTargetUpdated>()
+            .add_systems(
+                Update,
+                (update_interaction_target).after(GameRunningSet::FetchData),
+            );
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct InteractionTarget {
     pub point: Vec3,
     pub normal: Dir3,
@@ -31,12 +32,35 @@ impl InteractionTarget {
     }
 }
 
+#[derive(Event, Clone, Copy)]
+pub struct OnWorldInteractionTargetUpdated {
+    pub interaction_target: Option<InteractionTarget>,
+}
+
+impl OnWorldInteractionTargetUpdated {
+    pub fn new(interaction_target: Option<InteractionTarget>) -> Self {
+        Self { interaction_target }
+    }
+}
+
 fn update_interaction_target(
+    mut on_ray_updated: EventReader<OnWorldInteractionRayUpdated>,
+    mut on_target_updated: EventWriter<OnWorldInteractionTargetUpdated>,
     mut world_interaction: ResMut<WorldInteraction>,
     rapier_context: Res<RapierContext>,
 ) {
-    world_interaction.interaction_target =
-        calculate_interaction_target(&rapier_context, &world_interaction);
+    for event in on_ray_updated.read() {
+        let new_target = calculate_interaction_target(
+            &rapier_context,
+            &world_interaction,
+            event.interaction_ray,
+        );
+
+        if world_interaction.interaction_target != new_target {
+            world_interaction.interaction_target = new_target;
+            on_target_updated.send(OnWorldInteractionTargetUpdated::new(new_target));
+        }
+    }
 }
 
 // Utility
@@ -44,10 +68,11 @@ fn update_interaction_target(
 fn calculate_interaction_target(
     rapier_context: &RapierContext,
     world_interaction: &WorldInteraction,
+    interaction_ray: Option<Ray3d>,
 ) -> Option<InteractionTarget> {
     let intersection = raycast_from_ray(
         rapier_context,
-        world_interaction.interaction_ray?,
+        interaction_ray?,
         world_interaction
             .config
             .max_interaction_distance

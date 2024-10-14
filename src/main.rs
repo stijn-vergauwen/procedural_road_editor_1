@@ -57,10 +57,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - start drawing next section at end of completed section -> doesn't work when you need to drag to draw
-            - change drawing logic to: left click to start drawing section, another left click to complete section
-            - start next section when previous section is completed
-        - cancel drawing with right click
         - add 'bulldozer' tool
             - add 'drawer tool' enum
             - button to switch bulldozer tool
