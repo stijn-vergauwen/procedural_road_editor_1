@@ -21,13 +21,15 @@ impl Plugin for InteractionTargetPlugin {
 pub struct InteractionTarget {
     pub point: Vec3,
     pub normal: Dir3,
+    pub entity: Entity,
 }
 
 impl InteractionTarget {
-    fn from_raycast(intersection: RayIntersection) -> Self {
+    fn from_raycast(intersection: RayIntersection, entity: Entity) -> Self {
         Self {
             point: intersection.point,
             normal: Dir3::new(intersection.normal).unwrap_or(Dir3::Y),
+            entity,
         }
     }
 }
@@ -70,30 +72,25 @@ fn calculate_interaction_target(
     world_interaction: &WorldInteraction,
     interaction_ray: Option<Ray3d>,
 ) -> Option<InteractionTarget> {
-    let intersection = raycast_from_ray(
-        rapier_context,
-        interaction_ray?,
-        world_interaction
-            .config
-            .max_interaction_distance
-            .as_meters(),
-    )?;
+    let max_distance = world_interaction
+        .config
+        .max_interaction_distance
+        .as_meters();
 
-    Some(InteractionTarget::from_raycast(intersection))
+    raycast_from_ray(rapier_context, interaction_ray?, max_distance)
+        .map(|(entity, intersection)| InteractionTarget::from_raycast(intersection, entity))
 }
 
 fn raycast_from_ray(
     rapier_context: &RapierContext,
     ray: Ray3d,
     max_distance: f32,
-) -> Option<RayIntersection> {
-    let intersection = rapier_context.cast_ray_and_get_normal(
+) -> Option<(Entity, RayIntersection)> {
+    rapier_context.cast_ray_and_get_normal(
         ray.origin,
         ray.direction.as_vec3(),
         max_distance,
         false,
         QueryFilter::new(),
-    );
-
-    intersection.map(|(_, intersection)| intersection)
+    )
 }

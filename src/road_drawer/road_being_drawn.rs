@@ -14,7 +14,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::RoadDrawer;
+use super::{RoadDrawer, RoadDrawerTool};
 
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
@@ -30,12 +30,16 @@ impl Plugin for RoadBeingDrawnPlugin {
                 (
                     start_drawing_road_on_mouse_press,
                     update_road_being_drawn_on_target_update,
-                    stop_drawing_road_on_right_click,
+                    cancel_road_on_right_click,
                 )
                     .chain()
                     .in_set(GameRunningSet::UpdateEntities),
             )
-                .run_if(in_state(GameMode::RoadDrawer)),
+                .run_if(in_state(GameMode::RoadDrawer).and_then(in_state(RoadDrawerTool::Drawer))),
+        )
+        .add_systems(
+            OnExit(RoadDrawerTool::Drawer),
+            cancel_road_when_leaving_drawer_tool,
         );
     }
 }
@@ -104,7 +108,7 @@ fn send_build_section_request_on_mouse_press(
     }
 }
 
-fn stop_drawing_road_on_right_click(
+fn cancel_road_on_right_click(
     mut on_interaction: EventReader<OnMouseInteraction>,
     mut road_drawer: ResMut<RoadDrawer>,
 ) {
@@ -113,6 +117,10 @@ fn stop_drawing_road_on_right_click(
     }) {
         road_drawer.section_being_drawn = None;
     }
+}
+
+fn cancel_road_when_leaving_drawer_tool(mut road_drawer: ResMut<RoadDrawer>) {
+    road_drawer.section_being_drawn = None;
 }
 
 // Utility
