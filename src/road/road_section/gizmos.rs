@@ -59,6 +59,7 @@ pub fn calculate_road_section_gizmo_transform(
     Transform {
         translation: height_adjusted_position,
         rotation: section_rotation,
+        // TODO: this scale should be just splat(1.0) once road section meshes are the actual road designs. Currently we're saying each section is a cube which is deformed by this scale vector
         scale: Vec3::new(
             ROAD_SECTION_GIZMO_WIDTH,
             ROAD_SECTION_GIZMO_HEIGHT,

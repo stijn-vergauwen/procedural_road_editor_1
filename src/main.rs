@@ -67,7 +67,7 @@ use world::WorldPlugin;
         - align curved sections with connected sections
 
         - clear road drawer nodes and sections when leaving drawer mode
-    
+
         - Lane marking support
             - config ui (new sidebar screen for markings)
             - lane line events & handlers
@@ -165,6 +165,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
+            RapierDebugRenderPlugin::default(),
             UtilityPlugin,
             SystemSetPlugin,
             WorldPlugin,
