@@ -21,8 +21,8 @@ impl Plugin for RoadSectionPlugin {
 /// - Nodes describe start & end position while Sections describe how they're connected.
 #[derive(Component, Debug, Clone, Copy)]
 pub struct RoadSection {
-    start_node: Entity,
-    end_node: Entity,
+    pub start_node: Entity,
+    pub end_node: Entity,
 }
 
 impl RoadSection {

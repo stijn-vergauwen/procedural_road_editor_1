@@ -61,14 +61,49 @@ fn delete_road_sections_that_are_clicked_on(
             continue;
         };
 
-        // TODO: also delete road nodes that aren't connected anymore
+        delete_road_section(
+            interaction_target.entity,
+            &mut commands,
+            &road_section_query,
+        );
+    }
+}
 
-        if road_section_query.contains(interaction_target.entity) {
-            println!("Delete road section");
+fn delete_road_section(
+    road_section_to_delete: Entity,
+    commands: &mut Commands,
+    road_section_query: &Query<&RoadSection>,
+) {
+    let Ok(road_section) = road_section_query.get(road_section_to_delete).cloned() else {
+        return;
+    };
 
-            commands
-                .entity(interaction_target.entity)
-                .despawn_recursive();
+    commands.entity(road_section_to_delete).despawn();
+
+    if count_sections_connected_to_road_node(road_section.start_node, road_section_query) == 1 {
+        commands.entity(road_section.start_node).despawn();
+    }
+
+    if count_sections_connected_to_road_node(road_section.end_node, road_section_query) == 1 {
+        commands.entity(road_section.end_node).despawn();
+    }
+}
+
+fn count_sections_connected_to_road_node(
+    road_node: Entity,
+    road_section_query: &Query<&RoadSection>,
+) -> u8 {
+    let mut result = 0;
+
+    for road_section in road_section_query.iter() {
+        if road_section.start_node == road_node {
+            result += 1;
+        }
+
+        if road_section.end_node == road_node {
+            result += 1;
         }
     }
+
+    result
 }
