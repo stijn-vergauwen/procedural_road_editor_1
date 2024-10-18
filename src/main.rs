@@ -57,10 +57,7 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - add 'bulldozer' tool
-            - add 'drawer tool' enum
-            - button to switch bulldozer tool
-            - delete road sections when clicking on them
+        - Ui button to toggle bulldozer tool
         - draw mesh of selected road for sections
         - curved roads
         - debug gizmos for curved roads
@@ -95,8 +92,8 @@ use world::WorldPlugin;
                 - road marking
             - road component position
             - road builder
-            - road section -> describes a road piece in 3D and what nodes it connects
-            - road node -> points in 3D that are connected by sections, would also be used in road transitions and intersections
+            - road section
+            - road node
 
         - road editor
             - active road
