@@ -14,7 +14,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{RoadDrawer, RoadDrawerTool};
+use super::{selected_road::SelectedRoad, RoadDrawer, RoadDrawerTool};
 
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
@@ -49,12 +49,13 @@ fn start_drawing_road_on_mouse_press(
     mut road_drawer: ResMut<RoadDrawer>,
     world_interaction: Res<WorldInteraction>,
     road_node_query: Query<(Entity, &Transform), With<RoadNode>>,
+    selected_road: Res<SelectedRoad>,
 ) {
     for _ in on_interaction
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
-        if road_drawer.section_being_drawn.is_some() {
+        if !selected_road.has_selected_road() || road_drawer.section_being_drawn.is_some() {
             return;
         }
 

@@ -27,6 +27,14 @@ impl SelectedRoad {
     pub fn set_selected_road(&mut self, selected_road: RoadData) {
         self.selected_road = Some(selected_road);
     }
+
+    pub fn has_selected_road(&self) -> bool {
+        self.selected_road.is_some()
+    }
+
+    pub fn selected_road(&self) -> Option<&RoadData> {
+        self.selected_road.as_ref()
+    }
 }
 
 fn init_selected_road(mut commands: Commands) {

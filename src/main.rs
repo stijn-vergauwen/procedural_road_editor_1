@@ -162,7 +162,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
-            // RapierDebugRenderPlugin::default(),
+            RapierDebugRenderPlugin::default(),
             UtilityPlugin,
             SystemSetPlugin,
             WorldPlugin,

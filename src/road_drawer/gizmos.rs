@@ -9,7 +9,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::RoadDrawer;
+use super::{selected_road::SelectedRoad, RoadDrawer};
 
 const ROAD_NODE_GIZMO_COLOR: Srgba = CYAN_300;
 const ROAD_SECTION_GIZMO_COLOR: Srgba = ORANGE_300;
@@ -27,9 +27,18 @@ impl Plugin for RoadDrawerGizmosPlugin {
     }
 }
 
-fn draw_road_section_gizmo(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
+fn draw_road_section_gizmo(
+    mut gizmos: Gizmos,
+    road_drawer: Res<RoadDrawer>,
+    selected_road: Res<SelectedRoad>,
+) {
     if let Some(road_being_drawn) = road_drawer.section_being_drawn {
+        let road_data = selected_road
+            .selected_road()
+            .expect("A road should always be selected while drawing");
+
         let road_section_transform = calculate_road_section_gizmo_transform(
+            road_data,
             road_being_drawn.start.position,
             road_being_drawn.end.position,
         );
