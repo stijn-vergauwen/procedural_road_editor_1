@@ -6,7 +6,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{gizmos::calculate_road_section_gizmo_transform, RequestedRoadSection, RoadSection};
+use super::{calculate_road_section_transform, RequestedRoadSection, RoadSection};
 
 pub struct RoadSectionBuilderPlugin;
 
@@ -40,19 +40,24 @@ fn build_road_sections_on_request(
         let start_node = request.requested_section.start;
         let end_node = request.requested_section.end;
 
-        let start_node_entity = get_or_build_road_node(&mut commands, start_node);
-        let end_node_entity = get_or_build_road_node(&mut commands, end_node);
+        let road_section = get_requested_road_section(&request.requested_section, &mut commands);
 
         let section_transform =
-            calculate_road_section_gizmo_transform(start_node.position, end_node.position);
+            calculate_road_section_transform(start_node.position, end_node.position);
 
         let spatial_bundle = SpatialBundle::from_transform(section_transform);
         let collider = Collider::cuboid(0.5, 0.5, 0.5);
 
-        commands.spawn((
-            RoadSection::new(start_node_entity, end_node_entity),
-            spatial_bundle,
-            collider,
-        ));
+        commands.spawn((road_section, spatial_bundle, collider));
     }
+}
+
+fn get_requested_road_section(
+    requested_section: &RequestedRoadSection,
+    commands: &mut Commands,
+) -> RoadSection {
+    let start_node_entity = get_or_build_road_node(commands, requested_section.start);
+    let end_node_entity = get_or_build_road_node(commands, requested_section.end);
+
+    RoadSection::new(start_node_entity, end_node_entity)
 }

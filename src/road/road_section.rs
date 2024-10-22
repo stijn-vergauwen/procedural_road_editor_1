@@ -39,3 +39,20 @@ pub struct RequestedRoadSection {
     pub start: RequestedRoadNode,
     pub end: RequestedRoadNode,
 }
+
+pub fn calculate_road_section_transform(
+    start_node_position: Vec3,
+    end_node_position: Vec3,
+) -> Transform {
+    let delta_position = end_node_position - start_node_position;
+    let section_position = start_node_position + delta_position / 2.0;
+    let section_rotation = Transform::from_translation(start_node_position)
+        .looking_at(end_node_position, Dir3::Y)
+        .rotation;
+
+    Transform {
+        translation: section_position,
+        rotation: section_rotation,
+        ..default()
+    }
+}

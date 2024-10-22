@@ -57,9 +57,9 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Ui button to toggle bulldozer tool
         - draw mesh of selected road for sections
-        - curved roads
+        - Ui button to toggle bulldozer tool
+        - curved roads (circular arc)
         - debug gizmos for curved roads
         - align curved sections with connected sections
 
@@ -162,7 +162,7 @@ fn main() {
         .add_plugins((
             DefaultPlugins,
             RapierPhysicsPlugin::<NoUserData>::default(),
-            RapierDebugRenderPlugin::default(),
+            // RapierDebugRenderPlugin::default(),
             UtilityPlugin,
             SystemSetPlugin,
             WorldPlugin,
