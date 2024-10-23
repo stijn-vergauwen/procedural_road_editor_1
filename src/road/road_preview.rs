@@ -205,6 +205,7 @@ fn create_road_mesh_and_texture(
     (road_mesh, road_texture_image)
 }
 
+// TODO: move to road builder
 fn road_texture_from_road_data(road_data: &RoadData) -> Image {
     let road_component_colors: Vec<Color> = road_data
         .components()

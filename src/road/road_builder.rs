@@ -4,6 +4,7 @@ use crate::utility::mesh_builder::MeshBuilder;
 
 use super::{road_data::RoadData, road_marking::RoadMarking};
 
+// TODO: replace with builder parameter, then pass correct road section length in drawer mode
 const ROAD_LENGTH: f32 = 20.0;
 
 /// Builds the 3D road mesh from the given road data.
