@@ -123,6 +123,7 @@ impl UiComponentWithChildrenBuilder for ButtonBuilder {
                 background_color: self.config.wrap.background_color,
                 border_color: self.config.wrap.border_color,
                 border_radius: self.config.wrap.border_radius,
+                focus_policy: self.config.wrap.focus_policy,
                 ..default()
             },
         )

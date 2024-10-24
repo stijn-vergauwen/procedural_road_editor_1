@@ -1,4 +1,4 @@
-use bevy::{color::palettes::tailwind::*, prelude::*};
+use bevy::{color::palettes::tailwind::*, prelude::*, ui::FocusPolicy};
 
 use super::UiComponentWithChildrenBuilder;
 
@@ -9,6 +9,7 @@ pub struct ContentWrapConfig {
     pub border_size: UiRect,
     pub border_color: BorderColor,
     pub border_radius: BorderRadius,
+    pub focus_policy: FocusPolicy,
 }
 
 impl ContentWrapConfig {
@@ -63,6 +64,11 @@ impl ContentWrapConfig {
     pub fn rounded(self) -> Self {
         self.with_border_radius(BorderRadius::MAX)
     }
+
+    pub fn with_focus_policy(mut self, focus_policy: FocusPolicy) -> Self {
+        self.focus_policy = focus_policy;
+        self
+    }
 }
 
 impl Default for ContentWrapConfig {
@@ -73,6 +79,7 @@ impl Default for ContentWrapConfig {
             border_size: UiRect::ZERO,
             border_color: Color::NONE.into(),
             border_radius: BorderRadius::ZERO,
+            focus_policy: FocusPolicy::Block,
         }
     }
 }
@@ -94,6 +101,7 @@ impl UiComponentWithChildrenBuilder for ContentWrapBuilder {
             background_color: self.config.background_color,
             border_color: self.config.border_color,
             border_radius: self.config.border_radius,
+            focus_policy: self.config.focus_policy,
             ..default()
         }
     }

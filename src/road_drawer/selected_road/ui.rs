@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{
     game_modes::GameMode,
@@ -43,7 +43,7 @@ struct SelectedRoadName;
 
 fn spawn_selected_road_ui(mut commands: Commands) {
     let selected_road_container_node = SectionBuilder::new(SectionConfig {
-        wrap: ContentWrapConfig::empty(),
+        wrap: ContentWrapConfig::empty().with_focus_policy(FocusPolicy::Pass),
         flexbox: FlexboxConfig::horizontally_centered_column().with_justify(JustifyContent::End),
         size: ContentSizeConfig::full(),
     })

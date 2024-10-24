@@ -44,7 +44,6 @@ fn build_road_sections_on_request(
     mut requests: EventReader<OnBuildRoadSectionRequested>,
     mut commands: Commands,
     selected_road: Res<SelectedRoad>,
-
     mut mesh_assets: ResMut<Assets<Mesh>>,
     mut image_assets: ResMut<Assets<Image>>,
     mut material_assets: ResMut<Assets<StandardMaterial>>,
