@@ -12,15 +12,21 @@ pub struct TextureBuilder {
 }
 
 impl TextureBuilder {
-    pub fn new(colors: Vec<Color>) -> Self {
-        Self { colors }
+    pub fn new() -> Self {
+        Self { colors: Vec::new() }
+    }
+
+    pub fn add_colors(&mut self, mut colors: Vec<Color>) {
+        self.colors.append(&mut colors);
     }
 
     pub fn image_from_colors(colors: Vec<Color>) -> Image {
-        let builder = Self::new(colors);
+        let mut builder = Self::new();
+        builder.add_colors(colors);
         builder.build_texture_image()
     }
 
+    /// Generates a texture `Image` from the current data
     pub fn build_texture_image(&self) -> Image {
         let texture_data = self.colors_to_flat_array();
 

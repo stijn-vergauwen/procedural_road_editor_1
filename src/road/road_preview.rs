@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{game_modes::GameMode, utility::texture_builder::TextureBuilder, GameRunningSet};
+use crate::{game_modes::GameMode, GameRunningSet};
 
 use super::{
     active_road::{
@@ -15,6 +15,8 @@ use super::{
     road_builder::RoadBuilder,
     road_data::RoadData,
 };
+
+const PREVIEW_ROAD_LENGTH: f32 = 20.0;
 
 pub struct RoadPreviewPlugin;
 
@@ -195,31 +197,17 @@ fn redraw_road_preview(
 }
 
 fn create_road_mesh_and_texture(
-    meshes: &mut ResMut<Assets<Mesh>>,
-    images: &mut ResMut<Assets<Image>>,
+    meshes: &mut Assets<Mesh>,
+    images: &mut Assets<Image>,
     road_data: &RoadData,
 ) -> (Handle<Mesh>, Handle<Image>) {
-    let road_mesh = meshes.add(build_road_mesh(road_data.clone()).get_mesh());
-    let road_texture_image = images.add(road_texture_from_road_data(road_data));
+    let mut road_builder = RoadBuilder::new(PREVIEW_ROAD_LENGTH);
+    road_builder.build_from_road_data(road_data);
+
+    let road_mesh = meshes.add(road_builder.get_mesh());
+    let road_texture_image = images.add(road_builder.get_texture_image());
 
     (road_mesh, road_texture_image)
-}
-
-// TODO: move to road builder
-fn road_texture_from_road_data(road_data: &RoadData) -> Image {
-    let road_component_colors: Vec<Color> = road_data
-        .components()
-        .iter()
-        .map(|component| component.color)
-        .collect();
-
-    let road_marking_colors: Vec<Color> = road_data
-        .markings()
-        .iter()
-        .map(|marking| marking.color)
-        .collect();
-
-    TextureBuilder::image_from_colors([road_component_colors, road_marking_colors].concat())
 }
 
 fn create_road_preview_material(
@@ -231,14 +219,6 @@ fn create_road_preview_material(
         perceptual_roughness: 0.7,
         ..default()
     })
-}
-
-fn build_road_mesh(road_data: RoadData) -> RoadBuilder {
-    let mut road_builder = RoadBuilder::new();
-
-    road_builder.build_from_road_data(road_data);
-
-    road_builder
 }
 
 fn build_road_preview_bundle(

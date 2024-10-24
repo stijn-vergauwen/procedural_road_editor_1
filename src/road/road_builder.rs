@@ -1,36 +1,64 @@
 use bevy::prelude::*;
 
-use crate::utility::mesh_builder::MeshBuilder;
+use crate::utility::{mesh_builder::MeshBuilder, texture_builder::TextureBuilder};
 
 use super::{road_data::RoadData, road_marking::RoadMarking};
-
-const DEFAULT_ROAD_LENGTH: f32 = 20.0;
 
 /// Builds the 3D road mesh from the given road data.
 pub struct RoadBuilder {
     mesh_builder: MeshBuilder,
+    texture_builder: TextureBuilder,
     road_length: f32,
 }
 
 impl RoadBuilder {
-    pub fn new() -> Self {
+    pub fn new(road_length: f32) -> Self {
         Self {
             mesh_builder: MeshBuilder::new(),
-            road_length: DEFAULT_ROAD_LENGTH,
+            texture_builder: TextureBuilder::new(),
+            road_length,
         }
     }
 
-    pub fn with_road_length(&mut self, road_length: f32) {
-        self.road_length = road_length;
-    }
-
-    pub fn build_from_road_data(&mut self, road_data: RoadData) {
+    pub fn build_from_road_data(&mut self, road_data: &RoadData) {
         if !self.mesh_builder.empty() {
             warn!("build method called on a RoadBuilder that already contains mesh data.");
         }
 
         let road_component_length = road_data.components().len();
         let road_texture_length = road_component_length + road_data.markings().len();
+        
+        self.build_road_texture(road_data);
+        self.build_road_components(road_data, road_texture_length);
+        self.build_road_markings(road_data, road_texture_length, road_component_length);
+    }
+
+    pub fn get_mesh(&self) -> Mesh {
+        self.mesh_builder.to_mesh()
+    }
+
+    pub fn get_texture_image(&self) -> Image {
+        self.texture_builder.build_texture_image()
+    }
+
+    fn build_road_texture(&mut self, road_data: &RoadData) {
+        let road_component_colors: Vec<Color> = road_data
+            .components()
+            .iter()
+            .map(|component| component.color)
+            .collect();
+
+        let road_marking_colors: Vec<Color> = road_data
+            .markings()
+            .iter()
+            .map(|marking| marking.color)
+            .collect();
+
+        self.texture_builder
+            .add_colors([road_component_colors, road_marking_colors].concat());
+    }
+
+    fn build_road_components(&mut self, road_data: &RoadData, road_texture_length: usize) {
         let mut width_of_built_sections = 0.0;
 
         for (index, component) in road_data.enumerate_components() {
@@ -41,18 +69,6 @@ impl RoadBuilder {
                 calculate_road_component_uv(index, road_texture_length),
             )
         }
-
-        for (index, road_marking) in road_data.enumerate_markings() {
-            self.build_road_marking(
-                *road_marking,
-                calculate_road_marking_uv(index, road_texture_length, road_component_length),
-                &road_data,
-            );
-        }
-    }
-
-    pub fn get_mesh(&self) -> Mesh {
-        self.mesh_builder.to_mesh()
     }
 
     fn build_road_component(
@@ -87,6 +103,21 @@ impl RoadBuilder {
         );
 
         *width_of_built_sections += component_size.x;
+    }
+
+    fn build_road_markings(
+        &mut self,
+        road_data: &RoadData,
+        road_texture_length: usize,
+        road_component_length: usize,
+    ) {
+        for (index, road_marking) in road_data.enumerate_markings() {
+            self.build_road_marking(
+                *road_marking,
+                calculate_road_marking_uv(index, road_texture_length, road_component_length),
+                road_data,
+            );
+        }
     }
 
     fn build_road_marking(&mut self, road_marking: RoadMarking, uv: Vec2, road_data: &RoadData) {

@@ -8,7 +8,6 @@ use crate::{
         road_node::road_node_builder::get_or_build_road_node,
     },
     road_drawer::selected_road::SelectedRoad,
-    utility::texture_builder::TextureBuilder,
     GameRunningSet,
 };
 
@@ -102,14 +101,12 @@ fn build_road_section_pbr_bundle(
     road_data: &RoadData,
     road_length: f32,
 ) -> PbrBundle {
-    // Create road mesh
-    let mut road_builder = RoadBuilder::new();
-    road_builder.with_road_length(road_length);
-    road_builder.build_from_road_data(road_data.clone());
+    let mut road_builder = RoadBuilder::new(road_length);
+    road_builder.build_from_road_data(road_data);
+
     let road_mesh_handle = mesh_assets.add(road_builder.get_mesh());
 
-    // Create road material
-    let road_texture_image_handle = image_assets.add(road_texture_from_road_data(road_data));
+    let road_texture_image_handle = image_assets.add(road_builder.get_texture_image());
     let road_material_handle = material_assets.add(StandardMaterial {
         base_color_texture: Some(road_texture_image_handle),
         perceptual_roughness: 0.7,
@@ -131,21 +128,4 @@ fn get_road_section_collider(road_section_size: Vec3) -> Collider {
     let half_size = road_section_size / 2.0;
 
     Collider::cuboid(half_size.x, half_size.y, half_size.z)
-}
-
-// TODO: move to road builder
-fn road_texture_from_road_data(road_data: &RoadData) -> Image {
-    let road_component_colors: Vec<Color> = road_data
-        .components()
-        .iter()
-        .map(|component| component.color)
-        .collect();
-
-    let road_marking_colors: Vec<Color> = road_data
-        .markings()
-        .iter()
-        .map(|marking| marking.color)
-        .collect();
-
-    TextureBuilder::image_from_colors([road_component_colors, road_marking_colors].concat())
 }
