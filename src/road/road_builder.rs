@@ -4,19 +4,24 @@ use crate::utility::mesh_builder::MeshBuilder;
 
 use super::{road_data::RoadData, road_marking::RoadMarking};
 
-// TODO: replace with builder parameter, then pass correct road section length in drawer mode
-const ROAD_LENGTH: f32 = 20.0;
+const DEFAULT_ROAD_LENGTH: f32 = 20.0;
 
 /// Builds the 3D road mesh from the given road data.
 pub struct RoadBuilder {
     mesh_builder: MeshBuilder,
+    road_length: f32,
 }
 
 impl RoadBuilder {
     pub fn new() -> Self {
         Self {
             mesh_builder: MeshBuilder::new(),
+            road_length: DEFAULT_ROAD_LENGTH,
         }
+    }
+
+    pub fn with_road_length(&mut self, road_length: f32) {
+        self.road_length = road_length;
     }
 
     pub fn build_from_road_data(&mut self, road_data: RoadData) {
@@ -65,17 +70,19 @@ impl RoadBuilder {
 
         // Build left side quad
         self.mesh_builder.add_quad(
-            calculate_left_face_transform(x_position, component_size),
+            calculate_left_face_transform(x_position, component_size, self.road_length),
             uv,
         );
 
         // Build top quad
-        self.mesh_builder
-            .add_quad(calculate_top_face_transform(x_position, component_size), uv);
+        self.mesh_builder.add_quad(
+            calculate_top_face_transform(x_position, component_size, self.road_length),
+            uv,
+        );
 
         // Build right side quad
         self.mesh_builder.add_quad(
-            calculate_right_face_transform(x_position, component_size),
+            calculate_right_face_transform(x_position, component_size, self.road_length),
             uv,
         );
 
@@ -92,7 +99,7 @@ impl RoadBuilder {
 
         let size = Vec2::new(road_marking.segment_width, road_height + 0.01);
         self.mesh_builder.add_quad(
-            calculate_top_face_transform(road_marking.x_position, size),
+            calculate_top_face_transform(road_marking.x_position, size, self.road_length),
             uv,
         );
     }
@@ -100,21 +107,21 @@ impl RoadBuilder {
 
 // Utils
 
-fn calculate_left_face_transform(x_position: f32, size: Vec2) -> Transform {
+fn calculate_left_face_transform(x_position: f32, size: Vec2, road_length: f32) -> Transform {
     Transform::from_translation(Vec3::X * x_position)
-        .with_scale(Vec3::new(ROAD_LENGTH, size.y, size.x))
+        .with_scale(Vec3::new(road_length, size.y, size.x))
         .looking_to(Vec3::NEG_X, Vec3::Y)
 }
 
-fn calculate_top_face_transform(x_position: f32, size: Vec2) -> Transform {
+fn calculate_top_face_transform(x_position: f32, size: Vec2, road_length: f32) -> Transform {
     Transform::from_translation(Vec3::X * x_position)
-        .with_scale(Vec3::new(ROAD_LENGTH, size.x, size.y))
+        .with_scale(Vec3::new(road_length, size.x, size.y))
         .looking_to(Vec3::Y, Vec3::X)
 }
 
-fn calculate_right_face_transform(x_position: f32, size: Vec2) -> Transform {
+fn calculate_right_face_transform(x_position: f32, size: Vec2, road_length: f32) -> Transform {
     Transform::from_translation(Vec3::X * x_position)
-        .with_scale(Vec3::new(ROAD_LENGTH, size.y, size.x))
+        .with_scale(Vec3::new(road_length, size.y, size.x))
         .looking_to(Vec3::X, Vec3::Y)
 }
 

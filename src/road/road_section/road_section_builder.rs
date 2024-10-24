@@ -62,14 +62,22 @@ fn build_road_sections_on_request(
             selected_road_design.clone(),
         );
 
+        let road_section_size = calculate_road_section_size(
+            selected_road_design,
+            requested_section.start.position,
+            requested_section.end.position,
+        );
+
         let pbr_bundle = build_road_section_pbr_bundle(
             &mut mesh_assets,
             &mut image_assets,
             &mut material_assets,
             requested_section,
             selected_road_design,
+            road_section_size.z,
         );
-        let collider = get_road_section_collider(selected_road_design, requested_section);
+
+        let collider = get_road_section_collider(road_section_size);
 
         commands.spawn((road_section, pbr_bundle, collider));
     }
@@ -92,9 +100,11 @@ fn build_road_section_pbr_bundle(
     material_assets: &mut Assets<StandardMaterial>,
     requested_section: &RequestedRoadSection,
     road_data: &RoadData,
+    road_length: f32,
 ) -> PbrBundle {
     // Create road mesh
     let mut road_builder = RoadBuilder::new();
+    road_builder.with_road_length(road_length);
     road_builder.build_from_road_data(road_data.clone());
     let road_mesh_handle = mesh_assets.add(road_builder.get_mesh());
 
@@ -117,21 +127,10 @@ fn build_road_section_pbr_bundle(
     }
 }
 
-fn get_road_section_collider(
-    selected_road_design: &RoadData,
-    requested_section: &RequestedRoadSection,
-) -> Collider {
-    let half_section_size = calculate_road_section_size(
-        selected_road_design,
-        requested_section.start.position,
-        requested_section.end.position,
-    ) / 2.0;
+fn get_road_section_collider(road_section_size: Vec3) -> Collider {
+    let half_size = road_section_size / 2.0;
 
-    Collider::cuboid(
-        half_section_size.x,
-        half_section_size.y,
-        half_section_size.z,
-    )
+    Collider::cuboid(half_size.x, half_size.y, half_size.z)
 }
 
 // TODO: move to road builder

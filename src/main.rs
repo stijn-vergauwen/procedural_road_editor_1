@@ -57,7 +57,6 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - draw mesh of selected road for sections
         - Ui button to toggle bulldozer tool
         - curved roads (circular arc)
         - debug gizmos for curved roads
