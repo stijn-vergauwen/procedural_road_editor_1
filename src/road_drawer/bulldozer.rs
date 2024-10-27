@@ -1,4 +1,7 @@
+pub mod ui;
+
 use bevy::prelude::*;
+use ui::BulldozerUiPlugin;
 
 use crate::{
     game_modes::GameMode,
@@ -10,13 +13,13 @@ use crate::{
     GameRunningSet,
 };
 
-use super::RoadDrawerTool;
+use super::road_drawer_tool::{OnRoadDrawerToolChangeRequested, RoadDrawerTool};
 
 pub struct BulldozerPlugin;
 
 impl Plugin for BulldozerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(
+        app.add_plugins(BulldozerUiPlugin).add_systems(
             Update,
             (
                 switch_to_bulldozer_on_b_key.in_set(GameRunningSet::GetUserInput),
@@ -30,19 +33,17 @@ impl Plugin for BulldozerPlugin {
 }
 
 fn switch_to_bulldozer_on_b_key(
+    mut on_request: EventWriter<OnRoadDrawerToolChangeRequested>,
     current_tool: Res<State<RoadDrawerTool>>,
-    mut next_tool: ResMut<NextState<RoadDrawerTool>>,
     keyboard_input: Res<ButtonInput<KeyCode>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::KeyB) {
         let new_value = match current_tool.get() {
-            RoadDrawerTool::Drawer => RoadDrawerTool::Bulldozer,
             RoadDrawerTool::Bulldozer => RoadDrawerTool::Drawer,
+            _ => RoadDrawerTool::Bulldozer,
         };
 
-        println!("Switch to tool: {:?}", new_value);
-
-        next_tool.set(new_value);
+        on_request.send(OnRoadDrawerToolChangeRequested::new(new_value));
     }
 }
 

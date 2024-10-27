@@ -14,7 +14,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{selected_road::SelectedRoad, RoadDrawer, RoadDrawerTool};
+use super::{road_drawer_tool::RoadDrawerTool, selected_road::SelectedRoad, RoadDrawer};
 
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;

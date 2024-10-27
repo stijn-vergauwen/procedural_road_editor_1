@@ -57,10 +57,9 @@ use world::WorldPlugin;
 
 
     Backlog:
-        - Ui button to toggle bulldozer tool
         - curved roads (circular arc)
         - debug gizmos for curved roads
-        - align curved sections with connected sections
+        - align curved sections with connected sections (draw straight + curved segment at once to connect)
 
         - clear road drawer nodes and sections when leaving drawer mode
 

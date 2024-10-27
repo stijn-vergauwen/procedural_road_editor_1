@@ -2,6 +2,7 @@ use bevy::{prelude::*, ui::FocusPolicy};
 
 use crate::{
     game_modes::GameMode,
+    road_drawer::bulldozer::ui::BulldozerUiButton,
     ui::components::{
         buttons::{ButtonAction, TextButtonBuilder},
         content_size::ContentSizeConfig,
@@ -63,6 +64,8 @@ fn spawn_selected_road_ui(mut commands: Commands) {
                 TextBuilder::default()
                     .with_text("Selected road name")
                     .spawn(section, SelectedRoadName);
+
+                TextButtonBuilder::default_with_text("Bulldozer").spawn(section, BulldozerUiButton);
             });
         });
 }
