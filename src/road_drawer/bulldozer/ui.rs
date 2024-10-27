@@ -1,10 +1,15 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     game_modes::GameMode,
-    road_drawer::road_drawer_tool::{OnRoadDrawerToolChangeRequested, RoadDrawerTool},
+    road_drawer::road_drawer_tool::{
+        OnRoadDrawerToolChangeRequested, OnRoadDrawerToolChanged, RoadDrawerTool,
+    },
     GameRunningSet,
 };
+
+const BUTTON_COLOR: Srgba = NEUTRAL_500;
+const BUTTON_ACTIVE_COLOR: Srgba = YELLOW_500;
 
 pub struct BulldozerUiPlugin;
 
@@ -12,8 +17,10 @@ impl Plugin for BulldozerUiPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            send_request_on_button_pressed
-                .in_set(GameRunningSet::SendCommands)
+            (
+                send_request_on_button_pressed.in_set(GameRunningSet::SendCommands),
+                change_button_color_on_tool_changed.in_set(GameRunningSet::UpdateEntities),
+            )
                 .run_if(in_state(GameMode::RoadDrawer)),
         );
     }
@@ -37,5 +44,19 @@ fn send_request_on_button_pressed(
         };
 
         on_request.send(OnRoadDrawerToolChangeRequested::new(new_value));
+    }
+}
+
+fn change_button_color_on_tool_changed(
+    mut on_changed: EventReader<OnRoadDrawerToolChanged>,
+    mut button_query: Query<&mut BackgroundColor, With<BulldozerUiButton>>,
+) {
+    for event in on_changed.read() {
+        let new_color = match event.tool {
+            RoadDrawerTool::Bulldozer => BUTTON_ACTIVE_COLOR,
+            _ => BUTTON_COLOR,
+        };
+
+        button_query.single_mut().0 = new_color.into();
     }
 }

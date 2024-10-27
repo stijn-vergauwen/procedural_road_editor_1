@@ -37,8 +37,7 @@ impl OnRoadDrawerToolChangeRequested {
 
 #[derive(Event, Clone, Copy)]
 pub struct OnRoadDrawerToolChanged {
-    #[expect(unused)]
-    tool: RoadDrawerTool,
+    pub tool: RoadDrawerTool,
 }
 
 impl OnRoadDrawerToolChanged {
