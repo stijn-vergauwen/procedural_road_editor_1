@@ -1,17 +1,17 @@
 mod bulldozer;
 mod gizmos;
 mod road_being_drawn;
-pub mod selected_road;
 mod road_drawer_tool;
+pub mod selected_road;
 
 use bevy::prelude::*;
 use bulldozer::BulldozerPlugin;
 use gizmos::RoadDrawerGizmosPlugin;
-use road_being_drawn::RoadBeingDrawnPlugin;
+use road_being_drawn::{RoadBeingDrawn, RoadBeingDrawnPlugin};
 use road_drawer_tool::RoadDrawerToolPlugin;
 use selected_road::SelectedRoadPlugin;
 
-use crate::{game_modes::GameMode, road::road_section::RequestedRoadSection};
+use crate::game_modes::GameMode;
 
 pub struct RoadDrawerPlugin;
 
@@ -31,7 +31,7 @@ impl Plugin for RoadDrawerPlugin {
 
 #[derive(Resource, Default, Debug)]
 pub struct RoadDrawer {
-    section_being_drawn: Option<RequestedRoadSection>,
+    road_being_drawn: Option<RoadBeingDrawn>,
 }
 
 fn init_road_drawer(mut commands: Commands) {

@@ -86,7 +86,7 @@ use world::WorldPlugin;
 */
 
 /*
-    Ideal project file structure:
+    Ideal project file structure (but outdated):
 
     - main
         - road

@@ -22,6 +22,7 @@ impl Plugin for RoadSectionPlugin {
 #[derive(Component, Debug, Clone)]
 pub struct RoadSection {
     pub ends: [RoadSectionEnd; 2],
+    #[expect(unused)]
     pub shape: RoadSectionShape,
     pub road_design: RoadData,
 }
@@ -52,6 +53,7 @@ pub struct RoadSectionEnd {
     /// The entity of the road node this end is connected to.
     pub road_node_entity: Entity,
     /// The outwards facing direction that this end looks towards.
+    #[expect(unused)]
     pub direction: Dir3,
 }
 
@@ -67,6 +69,7 @@ impl RoadSectionEnd {
 #[derive(Clone, Copy, Debug)]
 pub enum RoadSectionShape {
     Straight,
+    #[expect(unused)]
     Curved,
 }
 
