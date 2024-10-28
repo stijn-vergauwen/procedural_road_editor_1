@@ -13,7 +13,7 @@ use crate::{
 
 use super::{
     calculate_road_section_size, calculate_road_section_transform, RequestedRoadSection,
-    RoadSection,
+    RoadSection, RoadSectionEnd,
 };
 
 pub struct RoadSectionBuilderPlugin;
@@ -36,6 +36,8 @@ pub struct OnBuildRoadSectionRequested {
 
 impl OnBuildRoadSectionRequested {
     pub fn new(requested_section: RequestedRoadSection) -> Self {
+        // TODO: assert that straight sections have to have their ends in opposite directions
+        // TODO: assert that curved sections can't have their ends in opposite directions
         Self { requested_section }
     }
 }
@@ -62,8 +64,8 @@ fn build_road_sections_on_request(
 
         let road_section_size = calculate_road_section_size(
             selected_road_design,
-            requested_section.start.position,
-            requested_section.end.position,
+            requested_section.start().road_node.position,
+            requested_section.end().road_node.position,
         );
 
         let pbr_bundle = build_road_section_pbr_bundle(
@@ -86,10 +88,14 @@ fn get_requested_road_section(
     commands: &mut Commands,
     road_design: RoadData,
 ) -> RoadSection {
-    let start_node_entity = get_or_build_road_node(commands, requested_section.start);
-    let end_node_entity = get_or_build_road_node(commands, requested_section.end);
+    let ends = requested_section.ends.map(|end| {
+        RoadSectionEnd::new(
+            get_or_build_road_node(commands, end.road_node),
+            end.direction,
+        )
+    });
 
-    RoadSection::new(start_node_entity, end_node_entity, road_design)
+    RoadSection::new(ends, requested_section.shape, road_design)
 }
 
 fn build_road_section_pbr_bundle(
@@ -116,8 +122,8 @@ fn build_road_section_pbr_bundle(
         mesh: road_mesh_handle,
         material: road_material_handle,
         transform: calculate_road_section_transform(
-            requested_section.start.position,
-            requested_section.end.position,
+            requested_section.start().road_node.position,
+            requested_section.end().road_node.position,
         ),
         ..default()
     }

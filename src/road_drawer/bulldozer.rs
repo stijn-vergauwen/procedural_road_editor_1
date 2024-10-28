@@ -81,27 +81,25 @@ fn delete_road_section(
 
     commands.entity(road_section_to_delete).despawn();
 
-    if count_sections_connected_to_road_node(road_section.start_node, road_section_query) == 1 {
-        commands.entity(road_section.start_node).despawn();
-    }
-
-    if count_sections_connected_to_road_node(road_section.end_node, road_section_query) == 1 {
-        commands.entity(road_section.end_node).despawn();
+    for end in road_section.ends {
+        if count_sections_connected_to_road_node(end.road_node_entity, road_section_query) == 1 {
+            commands.entity(end.road_node_entity).despawn();
+        }
     }
 }
 
 fn count_sections_connected_to_road_node(
-    road_node: Entity,
+    road_node_entity: Entity,
     road_section_query: &Query<&RoadSection>,
 ) -> u8 {
     let mut result = 0;
 
     for road_section in road_section_query.iter() {
-        if road_section.start_node == road_node {
-            result += 1;
-        }
-
-        if road_section.end_node == road_node {
+        if road_section
+            .ends
+            .iter()
+            .any(|end| end.road_node_entity == road_node_entity)
+        {
             result += 1;
         }
     }

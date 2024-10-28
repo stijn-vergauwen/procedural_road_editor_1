@@ -58,8 +58,13 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
+            - use a 3rd anchor point to decide what direction the road should start in
         - debug gizmos for curved roads
         - align curved sections with connected sections (draw straight + curved segment at once to connect)
+            - there are 3 cases for start & end node of road being drawn:
+                - neither are snapped to existing nodes, in this case the anchor decides 
+            - when the start or end of the road being drawn snaps to an existing section, the curve anchor should decide the direction of the side that's not snapped
+            - when the start and end of the road being drawn are both snapped to an existing section, there should be no curve anchor
 
         - clear road drawer nodes and sections when leaving drawer mode
 

@@ -4,7 +4,10 @@ use crate::{
     game_modes::GameMode,
     road::{
         road_node::{RequestedRoadNode, RoadNode},
-        road_section::{road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection},
+        road_section::{
+            road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection,
+            RequestedRoadSectionEnd, RoadSectionShape,
+        },
     },
     world::world_interaction::{
         interaction_target::{InteractionTarget, OnWorldInteractionTargetUpdated},
@@ -44,6 +47,8 @@ impl Plugin for RoadBeingDrawnPlugin {
     }
 }
 
+// TODO: add RoadBeingDrawn struct to differenciate between data that's snapped and not snapped
+
 fn start_drawing_road_on_mouse_press(
     mut on_interaction: EventReader<OnMouseInteraction>,
     mut road_drawer: ResMut<RoadDrawer>,
@@ -56,19 +61,28 @@ fn start_drawing_road_on_mouse_press(
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
         if !selected_road.has_selected_road() || road_drawer.section_being_drawn.is_some() {
-            return;
+            continue;
         }
 
         let Some(interaction_target) = world_interaction.interaction_target() else {
-            return;
+            continue;
         };
 
         road_drawer.section_being_drawn = Some(RequestedRoadSection {
-            start: snap_interaction_target_to_nearest_road_node(
-                &road_node_query,
-                &interaction_target,
-            ),
-            end: RequestedRoadNode::new(interaction_target.point, None),
+            ends: [
+                RequestedRoadSectionEnd::new(
+                    snap_interaction_target_to_nearest_road_node(
+                        &road_node_query,
+                        &interaction_target,
+                    ),
+                    Dir3::X, // TODO: calculate direction
+                ),
+                RequestedRoadSectionEnd::new(
+                    RequestedRoadNode::new(interaction_target.point, None),
+                    Dir3::X, // TODO: calculate direction
+                ),
+            ],
+            shape: RoadSectionShape::Straight,
         });
     }
 }
@@ -83,11 +97,13 @@ fn update_road_being_drawn_on_target_update(
         .filter_map(|event| event.interaction_target)
     {
         let Some(section_being_drawn) = &mut road_drawer.section_being_drawn else {
-            return;
+            continue;
         };
 
-        section_being_drawn.end =
-            snap_interaction_target_to_nearest_road_node(&road_node_query, &interaction_target);
+        section_being_drawn.ends[1] = RequestedRoadSectionEnd::new(
+            snap_interaction_target_to_nearest_road_node(&road_node_query, &interaction_target),
+            Dir3::X, // TODO: calculate direction
+        );
     }
 }
 
@@ -101,7 +117,7 @@ fn send_build_section_request_on_mouse_press(
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
         let Some(section_being_drawn) = road_drawer.section_being_drawn else {
-            return;
+            continue;
         };
 
         on_request_section.send(OnBuildRoadSectionRequested::new(section_being_drawn));

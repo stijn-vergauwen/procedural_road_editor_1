@@ -29,11 +29,11 @@ fn draw_road_section_gizmos(
     road_node_query: Query<&Transform, With<RoadNode>>,
 ) {
     for section in road_section_query.iter() {
-        let Ok(start_node_transform) = road_node_query.get(section.start_node) else {
+        let Ok(start_node_transform) = road_node_query.get(section.start().road_node_entity) else {
             continue;
         };
 
-        let Ok(end_node_transform) = road_node_query.get(section.end_node) else {
+        let Ok(end_node_transform) = road_node_query.get(section.end().road_node_entity) else {
             continue;
         };
 

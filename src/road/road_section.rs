@@ -15,27 +15,94 @@ impl Plugin for RoadSectionPlugin {
     }
 }
 
-// TODO: enum for straight or curved (each curve is its own section)
+// TODO: add RoadSectionDirection enum with values Normal & Reversed, this describes which road-end should be seen as "start" and which as "end"
 
 /// A section of 3D road connecting 2 RoadNode entities.
-/// - Nodes describe start & end position while Sections describe how they're connected.
+/// - Nodes describe points while Sections describe how they're connected.
 #[derive(Component, Debug, Clone)]
 pub struct RoadSection {
-    pub start_node: Entity,
-    pub end_node: Entity,
+    pub ends: [RoadSectionEnd; 2],
+    pub shape: RoadSectionShape,
     pub road_design: RoadData,
 }
 
 impl RoadSection {
-    pub fn new(start_node: Entity, end_node: Entity, road_design: RoadData) -> Self {
-        Self { start_node, end_node, road_design }
+    pub fn new(ends: [RoadSectionEnd; 2], shape: RoadSectionShape, road_design: RoadData) -> Self {
+        Self {
+            ends,
+            shape,
+            road_design,
+        }
+    }
+
+    /// Returns the RoadSectionEnd that is considered the "start" of this section.
+    pub fn start(&self) -> RoadSectionEnd {
+        self.ends[0]
+    }
+
+    /// Returns the RoadSectionEnd that is considered the "end" of this section.
+    pub fn end(&self) -> RoadSectionEnd {
+        self.ends[1]
+    }
+}
+
+/// The ends of a `RoadSection`
+#[derive(Clone, Copy, Debug)]
+pub struct RoadSectionEnd {
+    /// The entity of the road node this end is connected to.
+    pub road_node_entity: Entity,
+    /// The outwards facing direction that this end looks towards.
+    pub direction: Dir3,
+}
+
+impl RoadSectionEnd {
+    pub fn new(road_node_entity: Entity, direction: Dir3) -> Self {
+        Self {
+            road_node_entity,
+            direction,
+        }
     }
 }
 
 #[derive(Clone, Copy, Debug)]
+pub enum RoadSectionShape {
+    Straight,
+    Curved,
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct RequestedRoadSection {
-    pub start: RequestedRoadNode,
-    pub end: RequestedRoadNode,
+    pub ends: [RequestedRoadSectionEnd; 2],
+    pub shape: RoadSectionShape,
+}
+
+impl RequestedRoadSection {
+    /// Returns the RequestedRoadSectionEnd that is considered the "start" of this section.
+    pub fn start(&self) -> RequestedRoadSectionEnd {
+        self.ends[0]
+    }
+
+    /// Returns the RequestedRoadSectionEnd that is considered the "end" of this section.
+    pub fn end(&self) -> RequestedRoadSectionEnd {
+        self.ends[1]
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct RequestedRoadSectionEnd {
+    /// The node this end is connected to.
+    pub road_node: RequestedRoadNode,
+    /// The outwards facing direction that this end looks towards.
+    pub direction: Dir3,
+}
+
+impl RequestedRoadSectionEnd {
+    pub fn new(road_node: RequestedRoadNode, direction: Dir3) -> Self {
+        Self {
+            road_node,
+            direction,
+        }
+    }
 }
 
 fn calculate_road_section_transform(

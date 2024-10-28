@@ -39,8 +39,8 @@ fn draw_road_section_gizmo(
 
         let road_section_transform = calculate_road_section_gizmo_transform(
             road_data,
-            road_being_drawn.start.position,
-            road_being_drawn.end.position,
+            road_being_drawn.start().road_node.position,
+            road_being_drawn.end().road_node.position,
         );
 
         gizmos.cuboid(road_section_transform, ROAD_SECTION_GIZMO_COLOR);
@@ -49,15 +49,8 @@ fn draw_road_section_gizmo(
 
 fn draw_road_node_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
     if let Some(road_being_drawn) = road_drawer.section_being_drawn {
-        draw_road_node_gizmo(
-            &mut gizmos,
-            road_being_drawn.start.position,
-            ROAD_NODE_GIZMO_COLOR,
-        );
-        draw_road_node_gizmo(
-            &mut gizmos,
-            road_being_drawn.end.position,
-            ROAD_NODE_GIZMO_COLOR,
-        );
+        for end in road_being_drawn.ends {
+            draw_road_node_gizmo(&mut gizmos, end.road_node.position, ROAD_NODE_GIZMO_COLOR);
+        }
     }
 }
