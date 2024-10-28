@@ -99,15 +99,6 @@ pub struct RequestedRoadSectionEnd {
     pub direction: Dir3,
 }
 
-impl RequestedRoadSectionEnd {
-    pub fn new(road_node: RequestedRoadNode, direction: Dir3) -> Self {
-        Self {
-            road_node,
-            direction,
-        }
-    }
-}
-
 fn calculate_road_section_transform(
     start_node_position: Vec3,
     end_node_position: Vec3,

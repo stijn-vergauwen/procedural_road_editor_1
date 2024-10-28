@@ -22,9 +22,9 @@ use super::{road_drawer_tool::RoadDrawerTool, selected_road::SelectedRoad, RoadD
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
 
-pub struct RoadBeingDrawnPlugin;
+pub struct SectionBeingDrawnPlugin;
 
-impl Plugin for RoadBeingDrawnPlugin {
+impl Plugin for SectionBeingDrawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -48,9 +48,54 @@ impl Plugin for RoadBeingDrawnPlugin {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct RoadBeingDrawn {
-    pub data: RequestedRoadSection,
-    pub snapped_data: RequestedRoadSection,
+pub struct SectionBeingDrawn {
+    pub ends: [SectionEndBeingDrawn; 2],
+    pub shape: RoadSectionShape,
+}
+
+impl SectionBeingDrawn {
+    fn to_requested_road_section(&self) -> RequestedRoadSection {
+        RequestedRoadSection {
+            ends: self.ends.map(|end| end.to_requested_road_section_end()),
+            shape: self.shape,
+        }
+    }
+
+    pub fn start(&self) -> SectionEndBeingDrawn {
+        self.ends[0]
+    }
+
+    pub fn end(&self) -> SectionEndBeingDrawn {
+        self.ends[1]
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct SectionEndBeingDrawn {
+    pub position: Vec3,
+    pub direction: Dir3,
+    pub nearest_road_node: Option<NearestRoadNode>,
+}
+
+impl SectionEndBeingDrawn {
+    fn to_requested_road_section_end(&self) -> RequestedRoadSectionEnd {
+        let road_node = match self.nearest_road_node {
+            Some(nearest_node) => nearest_node.to_requested_road_node(),
+            None => RequestedRoadNode::new(self.position, None),
+        };
+
+        RequestedRoadSectionEnd {
+            road_node,
+            direction: self.direction,
+        }
+    }
+
+    pub fn snapped_position(&self) -> Vec3 {
+        match self.nearest_road_node {
+            Some(nearest_node) => nearest_node.position,
+            None => self.position,
+        }
+    }
 }
 
 fn start_drawing_road_on_mouse_press(
@@ -64,7 +109,7 @@ fn start_drawing_road_on_mouse_press(
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
-        if !selected_road.has_selected_road() || road_drawer.road_being_drawn.is_some() {
+        if !selected_road.has_selected_road() || road_drawer.section_being_drawn.is_some() {
             continue;
         }
 
@@ -72,23 +117,14 @@ fn start_drawing_road_on_mouse_press(
             continue;
         };
 
-        let road_section_end = build_section_end(interaction_target);
+        let road_section_end = build_section_end(interaction_target, &road_node_query);
 
-        let snapped_road_section_end =
-            snap_section_end_to_existing_node(road_section_end, &road_node_query);
-
-        let road_being_drawn = RoadBeingDrawn {
-            data: RequestedRoadSection {
-                ends: [road_section_end; 2],
-                shape: RoadSectionShape::Straight,
-            },
-            snapped_data: RequestedRoadSection {
-                ends: [snapped_road_section_end, road_section_end],
-                shape: RoadSectionShape::Straight,
-            },
+        let section_being_drawn = SectionBeingDrawn {
+            ends: [road_section_end; 2],
+            shape: RoadSectionShape::Straight,
         };
 
-        road_drawer.road_being_drawn = Some(road_being_drawn);
+        road_drawer.section_being_drawn = Some(section_being_drawn);
     }
 }
 
@@ -101,15 +137,11 @@ fn update_road_being_drawn_on_target_update(
         .read()
         .filter_map(|event| event.interaction_target)
     {
-        let Some(road_being_drawn) = &mut road_drawer.road_being_drawn else {
+        let Some(section_being_drawn) = &mut road_drawer.section_being_drawn else {
             continue;
         };
 
-        let road_section_end = build_section_end(interaction_target);
-
-        road_being_drawn.data.ends[1] = road_section_end;
-        road_being_drawn.snapped_data.ends[1] =
-            snap_section_end_to_existing_node(road_section_end, &road_node_query)
+        section_being_drawn.ends[1] = build_section_end(interaction_target, &road_node_query);
     }
 }
 
@@ -122,14 +154,14 @@ fn send_build_section_request_on_mouse_press(
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
-        let Some(road_being_drawn) = road_drawer.road_being_drawn else {
+        let Some(section_being_drawn) = road_drawer.section_being_drawn else {
             continue;
         };
 
         on_request_section.send(OnBuildRoadSectionRequested::new(
-            road_being_drawn.snapped_data,
+            section_being_drawn.to_requested_road_section(),
         ));
-        road_drawer.road_being_drawn = None;
+        road_drawer.section_being_drawn = None;
     }
 }
 
@@ -140,12 +172,12 @@ fn cancel_road_on_right_click(
     for _ in on_interaction.read().filter(|event| {
         event.button == MouseButton::Right && event.phase == InteractionPhase::Started
     }) {
-        road_drawer.road_being_drawn = None;
+        road_drawer.section_being_drawn = None;
     }
 }
 
 fn cancel_road_when_leaving_drawer_tool(mut road_drawer: ResMut<RoadDrawer>) {
-    road_drawer.road_being_drawn = None;
+    road_drawer.section_being_drawn = None;
 }
 
 // Utility
@@ -156,8 +188,8 @@ fn filter_mouse_interaction(event: &&OnMouseInteraction, phase: InteractionPhase
 
 // Snapping utility
 
-#[derive(Clone, Copy)]
-struct NearestRoadNode {
+#[derive(Clone, Copy, Debug)]
+pub struct NearestRoadNode {
     position: Vec3,
     entity: Entity,
 }
@@ -168,33 +200,18 @@ impl NearestRoadNode {
     }
 }
 
-fn build_section_end(interaction_target: InteractionTarget) -> RequestedRoadSectionEnd {
-    RequestedRoadSectionEnd::new(
-        RequestedRoadNode::new(interaction_target.point, None),
-        Dir3::X, // TODO: calculate direction
-    )
-}
-
-fn snap_section_end_to_existing_node(
-    mut requested_road_section_end: RequestedRoadSectionEnd,
+fn build_section_end(
+    interaction_target: InteractionTarget,
     road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
-) -> RequestedRoadSectionEnd {
-    requested_road_section_end.road_node =
-        snap_road_node_to_existing_node(requested_road_section_end.road_node, road_node_query);
-    requested_road_section_end
-}
-
-fn snap_road_node_to_existing_node(
-    requested_road_node: RequestedRoadNode,
-    road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
-) -> RequestedRoadNode {
-    match find_road_node_nearest_to_point(
-        road_node_query,
-        requested_road_node.position,
-        ROAD_NODE_SNAP_DISTANCE,
-    ) {
-        Some(nearest_node) => nearest_node.to_requested_road_node(),
-        None => requested_road_node,
+) -> SectionEndBeingDrawn {
+    SectionEndBeingDrawn {
+        position: interaction_target.point,
+        direction: Dir3::X, // TODO: calculate direction,
+        nearest_road_node: find_road_node_nearest_to_point(
+            road_node_query,
+            interaction_target.point,
+            ROAD_NODE_SNAP_DISTANCE,
+        ),
     }
 }
 
