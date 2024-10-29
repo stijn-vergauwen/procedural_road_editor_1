@@ -66,10 +66,9 @@ impl RoadSectionEnd {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RoadSectionShape {
     Straight,
-    #[expect(unused)]
     Curved,
 }
 

@@ -33,6 +33,7 @@ impl Plugin for SectionBeingDrawnPlugin {
                 (
                     start_drawing_road_on_mouse_press,
                     update_road_being_drawn_on_target_update,
+                    set_curved_section_direction_on_mouse_press,
                     cancel_road_on_right_click,
                 )
                     .chain()
@@ -47,10 +48,11 @@ impl Plugin for SectionBeingDrawnPlugin {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct SectionBeingDrawn {
     pub ends: [SectionEndBeingDrawn; 2],
     pub shape: RoadSectionShape,
+    pub debug_circles: Vec<DebugCircle>,
 }
 
 impl SectionBeingDrawn {
@@ -106,6 +108,19 @@ impl SectionEndBeingDrawn {
     }
 }
 
+/// A helper struct to visualize the circles used to calculate curved sections
+#[derive(Clone, Copy, Debug)]
+struct DebugCircle {
+    position: Vec3,
+    radius: f32,
+}
+
+impl DebugCircle {
+    fn new(position: Vec3, radius: f32) -> Self {
+        Self { position, radius }
+    }
+}
+
 // Systems
 
 fn start_drawing_road_on_mouse_press(
@@ -131,7 +146,8 @@ fn start_drawing_road_on_mouse_press(
 
         let section_being_drawn = SectionBeingDrawn {
             ends: [road_section_end; 2],
-            shape: RoadSectionShape::Straight,
+            shape: RoadSectionShape::Curved,
+            debug_circles: Vec::new(),
         };
 
         road_drawer.section_being_drawn = Some(section_being_drawn);
@@ -151,18 +167,65 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
-        let direction = calculate_section_end_direction(
-            section_being_drawn.end().snapped_position(),
-            section_being_drawn.start().snapped_position(),
-        );
+        match section_being_drawn.shape {
+            RoadSectionShape::Straight => {
+                let direction = calculate_section_end_direction(
+                    section_being_drawn.end().snapped_position(),
+                    section_being_drawn.start().snapped_position(),
+                );
 
-        section_being_drawn.ends[1] =
-            build_section_end(interaction_target, &road_node_query, direction);
+                section_being_drawn.ends[1] =
+                    build_section_end(interaction_target, &road_node_query, direction);
 
-        section_being_drawn.ends[0].direction = section_being_drawn
-            .end()
-            .direction
-            .map(|direction| -direction);
+                section_being_drawn.ends[0].direction = section_being_drawn
+                    .end()
+                    .direction
+                    .map(|direction| -direction);
+            }
+            RoadSectionShape::Curved => {
+                if let Some(start_direction) = section_being_drawn.start().direction {
+                    // TODO: implement
+                    //  - calculate angle between inverted start_direction & direction from start_position to end_position
+                    //  - double this angle to get the end_direction
+                    //  - calculate vectors that are perpendicular to start & end directions that are pointing inwards
+                    //  - calculate the intersection of these inwards pointing perpendiculars
+                    //  - make debug circles for the inside and outside of the road width
+                }
+
+                section_being_drawn.ends[1] =
+                    build_section_end(interaction_target, &road_node_query, None);
+            }
+        }
+    }
+}
+
+fn set_curved_section_direction_on_mouse_press(
+    mut on_interaction: EventReader<OnMouseInteraction>,
+    mut road_drawer: ResMut<RoadDrawer>,
+    world_interaction: Res<WorldInteraction>,
+) {
+    for _ in on_interaction
+        .read()
+        .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
+    {
+        let Some(section_being_drawn) = &mut road_drawer.section_being_drawn else {
+            continue;
+        };
+
+        let Some(interaction_target) = world_interaction.interaction_target() else {
+            continue;
+        };
+
+        if section_being_drawn.shape == RoadSectionShape::Curved
+            && section_being_drawn.start().direction.is_none()
+        {
+            let direction = calculate_section_end_direction(
+                section_being_drawn.start().position,
+                interaction_target.point,
+            );
+
+            section_being_drawn.ends[0].direction = direction;
+        }
     }
 }
 
@@ -175,7 +238,7 @@ fn send_build_section_request_on_mouse_press(
         .read()
         .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
     {
-        let Some(section_being_drawn) = road_drawer.section_being_drawn else {
+        let Some(section_being_drawn) = &road_drawer.section_being_drawn else {
             continue;
         };
 

@@ -4,7 +4,7 @@ use crate::{
     game_modes::GameMode,
     road::{
         road_node::gizmos::draw_road_node_gizmo,
-        road_section::gizmos::calculate_road_section_gizmo_transform,
+        road_section::{gizmos::calculate_road_section_gizmo_transform, RoadSectionShape},
     },
     GameRunningSet,
 };
@@ -22,7 +22,7 @@ impl Plugin for RoadDrawerGizmosPlugin {
         app.add_systems(
             Update,
             (
-                draw_road_section_gizmo,
+                draw_straight_road_section_gizmo,
                 draw_road_node_gizmos,
                 draw_road_section_end_direction_gizmos,
             )
@@ -32,12 +32,16 @@ impl Plugin for RoadDrawerGizmosPlugin {
     }
 }
 
-fn draw_road_section_gizmo(
+fn draw_straight_road_section_gizmo(
     mut gizmos: Gizmos,
     road_drawer: Res<RoadDrawer>,
     selected_road: Res<SelectedRoad>,
 ) {
-    if let Some(section_being_drawn) = road_drawer.section_being_drawn {
+    if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
+        if section_being_drawn.shape != RoadSectionShape::Straight  {
+            return;
+        }
+
         let road_data = selected_road
             .selected_road()
             .expect("A road should always be selected while drawing");
@@ -53,7 +57,7 @@ fn draw_road_section_gizmo(
 }
 
 fn draw_road_node_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
-    if let Some(section_being_drawn) = road_drawer.section_being_drawn {
+    if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
         for end in section_being_drawn.ends {
             draw_road_node_gizmo(&mut gizmos, end.position, ROAD_NODE_GIZMO_COLOR);
         }
@@ -61,7 +65,7 @@ fn draw_road_node_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
 }
 
 fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
-    let Some(section_being_drawn) = road_drawer.section_being_drawn else {
+    let Some(section_being_drawn) = &road_drawer.section_being_drawn else {
         return;
     };
 
@@ -72,7 +76,7 @@ fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<R
 
         gizmos.ray(
             end.snapped_position(),
-            direction.as_vec3(),
+            direction.as_vec3() * 2.0,
             ROAD_SECTION_DIRECTION_GIZMO_COLOR,
         );
     }
