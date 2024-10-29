@@ -11,8 +11,9 @@ use crate::{
 
 use super::{selected_road::SelectedRoad, RoadDrawer};
 
-const ROAD_NODE_GIZMO_COLOR: Srgba = CYAN_300;
-const ROAD_SECTION_GIZMO_COLOR: Srgba = ORANGE_300;
+const ROAD_NODE_GIZMO_COLOR: Srgba = EMERALD_300;
+const ROAD_SECTION_GIZMO_COLOR: Srgba = SKY_300;
+const ROAD_SECTION_DIRECTION_GIZMO_COLOR: Srgba = PURPLE_500;
 
 pub struct RoadDrawerGizmosPlugin;
 
@@ -20,7 +21,11 @@ impl Plugin for RoadDrawerGizmosPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            (draw_road_section_gizmo, draw_road_node_gizmos)
+            (
+                draw_road_section_gizmo,
+                draw_road_node_gizmos,
+                draw_road_section_end_direction_gizmos,
+            )
                 .in_set(GameRunningSet::DrawGizmos)
                 .run_if(in_state(GameMode::RoadDrawer)),
         );
@@ -52,5 +57,23 @@ fn draw_road_node_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
         for end in section_being_drawn.ends {
             draw_road_node_gizmo(&mut gizmos, end.position, ROAD_NODE_GIZMO_COLOR);
         }
+    }
+}
+
+fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
+    let Some(section_being_drawn) = road_drawer.section_being_drawn else {
+        return;
+    };
+
+    for end in section_being_drawn.ends {
+        let Some(direction) = end.direction else {
+            continue;
+        };
+
+        gizmos.ray(
+            end.snapped_position(),
+            direction.as_vec3(),
+            ROAD_SECTION_DIRECTION_GIZMO_COLOR,
+        );
     }
 }

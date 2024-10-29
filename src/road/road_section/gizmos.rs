@@ -8,7 +8,7 @@ use crate::{
 
 use super::{calculate_road_section_size, calculate_road_section_transform, RoadSection};
 
-const ROAD_SECTION_GIZMO_COLOR: Srgba = ORANGE_500;
+const ROAD_SECTION_GIZMO_COLOR: Srgba = SKY_500;
 
 pub struct RoadSectionGizmosPlugin;
 

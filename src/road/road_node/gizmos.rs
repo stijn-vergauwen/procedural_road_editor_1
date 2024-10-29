@@ -2,7 +2,7 @@ use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{game_modes::GameMode, road::road_node::RoadNode, GameRunningSet};
 
-const ROAD_NODE_GIZMO_COLOR: Srgba = TEAL_500;
+const ROAD_NODE_GIZMO_COLOR: Srgba = EMERALD_600;
 const ROAD_NODE_GIZMO_RADIUS: f32 = 2.0;
 const ROAD_NODE_GIZMO_HEIGHT: f32 = 1.0;
 

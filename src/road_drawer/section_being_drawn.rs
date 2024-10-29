@@ -72,13 +72,20 @@ impl SectionBeingDrawn {
 
 #[derive(Clone, Copy, Debug)]
 pub struct SectionEndBeingDrawn {
+    /// The position of this end without snapping.
     pub position: Vec3,
-    pub direction: Dir3,
+    /// The outwards facing direction that this end looks towards.
+    pub direction: Option<Dir3>,
+    /// The nearest node to snap to.
     pub nearest_road_node: Option<NearestRoadNode>,
 }
 
 impl SectionEndBeingDrawn {
     fn to_requested_road_section_end(&self) -> RequestedRoadSectionEnd {
+        let direction = self
+            .direction
+            .expect("Direction should be Some before turing this into requested section");
+
         let road_node = match self.nearest_road_node {
             Some(nearest_node) => nearest_node.to_requested_road_node(),
             None => RequestedRoadNode::new(self.position, None),
@@ -86,10 +93,11 @@ impl SectionEndBeingDrawn {
 
         RequestedRoadSectionEnd {
             road_node,
-            direction: self.direction,
+            direction,
         }
     }
 
+    /// Returns the position of nearest_road_node if Some, otherwise returns the position of self.
     pub fn snapped_position(&self) -> Vec3 {
         match self.nearest_road_node {
             Some(nearest_node) => nearest_node.position,
@@ -97,6 +105,8 @@ impl SectionEndBeingDrawn {
         }
     }
 }
+
+// Systems
 
 fn start_drawing_road_on_mouse_press(
     mut on_interaction: EventReader<OnMouseInteraction>,
@@ -117,7 +127,7 @@ fn start_drawing_road_on_mouse_press(
             continue;
         };
 
-        let road_section_end = build_section_end(interaction_target, &road_node_query);
+        let road_section_end = build_section_end(interaction_target, &road_node_query, None);
 
         let section_being_drawn = SectionBeingDrawn {
             ends: [road_section_end; 2],
@@ -141,7 +151,18 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
-        section_being_drawn.ends[1] = build_section_end(interaction_target, &road_node_query);
+        let direction = calculate_section_end_direction(
+            section_being_drawn.end().snapped_position(),
+            section_being_drawn.start().snapped_position(),
+        );
+
+        section_being_drawn.ends[1] =
+            build_section_end(interaction_target, &road_node_query, direction);
+
+        section_being_drawn.ends[0].direction = section_being_drawn
+            .end()
+            .direction
+            .map(|direction| -direction);
     }
 }
 
@@ -157,6 +178,12 @@ fn send_build_section_request_on_mouse_press(
         let Some(section_being_drawn) = road_drawer.section_being_drawn else {
             continue;
         };
+
+        if section_being_drawn.start().direction.is_none()
+            || section_being_drawn.end().direction.is_none()
+        {
+            continue;
+        }
 
         on_request_section.send(OnBuildRoadSectionRequested::new(
             section_being_drawn.to_requested_road_section(),
@@ -186,6 +213,10 @@ fn filter_mouse_interaction(event: &&OnMouseInteraction, phase: InteractionPhase
     event.button == MOUSE_BUTTON_TO_DRAW && event.phase == phase && !event.is_on_ui
 }
 
+fn calculate_section_end_direction(position: Vec3, other_position: Vec3) -> Option<Dir3> {
+    Dir3::new(position - other_position).ok()
+}
+
 // Snapping utility
 
 #[derive(Clone, Copy, Debug)]
@@ -203,10 +234,11 @@ impl NearestRoadNode {
 fn build_section_end(
     interaction_target: InteractionTarget,
     road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
+    direction: Option<Dir3>,
 ) -> SectionEndBeingDrawn {
     SectionEndBeingDrawn {
         position: interaction_target.point,
-        direction: Dir3::X, // TODO: calculate direction,
+        direction,
         nearest_road_node: find_road_node_nearest_to_point(
             road_node_query,
             interaction_target.point,
