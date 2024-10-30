@@ -53,6 +53,7 @@ pub struct SectionBeingDrawn {
     pub ends: [SectionEndBeingDrawn; 2],
     pub shape: RoadSectionShape,
     pub debug_circles: Vec<DebugCircle>,
+    pub debug_rays: Vec<Ray2d>,
 }
 
 impl SectionBeingDrawn {
@@ -110,15 +111,21 @@ impl SectionEndBeingDrawn {
 
 /// A helper struct to visualize the circles used to calculate curved sections
 #[derive(Clone, Copy, Debug)]
-struct DebugCircle {
-    position: Vec3,
-    radius: f32,
+pub struct DebugCircle {
+    pub position: Vec3,
+    pub radius: f32,
 }
 
 impl DebugCircle {
     fn new(position: Vec3, radius: f32) -> Self {
         Self { position, radius }
     }
+}
+
+#[derive(Clone, Copy, Debug)]
+enum CurveDirection {
+    Right,
+    Left,
 }
 
 // Systems
@@ -148,6 +155,7 @@ fn start_drawing_road_on_mouse_press(
             ends: [road_section_end; 2],
             shape: RoadSectionShape::Curved,
             debug_circles: Vec::new(),
+            debug_rays: Vec::new(),
         };
 
         road_drawer.section_being_drawn = Some(section_being_drawn);
@@ -183,17 +191,124 @@ fn update_road_being_drawn_on_target_update(
                     .map(|direction| -direction);
             }
             RoadSectionShape::Curved => {
+                // TODO: refactor this block
+
+                let mut end_direction: Option<Dir3> = None;
+
                 if let Some(start_direction) = section_being_drawn.start().direction {
-                    // TODO: implement
-                    //  - calculate angle between inverted start_direction & direction from start_position to end_position
-                    //  - double this angle to get the end_direction
-                    //  - calculate vectors that are perpendicular to start & end directions that are pointing inwards
-                    //  - calculate the intersection of these inwards pointing perpendiculars
-                    //  - make debug circles for the inside and outside of the road width
+                    section_being_drawn.debug_circles.clear();
+                    section_being_drawn.debug_rays.clear();
+
+                    // Steps completed!
+                    //  * calculate angle between inverted start_direction & direction from start_position to end_position
+                    //  * double this angle to get the end_direction
+                    //  * calculate vectors that are perpendicular to start & end directions that are pointing inwards
+                    //  * calculate the intersection of these inwards pointing perpendiculars
+                    //  * make debug circles for the inside and outside of the road width
+
+                    // TODO: move to SectionEndBeingDrawn, for normal & inverted transforms
+                    let inverted_start_transform =
+                        Transform::from_translation(section_being_drawn.start().position)
+                            .looking_to(-start_direction, Dir3::Y);
+
+                    let transform_looking_at_target =
+                        inverted_start_transform.looking_at(interaction_target.point, Dir3::Y);
+
+                    let delta_rotation = transform_looking_at_target.rotation
+                        * inverted_start_transform.rotation.inverse();
+
+                    let end_transform = Transform::from_translation(interaction_target.point)
+                        .with_rotation(
+                            inverted_start_transform.rotation * delta_rotation * delta_rotation,
+                        );
+
+                    end_direction = Some(end_transform.forward());
+
+                    // Debug prints
+
+                    // let direction_from_start_to_end = transform_looking_at_target.forward();
+
+                    // let dot_test = (-start_direction).dot(direction_from_start_to_end.as_vec3());
+                    // println!("Dot test: {:?}", dot_test);
+
+                    let angle_test = delta_rotation.to_euler(EulerRot::YXZ).0;
+                    let curve_direction = if angle_test.is_sign_positive() {
+                        CurveDirection::Left
+                    } else {
+                        CurveDirection::Right
+                    };
+                    // println!("Road curves to the {:?}", curve_direction);
+                    // println!("Angle test: {}", angle_test);
+
+                    // End of debug prints
+
+                    let inwards_direction_from_start = match curve_direction {
+                        CurveDirection::Right => inverted_start_transform.right(),
+                        CurveDirection::Left => inverted_start_transform.left(),
+                    };
+
+                    let inwards_direction_from_end = match curve_direction {
+                        CurveDirection::Right => end_transform.right(),
+                        CurveDirection::Left => end_transform.left(),
+                    };
+
+                    let inwards_ray_from_start = Ray2d::new(
+                        inverted_start_transform.translation.xz(),
+                        inwards_direction_from_start.xz(),
+                    );
+
+                    let inwards_ray_from_end = Ray2d::new(
+                        end_transform.translation.xz(),
+                        inwards_direction_from_end.xz(),
+                    );
+
+                    section_being_drawn.debug_rays.push(inwards_ray_from_start);
+                    section_being_drawn.debug_rays.push(inwards_ray_from_end);
+
+                    let intersection_point_2d = calculate_line_line_intersection(
+                        inwards_ray_from_start,
+                        inwards_ray_from_end,
+                    )
+                    .expect("Lines should never be parallel");
+
+                    let intersection_point =
+                        Vec3::new(intersection_point_2d.x, 0.0, intersection_point_2d.y);
+
+                    let curve_radius = section_being_drawn
+                        .start()
+                        .position
+                        .distance(intersection_point);
+
+                    section_being_drawn
+                        .debug_circles
+                        .push(DebugCircle::new(intersection_point, curve_radius));
+
+                    /// Chat-gpt generated implementation to calculate intersection point from 2 lines
+                    fn calculate_line_line_intersection(
+                        line1: Ray2d,
+                        line2: Ray2d,
+                    ) -> Option<Vec2> {
+                        // Calculate the denominator of the intersection formula
+                        let denominator = line1.direction.perp_dot(line2.direction.as_vec2());
+
+                        if denominator.abs() < f32::EPSILON {
+                            // Lines are parallel or coincident if the denominator is 0
+                            return None;
+                        }
+
+                        // Calculate the difference vector between the points
+                        let delta_origin = line2.origin - line1.origin;
+
+                        // Calculate the intersection scalar `t` for the first line
+                        let t = delta_origin.perp_dot(line2.direction.as_vec2()) / denominator;
+
+                        // Use `t` to find the intersection point along the first line
+                        Some(line1.origin + line1.direction * t)
+                    }
                 }
 
                 section_being_drawn.ends[1] =
-                    build_section_end(interaction_target, &road_node_query, None);
+                    build_section_end(interaction_target, &road_node_query, end_direction);
             }
         }
     }

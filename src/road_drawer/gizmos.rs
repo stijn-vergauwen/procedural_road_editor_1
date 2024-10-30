@@ -14,6 +14,8 @@ use super::{selected_road::SelectedRoad, RoadDrawer};
 const ROAD_NODE_GIZMO_COLOR: Srgba = EMERALD_300;
 const ROAD_SECTION_GIZMO_COLOR: Srgba = SKY_300;
 const ROAD_SECTION_DIRECTION_GIZMO_COLOR: Srgba = PURPLE_500;
+const DEBUG_CIRCLE_GIZMO_COLOR: Srgba = PURPLE_700;
+const DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR: Srgba = PURPLE_400;
 
 pub struct RoadDrawerGizmosPlugin;
 
@@ -25,6 +27,7 @@ impl Plugin for RoadDrawerGizmosPlugin {
                 draw_straight_road_section_gizmo,
                 draw_road_node_gizmos,
                 draw_road_section_end_direction_gizmos,
+                draw_road_section_debug_things,
             )
                 .in_set(GameRunningSet::DrawGizmos)
                 .run_if(in_state(GameMode::RoadDrawer)),
@@ -38,7 +41,7 @@ fn draw_straight_road_section_gizmo(
     selected_road: Res<SelectedRoad>,
 ) {
     if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
-        if section_being_drawn.shape != RoadSectionShape::Straight  {
+        if section_being_drawn.shape != RoadSectionShape::Straight {
             return;
         }
 
@@ -79,5 +82,62 @@ fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<R
             direction.as_vec3() * 2.0,
             ROAD_SECTION_DIRECTION_GIZMO_COLOR,
         );
+    }
+}
+
+fn draw_road_section_debug_things(
+    mut gizmos: Gizmos,
+    road_drawer: Res<RoadDrawer>,
+    selected_road: Res<SelectedRoad>,
+) {
+    if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
+        if section_being_drawn.shape != RoadSectionShape::Curved {
+            return;
+        }
+
+        let road_data = selected_road
+            .selected_road()
+            .expect("A road should always be selected while drawing");
+
+        for circle in section_being_drawn.debug_circles.iter() {
+            // Cirle center
+            gizmos.circle(
+                circle.position,
+                Dir3::Y,
+                0.3,
+                DEBUG_CIRCLE_GIZMO_COLOR,
+            );
+
+            // Center line of road
+            gizmos.circle(
+                circle.position,
+                Dir3::Y,
+                circle.radius,
+                DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR,
+            );
+
+            // Inner line of road
+            gizmos.circle(
+                circle.position,
+                Dir3::Y,
+                circle.radius - road_data.half_width(),
+                DEBUG_CIRCLE_GIZMO_COLOR,
+            );
+
+            // Outer line of road
+            gizmos.circle(
+                circle.position,
+                Dir3::Y,
+                circle.radius + road_data.half_width(),
+                DEBUG_CIRCLE_GIZMO_COLOR,
+            );
+        }
+
+        for ray in section_being_drawn.debug_rays.iter() {
+            let start = Vec3::new(ray.origin.x, 0.0, ray.origin.y);
+            let vector = Vec3::new(ray.direction.x, 0.0, ray.direction.y);
+
+            gizmos.ray(start, vector * 100.0, ROAD_SECTION_DIRECTION_GIZMO_COLOR);
+        }
     }
 }
