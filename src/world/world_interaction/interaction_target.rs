@@ -19,7 +19,7 @@ impl Plugin for InteractionTargetPlugin {
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct InteractionTarget {
-    pub point: Vec3,
+    pub position: Vec3,
     pub normal: Dir3,
     pub entity: Entity,
 }
@@ -27,7 +27,7 @@ pub struct InteractionTarget {
 impl InteractionTarget {
     fn from_raycast(intersection: RayIntersection, entity: Entity) -> Self {
         Self {
-            point: intersection.point,
+            position: intersection.point,
             normal: Dir3::new(intersection.normal).unwrap_or(Dir3::Y),
             entity,
         }

@@ -3,6 +3,8 @@ pub mod distance;
 pub mod mesh_builder;
 pub mod mouse_on_ui;
 pub mod texture_builder;
+pub mod circular_arc;
+pub mod line_intersection;
 
 use bevy::{
     ecs::query::{QueryData, QueryFilter},

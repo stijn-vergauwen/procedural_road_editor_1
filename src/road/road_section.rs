@@ -5,6 +5,8 @@ use bevy::prelude::*;
 use gizmos::RoadSectionGizmosPlugin;
 use road_section_builder::RoadSectionBuilderPlugin;
 
+use crate::utility::circular_arc::CircularArc;
+
 use super::{road_data::RoadData, road_node::RequestedRoadNode};
 
 pub struct RoadSectionPlugin;
@@ -70,6 +72,22 @@ impl RoadSectionEnd {
 pub enum RoadSectionShape {
     Straight,
     Curved,
+}
+
+// TODO: probably make a RoadSectionBeingDrawnVariant in the section_being_drawn module to match this enum
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum RoadSectionVariant {
+    Straight,
+    Curved(CircularArc),
+}
+
+impl RoadSectionVariant {
+    pub fn as_section_shape(&self) -> RoadSectionShape {
+        match self {
+            RoadSectionVariant::Straight => RoadSectionShape::Straight,
+            RoadSectionVariant::Curved(_) => RoadSectionShape::Curved,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -18,7 +18,7 @@ impl Plugin for WorldInteractionGizmosPlugin {
 fn draw_interaction_target_gizmo(world_interaction: Res<WorldInteraction>, mut gizmos: Gizmos) {
     if let Some(target) = &world_interaction.interaction_target {
         gizmos.sphere(
-            target.point,
+            target.position,
             Transform::default()
                 .looking_to(target.normal, Dir3::Y)
                 .rotation,
