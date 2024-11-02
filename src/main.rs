@@ -58,8 +58,15 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
-            - use a 3rd anchor point to decide what direction the road should start in
-        - debug gizmos for curved roads
+            - Bug: CircularArc start & end angles flip from +PI to -PI at halfway turn, this causes all directions & CurveDirection to also flip which breaks the road drawing
+            - Bug: Still not sure if CircularArc angles are correct way around with clockwise & counter-clockwise, I expect delta angle to be positive for CurveDirection Right but it's negative
+            
+            - draw debug lines along sectionEnd directions, pointing inwards and intersecting, to better visualise start & end direction
+            - only draw the curved road section gizmos from start to end angle instead of full circle
+            - store start & end angle somewhere in data
+            - calculate points along road curve
+            - draw the debug curve from these points on the curve instead of arcs, to show how the road section is divided up
+
         - align curved sections with connected sections (draw straight + curved segment at once to connect)
             - there are 3 cases for start & end node of road being drawn:
                 - neither are snapped to existing nodes, in this case the anchor decides 

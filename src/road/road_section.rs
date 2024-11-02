@@ -25,15 +25,19 @@ impl Plugin for RoadSectionPlugin {
 pub struct RoadSection {
     pub ends: [RoadSectionEnd; 2],
     #[expect(unused)]
-    pub shape: RoadSectionShape,
+    pub variant: RoadSectionVariant,
     pub road_design: RoadData,
 }
 
 impl RoadSection {
-    pub fn new(ends: [RoadSectionEnd; 2], shape: RoadSectionShape, road_design: RoadData) -> Self {
+    pub fn new(
+        ends: [RoadSectionEnd; 2],
+        variant: RoadSectionVariant,
+        road_design: RoadData,
+    ) -> Self {
         Self {
             ends,
-            shape,
+            variant,
             road_design,
         }
     }
@@ -74,7 +78,6 @@ pub enum RoadSectionShape {
     Curved,
 }
 
-// TODO: probably make a RoadSectionBeingDrawnVariant in the section_being_drawn module to match this enum
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoadSectionVariant {
     Straight,
@@ -82,6 +85,7 @@ pub enum RoadSectionVariant {
 }
 
 impl RoadSectionVariant {
+    #[expect(unused)]
     pub fn as_section_shape(&self) -> RoadSectionShape {
         match self {
             RoadSectionVariant::Straight => RoadSectionShape::Straight,
@@ -93,7 +97,7 @@ impl RoadSectionVariant {
 #[derive(Clone, Copy, Debug)]
 pub struct RequestedRoadSection {
     pub ends: [RequestedRoadSectionEnd; 2],
-    pub shape: RoadSectionShape,
+    pub variant: RoadSectionVariant,
 }
 
 impl RequestedRoadSection {

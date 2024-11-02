@@ -95,7 +95,7 @@ fn get_requested_road_section(
         )
     });
 
-    RoadSection::new(ends, requested_section.shape, road_design)
+    RoadSection::new(ends, requested_section.variant, road_design)
 }
 
 fn build_road_section_pbr_bundle(

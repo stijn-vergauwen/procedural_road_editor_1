@@ -6,7 +6,8 @@ use super::line_intersection::calculate_line_line_intersection_3d;
 
 /// Describes a Circular arc, stores the position of the center of the circle and the shape of the arc.
 ///
-/// - Can go either clockwise or counter-clockwise, the delta angle will be positive for counter-clockwise.
+/// - Can go either clockwise or counter-clockwise
+/// - The delta angle will be positive for counter-clockwise (along the Y axis), which is CurveDirection::Right (when looking from above).
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct CircularArc {
     /// The position of the center of the circle.
@@ -19,6 +20,9 @@ pub struct CircularArc {
 }
 
 impl CircularArc {
+    /// Returns a new CircularArc from the start & end positions of the arc and the starting direction.
+    ///
+    /// - Returns None if the arc is perfectly straight, since there is no circle center or radius in this case.
     pub fn from_start_direction(
         start_position: Vec3,
         end_position: Vec3,
@@ -32,6 +36,9 @@ impl CircularArc {
         Self::from_transforms(inwards_start_transform, outwards_end_transform)
     }
 
+    /// Returns a new CircularArc from the given transforms.
+    ///
+    /// - Returns None if the arc is perfectly straight, since there is no circle center or radius in this case.
     pub fn from_transforms(
         inwards_start_transform: Transform,
         outwards_end_transform: Transform,
@@ -61,8 +68,8 @@ impl CircularArc {
 
     pub fn curve_direction(&self) -> CurveDirection {
         match self.delta_angle().is_sign_positive() {
-            true => CurveDirection::Left,
-            false => CurveDirection::Right,
+            true => CurveDirection::Right,
+            false => CurveDirection::Left,
         }
     }
 
@@ -71,13 +78,13 @@ impl CircularArc {
     }
 
     pub fn start_position(&self) -> Vec3 {
-        self.rotation_towards_start() * (Vec3::NEG_Z * self.radius)
+        self.rotation_towards_start() * (Vec3::NEG_Z * self.radius) + self.position
     }
 
     pub fn outwards_start_transform(&self) -> Transform {
         let outwards_rotation = match self.curve_direction() {
-            CurveDirection::Right => Quat::from_axis_angle(Vec3::Y, -PI / 2.0),
-            CurveDirection::Left => Quat::from_axis_angle(Vec3::Y, PI / 2.0),
+            CurveDirection::Right => Quat::from_axis_angle(Vec3::Y, PI / 2.0),
+            CurveDirection::Left => Quat::from_axis_angle(Vec3::Y, -PI / 2.0),
         };
 
         Transform::from_translation(self.start_position())
@@ -89,13 +96,13 @@ impl CircularArc {
     }
 
     pub fn end_position(&self) -> Vec3 {
-        self.rotation_towards_end() * (Vec3::NEG_Z * self.radius)
+        self.rotation_towards_end() * (Vec3::NEG_Z * self.radius) + self.position
     }
 
     pub fn outwards_end_transform(&self) -> Transform {
         let outwards_rotation = match self.curve_direction() {
-            CurveDirection::Right => Quat::from_axis_angle(Vec3::Y, PI / 2.0),
-            CurveDirection::Left => Quat::from_axis_angle(Vec3::Y, -PI / 2.0),
+            CurveDirection::Right => Quat::from_axis_angle(Vec3::Y, -PI / 2.0),
+            CurveDirection::Left => Quat::from_axis_angle(Vec3::Y, PI / 2.0),
         };
 
         Transform::from_translation(self.end_position())
@@ -138,8 +145,8 @@ fn calculate_circle_center_from_start_and_end_transforms(
     .0;
 
     let curve_direction = match delta_y.is_sign_positive() {
-        true => CurveDirection::Left,
-        false => CurveDirection::Right,
+        true => CurveDirection::Right,
+        false => CurveDirection::Left,
     };
 
     let inwards_direction_from_start = match curve_direction {

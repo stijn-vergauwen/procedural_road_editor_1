@@ -6,7 +6,7 @@ use crate::{
         road_node::{RequestedRoadNode, RoadNode},
         road_section::{
             road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection,
-            RequestedRoadSectionEnd, RoadSectionShape,
+            RequestedRoadSectionEnd, RoadSectionVariant,
         },
     },
     utility::circular_arc::CircularArc,
@@ -52,16 +52,14 @@ impl Plugin for SectionBeingDrawnPlugin {
 #[derive(Clone, Debug)]
 pub struct SectionBeingDrawn {
     pub ends: [SectionEndBeingDrawn; 2],
-    pub shape: RoadSectionShape,
-    pub debug_circles: Vec<DebugCircle>,
-    pub debug_rays: Vec<Ray3d>,
+    pub variant: SectionBeingDrawnVariant,
 }
 
 impl SectionBeingDrawn {
     fn to_requested_road_section(&self) -> RequestedRoadSection {
         RequestedRoadSection {
             ends: self.ends.map(|end| end.to_requested_road_section_end()),
-            shape: self.shape,
+            variant: self.variant.to_road_section_variant(),
         }
     }
 
@@ -88,7 +86,7 @@ impl SectionEndBeingDrawn {
     fn to_requested_road_section_end(&self) -> RequestedRoadSectionEnd {
         let direction = self
             .direction
-            .expect("Direction should be Some before turing this into requested section");
+            .expect("Direction should be Some before converting to requested section");
 
         let road_node = match self.nearest_road_node {
             Some(nearest_node) => nearest_node.to_requested_road_node(),
@@ -120,6 +118,7 @@ impl SectionEndBeingDrawn {
     }
 
     /// Returns a Transform with this end's position facing outwards, or None if no direction is set.
+    #[expect(unused)]
     fn outwards_transform(&self) -> Option<Transform> {
         Some(self.get_transform_with_direction(self.outwards_direction()?))
     }
@@ -135,17 +134,21 @@ impl SectionEndBeingDrawn {
     }
 }
 
-// TODO: delete when not used anymore
-/// A helper struct to visualize the circles used to calculate curved sections
-#[derive(Clone, Copy, Debug)]
-pub struct DebugCircle {
-    pub position: Vec3,
-    pub radius: f32,
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum SectionBeingDrawnVariant {
+    Straight,
+    Curved(Option<CircularArc>),
 }
 
-impl DebugCircle {
-    fn new(position: Vec3, radius: f32) -> Self {
-        Self { position, radius }
+impl SectionBeingDrawnVariant {
+    fn to_road_section_variant(&self) -> RoadSectionVariant {
+        match self {
+            SectionBeingDrawnVariant::Straight => RoadSectionVariant::Straight,
+            SectionBeingDrawnVariant::Curved(circular_arc) => RoadSectionVariant::Curved(
+                circular_arc
+                    .expect("CircularArc should be Some before converting to RoadSectionVariant."),
+            ),
+        }
     }
 }
 
@@ -174,9 +177,7 @@ fn start_drawing_road_on_mouse_press(
 
         let section_being_drawn = SectionBeingDrawn {
             ends: [road_section_end; 2],
-            shape: RoadSectionShape::Curved,
-            debug_circles: Vec::new(),
-            debug_rays: Vec::new(),
+            variant: SectionBeingDrawnVariant::Curved(None),
         };
 
         road_drawer.section_being_drawn = Some(section_being_drawn);
@@ -196,9 +197,9 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
-        match section_being_drawn.shape {
-            RoadSectionShape::Straight => {
-                let direction = calculate_section_end_direction(
+        match section_being_drawn.variant {
+            SectionBeingDrawnVariant::Straight => {
+                let direction = straight_section_end_outwards_direction(
                     section_being_drawn.end().snapped_position(),
                     section_being_drawn.start().snapped_position(),
                 );
@@ -211,31 +212,12 @@ fn update_road_being_drawn_on_target_update(
                     .direction
                     .map(|direction| -direction);
             }
-            RoadSectionShape::Curved => {
+            SectionBeingDrawnVariant::Curved(_) => {
                 let mut end_direction: Option<Dir3> = None;
 
                 if let Some(inwards_start_transform) =
                     section_being_drawn.start().inwards_transform()
                 {
-                    section_being_drawn.debug_circles.clear();
-                    section_being_drawn.debug_rays.clear();
-
-                    // Steps completed!
-                    //  * calculate angle between inverted start_direction & direction from start_position to end_position
-                    //  * double this angle to get the end_direction
-                    //  * calculate vectors that are perpendicular to start & end directions that are pointing inwards
-                    //  * calculate the intersection of these inwards pointing perpendiculars
-                    //  * make debug circles for the inside and outside of the road width
-
-                    // TODO: LEFT OFF HERE: visualise the CircularArc data to check if calculations are correct (bunch of code that isn't tested yet)
-
-                    // TODO: implement
-                    //  - draw debug lines along sectionEnd directions, pointing inwards and intersecting, to better visualise start & end direction
-                    //  - only draw the curved road section gizmos from start to end angle instead of full circle
-                    //  - store start & end angle somewhere in data
-                    //  - calculate points along road curve
-                    //  - draw the debug curve from these points on the curve instead of arcs, to show how the road section is divided up
-
                     let Some(circular_arc) = CircularArc::from_start_direction(
                         inwards_start_transform.translation,
                         interaction_target.position,
@@ -244,10 +226,9 @@ fn update_road_being_drawn_on_target_update(
                         continue;
                     };
 
-                    // TODO: probably replace with CircularArc data (which will be part of the data by default, not debug data)
-                    // section_being_drawn
-                    //     .debug_circles
-                    //     .push(DebugCircle::new(intersection_point, curve_radius));
+                    end_direction = Some(circular_arc.outwards_end_transform().forward());
+                    section_being_drawn.variant =
+                        SectionBeingDrawnVariant::Curved(Some(circular_arc));
                 }
 
                 section_being_drawn.ends[1] =
@@ -274,10 +255,10 @@ fn set_curved_section_direction_on_mouse_press(
             continue;
         };
 
-        if section_being_drawn.shape == RoadSectionShape::Curved
+        if section_being_drawn.variant == SectionBeingDrawnVariant::Curved(None)
             && section_being_drawn.start().direction.is_none()
         {
-            let direction = calculate_section_end_direction(
+            let direction = straight_section_end_outwards_direction(
                 section_being_drawn.start().position,
                 interaction_target.position,
             );
@@ -334,22 +315,8 @@ fn filter_mouse_interaction(event: &&OnMouseInteraction, phase: InteractionPhase
     event.button == MOUSE_BUTTON_TO_DRAW && event.phase == phase && !event.is_on_ui
 }
 
-fn calculate_section_end_direction(position: Vec3, other_position: Vec3) -> Option<Dir3> {
-    Dir3::new(position - other_position).ok()
-}
-
-// Snapping utility
-
-#[derive(Clone, Copy, Debug)]
-pub struct NearestRoadNode {
-    position: Vec3,
-    entity: Entity,
-}
-
-impl NearestRoadNode {
-    fn to_requested_road_node(&self) -> RequestedRoadNode {
-        RequestedRoadNode::new(self.position, Some(self.entity))
-    }
+fn straight_section_end_outwards_direction(this_end: Vec3, other_end: Vec3) -> Option<Dir3> {
+    Dir3::new(this_end - other_end).ok()
 }
 
 fn build_section_end(
@@ -365,6 +332,20 @@ fn build_section_end(
             interaction_target.position,
             ROAD_NODE_SNAP_DISTANCE,
         ),
+    }
+}
+
+// Snapping utility
+
+#[derive(Clone, Copy, Debug)]
+pub struct NearestRoadNode {
+    position: Vec3,
+    entity: Entity,
+}
+
+impl NearestRoadNode {
+    fn to_requested_road_node(&self) -> RequestedRoadNode {
+        RequestedRoadNode::new(self.position, Some(self.entity))
     }
 }
 
