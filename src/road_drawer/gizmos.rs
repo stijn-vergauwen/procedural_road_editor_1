@@ -6,6 +6,7 @@ use crate::{
         road_node::gizmos::draw_road_node_gizmo,
         road_section::gizmos::calculate_road_section_gizmo_transform,
     },
+    utility::line_intersection::calculate_line_line_intersection_3d,
     GameRunningSet,
 };
 
@@ -30,7 +31,7 @@ impl Plugin for RoadDrawerGizmosPlugin {
                 draw_straight_road_section_gizmo,
                 draw_road_node_gizmos,
                 draw_road_section_end_direction_gizmos,
-                draw_road_section_debug_things,
+                draw_curved_road_section_debug_things,
             )
                 .in_set(GameRunningSet::DrawGizmos)
                 .run_if(in_state(GameMode::RoadDrawer)),
@@ -88,10 +89,10 @@ fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<R
     }
 }
 
-fn draw_road_section_debug_things(
+fn draw_curved_road_section_debug_things(
     mut gizmos: Gizmos,
     road_drawer: Res<RoadDrawer>,
-    selected_road: Res<SelectedRoad>,
+    // selected_road: Res<SelectedRoad>,
 ) {
     if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
         let SectionBeingDrawnVariant::Curved(Some(circular_arc)) = section_being_drawn.variant
@@ -99,9 +100,9 @@ fn draw_road_section_debug_things(
             return;
         };
 
-        let road_data = selected_road
-            .selected_road()
-            .expect("A road should always be selected while drawing");
+        // let road_data = selected_road
+        //     .selected_road()
+        //     .expect("A road should always be selected while drawing");
 
         // Cirle center
         gizmos.circle(
@@ -119,21 +120,21 @@ fn draw_road_section_debug_things(
             DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR,
         );
 
-        // Inner line of road
-        gizmos.circle(
-            circular_arc.position,
-            Dir3::Y,
-            circular_arc.radius - road_data.half_width(),
-            DEBUG_CIRCLE_GIZMO_COLOR,
-        );
+        // // Inner line of road
+        // gizmos.circle(
+        //     circular_arc.position,
+        //     Dir3::Y,
+        //     circular_arc.radius - road_data.half_width(),
+        //     DEBUG_CIRCLE_GIZMO_COLOR,
+        // );
 
-        // Outer line of road
-        gizmos.circle(
-            circular_arc.position,
-            Dir3::Y,
-            circular_arc.radius + road_data.half_width(),
-            DEBUG_CIRCLE_GIZMO_COLOR,
-        );
+        // // Outer line of road
+        // gizmos.circle(
+        //     circular_arc.position,
+        //     Dir3::Y,
+        //     circular_arc.radius + road_data.half_width(),
+        //     DEBUG_CIRCLE_GIZMO_COLOR,
+        // );
 
         // Rays pointing to circle center
         let position = circular_arc.start_position();
@@ -171,7 +172,20 @@ fn draw_road_section_debug_things(
             ROAD_SECTION_INWARDS_DIRECTION_GIZMO_COLOR,
         );
 
-        println!("End angle: {}", circular_arc.end_angle);
-        // println!("Delta angle: {}", circular_arc.delta_angle());
+        // Intersection
+        if let Some(intersection) = calculate_line_line_intersection_3d(
+            Ray3d::new(
+                start_transform.translation,
+                start_transform.back().as_vec3(),
+            ),
+            Ray3d::new(end_transform.translation, end_transform.back().as_vec3()),
+        ) {
+            gizmos.circle(
+                intersection,
+                Dir3::Y,
+                0.3,
+                ROAD_SECTION_INWARDS_DIRECTION_GIZMO_COLOR,
+            );
+        }
     }
 }

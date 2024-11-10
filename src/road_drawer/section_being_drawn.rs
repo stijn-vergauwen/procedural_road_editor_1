@@ -42,10 +42,10 @@ impl Plugin for SectionBeingDrawnPlugin {
             )
                 .run_if(in_state(GameMode::RoadDrawer).and_then(in_state(RoadDrawerTool::Drawer))),
         )
-        .add_systems(
-            OnExit(RoadDrawerTool::Drawer),
-            cancel_road_when_leaving_drawer_tool,
-        );
+            .add_systems(
+                OnExit(RoadDrawerTool::Drawer),
+                cancel_road_when_leaving_drawer_tool,
+            );
     }
 }
 
@@ -218,13 +218,16 @@ fn update_road_being_drawn_on_target_update(
                 if let Some(inwards_start_transform) =
                     section_being_drawn.start().inwards_transform()
                 {
-                    let Some(circular_arc) = CircularArc::from_start_direction(
-                        inwards_start_transform.translation,
+                    let Some(circular_arc) = CircularArc::from_start_transform(
+                        inwards_start_transform,
                         interaction_target.position,
-                        inwards_start_transform.forward(),
                     ) else {
                         continue;
                     };
+
+                    // println!("End angle: {}", circular_arc.end_angle());
+                    // println!("Delta angle: {}", circular_arc.delta_angle);
+                    // println!("Curve direction: {:?}", circular_arc.curve_direction());
 
                     end_direction = Some(circular_arc.outwards_end_transform().forward());
                     section_being_drawn.variant =

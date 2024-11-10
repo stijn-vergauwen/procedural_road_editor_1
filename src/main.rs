@@ -58,8 +58,7 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
-            - Bug: CircularArc start & end angles flip from +PI to -PI at halfway turn, this causes all directions & CurveDirection to also flip which breaks the road drawing
-            - Bug: Still not sure if CircularArc angles are correct way around with clockwise & counter-clockwise, I expect delta angle to be positive for CurveDirection Right but it's negative
+            - ISSUES: angles & directions need to be reworked in circular_arc module, see further details in that module
             
             - draw debug lines along sectionEnd directions, pointing inwards and intersecting, to better visualise start & end direction
             - only draw the curved road section gizmos from start to end angle instead of full circle
@@ -164,7 +163,7 @@ use world::WorldPlugin;
 
     I didn't realise how much logic will only be used in either the editor or drawer parts of this project.
     I also didn't realise how much logic will only be relevant to CRUD operations,
-    I tend to put CRUD code together with it's data, but currently I think it's better to put it together with code that activates this logic (so in the road editor events)
+    I tend to put CRUD code together with its data, but currently I think it's better to put it together with code that activates this logic (so in the road editor events)
 */
 
 fn main() {
