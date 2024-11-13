@@ -225,10 +225,6 @@ fn update_road_being_drawn_on_target_update(
                         continue;
                     };
 
-                    // println!("End angle: {}", circular_arc.end_angle());
-                    // println!("Delta angle: {}", circular_arc.delta_angle);
-                    // println!("Curve direction: {:?}", circular_arc.curve_direction());
-
                     end_direction = Some(circular_arc.outwards_end_transform().forward());
                     section_being_drawn.variant =
                         SectionBeingDrawnVariant::Curved(Some(circular_arc));

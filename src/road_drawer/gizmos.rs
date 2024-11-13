@@ -92,7 +92,7 @@ fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<R
 fn draw_curved_road_section_debug_things(
     mut gizmos: Gizmos,
     road_drawer: Res<RoadDrawer>,
-    // selected_road: Res<SelectedRoad>,
+    selected_road: Res<SelectedRoad>,
 ) {
     if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
         let SectionBeingDrawnVariant::Curved(Some(circular_arc)) = section_being_drawn.variant
@@ -100,9 +100,9 @@ fn draw_curved_road_section_debug_things(
             return;
         };
 
-        // let road_data = selected_road
-        //     .selected_road()
-        //     .expect("A road should always be selected while drawing");
+        let road_data = selected_road
+            .selected_road()
+            .expect("A road should always be selected while drawing");
 
         // Cirle center
         gizmos.circle(
@@ -120,21 +120,21 @@ fn draw_curved_road_section_debug_things(
             DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR,
         );
 
-        // // Inner line of road
-        // gizmos.circle(
-        //     circular_arc.position,
-        //     Dir3::Y,
-        //     circular_arc.radius - road_data.half_width(),
-        //     DEBUG_CIRCLE_GIZMO_COLOR,
-        // );
+        // Inner line of road
+        gizmos.circle(
+            circular_arc.position,
+            Dir3::Y,
+            circular_arc.radius - road_data.half_width(),
+            DEBUG_CIRCLE_GIZMO_COLOR,
+        );
 
-        // // Outer line of road
-        // gizmos.circle(
-        //     circular_arc.position,
-        //     Dir3::Y,
-        //     circular_arc.radius + road_data.half_width(),
-        //     DEBUG_CIRCLE_GIZMO_COLOR,
-        // );
+        // Outer line of road
+        gizmos.circle(
+            circular_arc.position,
+            Dir3::Y,
+            circular_arc.radius + road_data.half_width(),
+            DEBUG_CIRCLE_GIZMO_COLOR,
+        );
 
         // Rays pointing to circle center
         let position = circular_arc.start_position();

@@ -58,11 +58,7 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
-            - ISSUES: angles & directions need to be reworked in circular_arc module, see further details in that module
-            
-            - draw debug lines along sectionEnd directions, pointing inwards and intersecting, to better visualise start & end direction
             - only draw the curved road section gizmos from start to end angle instead of full circle
-            - store start & end angle somewhere in data
             - calculate points along road curve
             - draw the debug curve from these points on the curve instead of arcs, to show how the road section is divided up
 
