@@ -42,10 +42,10 @@ impl Plugin for SectionBeingDrawnPlugin {
             )
                 .run_if(in_state(GameMode::RoadDrawer).and_then(in_state(RoadDrawerTool::Drawer))),
         )
-            .add_systems(
-                OnExit(RoadDrawerTool::Drawer),
-                cancel_road_when_leaving_drawer_tool,
-            );
+        .add_systems(
+            OnExit(RoadDrawerTool::Drawer),
+            cancel_road_when_leaving_drawer_tool,
+        );
     }
 }
 
@@ -197,6 +197,17 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
+        let nearest_road_node = find_road_node_nearest_to_point(
+            &road_node_query,
+            interaction_target.position,
+            ROAD_NODE_SNAP_DISTANCE,
+        );
+
+        let target_position = match nearest_road_node {
+            Some(nearest_node) => nearest_node.position,
+            None => interaction_target.position,
+        };
+
         match section_being_drawn.variant {
             SectionBeingDrawnVariant::Straight => {
                 let direction = straight_section_end_outwards_direction(
@@ -218,10 +229,9 @@ fn update_road_being_drawn_on_target_update(
                 if let Some(inwards_start_transform) =
                     section_being_drawn.start().inwards_transform()
                 {
-                    let Some(circular_arc) = CircularArc::from_start_transform(
-                        inwards_start_transform,
-                        interaction_target.position,
-                    ) else {
+                    let Some(circular_arc) =
+                        CircularArc::from_start_transform(inwards_start_transform, target_position)
+                    else {
                         continue;
                     };
 

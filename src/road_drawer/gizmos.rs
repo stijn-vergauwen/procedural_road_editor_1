@@ -1,3 +1,5 @@
+use std::f32::consts::FRAC_PI_2;
+
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
@@ -19,7 +21,6 @@ const ROAD_SECTION_GIZMO_COLOR: Srgba = SKY_300;
 const ROAD_SECTION_DIRECTION_GIZMO_COLOR: Srgba = PURPLE_500;
 const ROAD_SECTION_INWARDS_DIRECTION_GIZMO_COLOR: Srgba = TEAL_500;
 const DEBUG_CIRCLE_GIZMO_COLOR: Srgba = PURPLE_700;
-const DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR: Srgba = PURPLE_400;
 
 pub struct RoadDrawerGizmosPlugin;
 
@@ -112,29 +113,36 @@ fn draw_curved_road_section_debug_things(
             DEBUG_CIRCLE_GIZMO_COLOR,
         );
 
-        // Center line of road
-        gizmos.circle(
-            circular_arc.position,
-            Dir3::Y,
+        // Arc line
+        gizmos.arc_3d(
+            circular_arc.delta_angle,
             circular_arc.radius,
-            DEBUG_CIRCLE_CENTER_LINE_GIZMO_COLOR,
-        );
-
-        // Inner line of road
-        gizmos.circle(
             circular_arc.position,
-            Dir3::Y,
-            circular_arc.radius - road_data.half_width(),
+            Quat::from_axis_angle(Vec3::Y, circular_arc.start_angle + FRAC_PI_2),
             DEBUG_CIRCLE_GIZMO_COLOR,
         );
 
-        // Outer line of road
-        gizmos.circle(
-            circular_arc.position,
-            Dir3::Y,
-            circular_arc.radius + road_data.half_width(),
-            DEBUG_CIRCLE_GIZMO_COLOR,
-        );
+        // Sections along arc
+        for transform_along_arc in circular_arc.calculate_transforms_along_arc(
+            ((circular_arc.length().abs() * 1.0).round() as u32).max(5),
+            circular_arc.forwards_direction(),
+        ) {
+            // Center circle
+            gizmos.circle(transform_along_arc.translation, Dir3::Y, 0.2, ORANGE_300);
+
+            // Road width lines
+            gizmos.ray(
+                transform_along_arc.translation,
+                transform_along_arc.left() * road_data.half_width(),
+                ORANGE_300,
+            );
+
+            gizmos.ray(
+                transform_along_arc.translation,
+                transform_along_arc.right() * road_data.half_width(),
+                ORANGE_300,
+            );
+        }
 
         // Rays pointing to circle center
         let position = circular_arc.start_position();
