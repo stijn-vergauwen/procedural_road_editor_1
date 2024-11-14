@@ -49,6 +49,7 @@ impl Plugin for SectionBeingDrawnPlugin {
     }
 }
 
+// TODO: split to module
 #[derive(Clone, Debug)]
 pub struct SectionBeingDrawn {
     pub ends: [SectionEndBeingDrawn; 2],
@@ -72,6 +73,7 @@ impl SectionBeingDrawn {
     }
 }
 
+// TODO: split to module
 #[derive(Clone, Copy, Debug)]
 pub struct SectionEndBeingDrawn {
     /// The position of this end without snapping.
@@ -134,6 +136,7 @@ impl SectionEndBeingDrawn {
     }
 }
 
+// TODO: split to module
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SectionBeingDrawnVariant {
     Straight,
@@ -197,6 +200,7 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
+        // TODO: make helper method to get "snapped position" like this from nearest node or interaction_target if none
         let nearest_road_node = find_road_node_nearest_to_point(
             &road_node_query,
             interaction_target.position,
@@ -328,6 +332,7 @@ fn straight_section_end_outwards_direction(this_end: Vec3, other_end: Vec3) -> O
     Dir3::new(this_end - other_end).ok()
 }
 
+// TODO: refactor out this fn, NearestRoadNode should be used instead of target position in systems that call this fn
 fn build_section_end(
     interaction_target: InteractionTarget,
     road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
@@ -346,6 +351,7 @@ fn build_section_end(
 
 // Snapping utility
 
+// TODO: split to module
 #[derive(Clone, Copy, Debug)]
 pub struct NearestRoadNode {
     position: Vec3,

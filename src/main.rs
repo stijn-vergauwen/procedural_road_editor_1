@@ -58,9 +58,8 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
-            - only draw the curved road section gizmos from start to end angle instead of full circle
-            - calculate points along road curve
-            - draw the debug curve from these points on the curve instead of arcs, to show how the road section is divided up
+            - refactor todo's
+            - support curved roads in mesh builder etc
 
         - align curved sections with connected sections (draw straight + curved segment at once to connect)
             - there are 3 cases for start & end node of road being drawn:

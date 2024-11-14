@@ -1,12 +1,10 @@
-use std::f32::consts::FRAC_PI_2;
-
 use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use crate::{
     game_modes::GameMode,
     road::{
         road_node::gizmos::draw_road_node_gizmo,
-        road_section::gizmos::calculate_road_section_gizmo_transform,
+        road_section::gizmos::{draw_curved_road_section_gizmo, draw_straight_road_section_gizmo},
     },
     utility::line_intersection::calculate_line_line_intersection_3d,
     GameRunningSet,
@@ -29,7 +27,7 @@ impl Plugin for RoadDrawerGizmosPlugin {
         app.add_systems(
             Update,
             (
-                draw_straight_road_section_gizmo,
+                draw_section_being_drawn_gizmo,
                 draw_road_node_gizmos,
                 draw_road_section_end_direction_gizmos,
                 draw_curved_road_section_debug_things,
@@ -40,27 +38,37 @@ impl Plugin for RoadDrawerGizmosPlugin {
     }
 }
 
-fn draw_straight_road_section_gizmo(
+fn draw_section_being_drawn_gizmo(
     mut gizmos: Gizmos,
     road_drawer: Res<RoadDrawer>,
     selected_road: Res<SelectedRoad>,
 ) {
     if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
-        if section_being_drawn.variant != SectionBeingDrawnVariant::Straight {
-            return;
-        }
-
-        let road_data = selected_road
+        let road_design = selected_road
             .selected_road()
             .expect("A road should always be selected while drawing");
 
-        let road_section_transform = calculate_road_section_gizmo_transform(
-            road_data,
-            section_being_drawn.start().snapped_position(),
-            section_being_drawn.end().snapped_position(),
-        );
+        match section_being_drawn.variant {
+            SectionBeingDrawnVariant::Straight => draw_straight_road_section_gizmo(
+                &mut gizmos,
+                road_design,
+                section_being_drawn.start().snapped_position(),
+                section_being_drawn.end().snapped_position(),
+                ROAD_SECTION_GIZMO_COLOR,
+            ),
+            SectionBeingDrawnVariant::Curved(circular_arc) => {
+                let Some(circular_arc) = circular_arc else {
+                    return;
+                };
 
-        gizmos.cuboid(road_section_transform, ROAD_SECTION_GIZMO_COLOR);
+                draw_curved_road_section_gizmo(
+                    &mut gizmos,
+                    road_design,
+                    &circular_arc,
+                    ROAD_SECTION_GIZMO_COLOR,
+                );
+            }
+        }
     }
 }
 
@@ -90,20 +98,12 @@ fn draw_road_section_end_direction_gizmos(mut gizmos: Gizmos, road_drawer: Res<R
     }
 }
 
-fn draw_curved_road_section_debug_things(
-    mut gizmos: Gizmos,
-    road_drawer: Res<RoadDrawer>,
-    selected_road: Res<SelectedRoad>,
-) {
+fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<RoadDrawer>) {
     if let Some(section_being_drawn) = &road_drawer.section_being_drawn {
         let SectionBeingDrawnVariant::Curved(Some(circular_arc)) = section_being_drawn.variant
         else {
             return;
         };
-
-        let road_data = selected_road
-            .selected_road()
-            .expect("A road should always be selected while drawing");
 
         // Cirle center
         gizmos.circle(
@@ -112,37 +112,6 @@ fn draw_curved_road_section_debug_things(
             0.3,
             DEBUG_CIRCLE_GIZMO_COLOR,
         );
-
-        // Arc line
-        gizmos.arc_3d(
-            circular_arc.delta_angle,
-            circular_arc.radius,
-            circular_arc.position,
-            Quat::from_axis_angle(Vec3::Y, circular_arc.start_angle + FRAC_PI_2),
-            DEBUG_CIRCLE_GIZMO_COLOR,
-        );
-
-        // Sections along arc
-        for transform_along_arc in circular_arc.calculate_transforms_along_arc(
-            ((circular_arc.length().abs() * 1.0).round() as u32).max(5),
-            circular_arc.forwards_direction(),
-        ) {
-            // Center circle
-            gizmos.circle(transform_along_arc.translation, Dir3::Y, 0.2, ORANGE_300);
-
-            // Road width lines
-            gizmos.ray(
-                transform_along_arc.translation,
-                transform_along_arc.left() * road_data.half_width(),
-                ORANGE_300,
-            );
-
-            gizmos.ray(
-                transform_along_arc.translation,
-                transform_along_arc.right() * road_data.half_width(),
-                ORANGE_300,
-            );
-        }
 
         // Rays pointing to circle center
         let position = circular_arc.start_position();

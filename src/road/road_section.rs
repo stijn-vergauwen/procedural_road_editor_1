@@ -24,7 +24,6 @@ impl Plugin for RoadSectionPlugin {
 #[derive(Component, Debug, Clone)]
 pub struct RoadSection {
     pub ends: [RoadSectionEnd; 2],
-    #[expect(unused)]
     pub variant: RoadSectionVariant,
     pub road_design: RoadData,
 }
