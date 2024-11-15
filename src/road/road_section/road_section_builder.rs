@@ -16,6 +16,9 @@ use super::{
     RoadSection, RoadSectionEnd,
 };
 
+// TODO: 
+// TODO: replace the cuboid collider with a mesh collider from the RoadBuilder
+
 pub struct RoadSectionBuilderPlugin;
 
 impl Plugin for RoadSectionBuilderPlugin {

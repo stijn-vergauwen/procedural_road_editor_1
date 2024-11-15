@@ -105,21 +105,32 @@ pub struct RequestedRoadSectionEnd {
     pub direction: Dir3,
 }
 
+impl RequestedRoadSectionEnd {
+    // TODO: use these methods to build cross-section slices in RoadBuilder
+
+    #[expect(unused)]
+    pub fn outwards_transform(&self) -> Transform {
+        self.transform_with_direction(self.direction)
+    }
+
+    #[expect(unused)]
+    pub fn inwards_transform(&self) -> Transform {
+        self.transform_with_direction(-self.direction)
+    }
+
+    pub fn transform_with_direction(&self, direction: Dir3) -> Transform {
+        Transform::from_translation(self.road_node.position).looking_to(direction, Dir3::Y)
+    }
+}
+
 fn calculate_road_section_transform(
     start_node_position: Vec3,
     end_node_position: Vec3,
 ) -> Transform {
     let delta_position = end_node_position - start_node_position;
     let section_position = start_node_position + delta_position / 2.0;
-    let section_rotation = Transform::from_translation(start_node_position)
-        .looking_at(end_node_position, Dir3::Y)
-        .rotation;
 
-    Transform {
-        translation: section_position,
-        rotation: section_rotation,
-        ..default()
-    }
+    Transform::from_translation(section_position).looking_at(end_node_position, Dir3::Y)
 }
 
 fn calculate_road_section_size(

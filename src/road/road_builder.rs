@@ -4,6 +4,14 @@ use crate::utility::{mesh_builder::MeshBuilder, texture_builder::TextureBuilder}
 
 use super::{road_data::RoadData, road_marking::RoadMarking};
 
+// TODO LEFT OFF HERE: start implementing curved road meshes!
+// TODO: remove the road_length field
+// TODO: method that makes a cross-section slice shape of the given road_design out of vertices
+// TODO: method that connects cross-section slices with triangles
+// TODO: method that calls the cross-section vertex & triangle methods on each Transform in a given array of Transforms
+// TODO: make straight segments using new cross-section methods
+// TODO: make curved segments using cross-section methods
+
 /// Builds the 3D road mesh from the given road data.
 pub struct RoadBuilder {
     mesh_builder: MeshBuilder,
@@ -20,17 +28,17 @@ impl RoadBuilder {
         }
     }
 
-    pub fn build_from_road_data(&mut self, road_data: &RoadData) {
+    pub fn build_from_road_data(&mut self, road_design: &RoadData) {
         if !self.mesh_builder.empty() {
             warn!("build method called on a RoadBuilder that already contains mesh data.");
         }
 
-        let road_component_length = road_data.components().len();
-        let road_texture_length = road_component_length + road_data.markings().len();
-        
-        self.build_road_texture(road_data);
-        self.build_road_components(road_data, road_texture_length);
-        self.build_road_markings(road_data, road_texture_length, road_component_length);
+        let road_component_length = road_design.components().len();
+        let road_texture_length = road_component_length + road_design.markings().len();
+
+        self.build_road_texture(road_design);
+        self.build_road_components(road_design, road_texture_length);
+        self.build_road_markings(road_design, road_texture_length, road_component_length);
     }
 
     pub fn get_mesh(&self) -> Mesh {
@@ -41,14 +49,14 @@ impl RoadBuilder {
         self.texture_builder.build_texture_image()
     }
 
-    fn build_road_texture(&mut self, road_data: &RoadData) {
-        let road_component_colors: Vec<Color> = road_data
+    fn build_road_texture(&mut self, road_design: &RoadData) {
+        let road_component_colors: Vec<Color> = road_design
             .components()
             .iter()
             .map(|component| component.color)
             .collect();
 
-        let road_marking_colors: Vec<Color> = road_data
+        let road_marking_colors: Vec<Color> = road_design
             .markings()
             .iter()
             .map(|marking| marking.color)
@@ -58,14 +66,14 @@ impl RoadBuilder {
             .add_colors([road_component_colors, road_marking_colors].concat());
     }
 
-    fn build_road_components(&mut self, road_data: &RoadData, road_texture_length: usize) {
+    fn build_road_components(&mut self, road_design: &RoadData, road_texture_length: usize) {
         let mut width_of_built_sections = 0.0;
 
-        for (index, component) in road_data.enumerate_components() {
+        for (index, component) in road_design.enumerate_components() {
             self.build_road_component(
                 &mut width_of_built_sections,
                 component.size,
-                road_data.total_width(),
+                road_design.total_width(),
                 calculate_road_component_uv(index, road_texture_length),
             )
         }
@@ -107,15 +115,15 @@ impl RoadBuilder {
 
     fn build_road_markings(
         &mut self,
-        road_data: &RoadData,
+        road_design: &RoadData,
         road_texture_length: usize,
         road_component_length: usize,
     ) {
-        for (index, road_marking) in road_data.enumerate_markings() {
+        for (index, road_marking) in road_design.enumerate_markings() {
             self.build_road_marking(
                 *road_marking,
                 calculate_road_marking_uv(index, road_texture_length, road_component_length),
-                road_data,
+                road_design,
             );
         }
     }
