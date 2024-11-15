@@ -1,14 +1,15 @@
+mod nearest_road_node;
+pub mod section_being_drawn;
+mod section_end_being_drawn;
+
 use bevy::prelude::*;
+use nearest_road_node::NearestRoadNode;
+use section_being_drawn::{SectionBeingDrawn, SectionBeingDrawnVariant};
+use section_end_being_drawn::SectionEndBeingDrawn;
 
 use crate::{
     game_modes::GameMode,
-    road::{
-        road_node::{RequestedRoadNode, RoadNode},
-        road_section::{
-            road_section_builder::OnBuildRoadSectionRequested, RequestedRoadSection,
-            RequestedRoadSectionEnd, RoadSectionVariant,
-        },
-    },
+    road::{road_node::RoadNode, road_section::road_section_builder::OnBuildRoadSectionRequested},
     utility::circular_arc::CircularArc,
     world::world_interaction::{
         interaction_target::{InteractionTarget, OnWorldInteractionTargetUpdated},
@@ -23,9 +24,9 @@ use super::{road_drawer_tool::RoadDrawerTool, selected_road::SelectedRoad, RoadD
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
 
-pub struct SectionBeingDrawnPlugin;
+pub struct RoadBeingDrawnPlugin;
 
-impl Plugin for SectionBeingDrawnPlugin {
+impl Plugin for RoadBeingDrawnPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
@@ -46,112 +47,6 @@ impl Plugin for SectionBeingDrawnPlugin {
             OnExit(RoadDrawerTool::Drawer),
             cancel_road_when_leaving_drawer_tool,
         );
-    }
-}
-
-// TODO: split to module
-#[derive(Clone, Debug)]
-pub struct SectionBeingDrawn {
-    pub ends: [SectionEndBeingDrawn; 2],
-    pub variant: SectionBeingDrawnVariant,
-}
-
-impl SectionBeingDrawn {
-    fn to_requested_road_section(&self) -> RequestedRoadSection {
-        RequestedRoadSection {
-            ends: self.ends.map(|end| end.to_requested_road_section_end()),
-            variant: self.variant.to_road_section_variant(),
-        }
-    }
-
-    pub fn start(&self) -> SectionEndBeingDrawn {
-        self.ends[0]
-    }
-
-    pub fn end(&self) -> SectionEndBeingDrawn {
-        self.ends[1]
-    }
-}
-
-// TODO: split to module
-#[derive(Clone, Copy, Debug)]
-pub struct SectionEndBeingDrawn {
-    /// The position of this end without snapping.
-    pub position: Vec3,
-    /// The outwards facing direction that this end looks towards.
-    pub direction: Option<Dir3>,
-    /// The nearest node to snap to.
-    pub nearest_road_node: Option<NearestRoadNode>,
-}
-
-impl SectionEndBeingDrawn {
-    fn to_requested_road_section_end(&self) -> RequestedRoadSectionEnd {
-        let direction = self
-            .direction
-            .expect("Direction should be Some before converting to requested section");
-
-        let road_node = match self.nearest_road_node {
-            Some(nearest_node) => nearest_node.to_requested_road_node(),
-            None => RequestedRoadNode::new(self.position, None),
-        };
-
-        RequestedRoadSectionEnd {
-            road_node,
-            direction,
-        }
-    }
-
-    /// Returns the position of nearest_road_node if Some, otherwise returns the position of self.
-    pub fn snapped_position(&self) -> Vec3 {
-        match self.nearest_road_node {
-            Some(nearest_node) => nearest_node.position,
-            None => self.position,
-        }
-    }
-
-    /// Returns this end's direction which faces outwards, or None.
-    fn outwards_direction(&self) -> Option<Dir3> {
-        self.direction
-    }
-
-    /// Returns this end's direction but flipped to face inwards, or None.
-    fn inwards_direction(&self) -> Option<Dir3> {
-        self.direction.map(|direction| -direction)
-    }
-
-    /// Returns a Transform with this end's position facing outwards, or None if no direction is set.
-    #[expect(unused)]
-    fn outwards_transform(&self) -> Option<Transform> {
-        Some(self.get_transform_with_direction(self.outwards_direction()?))
-    }
-
-    /// Returns a Transform with this end's position facing inwards, or None if no direction is set.
-    fn inwards_transform(&self) -> Option<Transform> {
-        Some(self.get_transform_with_direction(self.inwards_direction()?))
-    }
-
-    /// Returns a Transform with this end's position and the given direction.
-    fn get_transform_with_direction(&self, direction: Dir3) -> Transform {
-        Transform::from_translation(self.position).looking_to(direction, Dir3::Y)
-    }
-}
-
-// TODO: split to module
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub enum SectionBeingDrawnVariant {
-    Straight,
-    Curved(Option<CircularArc>),
-}
-
-impl SectionBeingDrawnVariant {
-    fn to_road_section_variant(&self) -> RoadSectionVariant {
-        match self {
-            SectionBeingDrawnVariant::Straight => RoadSectionVariant::Straight,
-            SectionBeingDrawnVariant::Curved(circular_arc) => RoadSectionVariant::Curved(
-                circular_arc
-                    .expect("CircularArc should be Some before converting to RoadSectionVariant."),
-            ),
-        }
     }
 }
 
@@ -201,7 +96,7 @@ fn update_road_being_drawn_on_target_update(
         };
 
         // TODO: make helper method to get "snapped position" like this from nearest node or interaction_target if none
-        let nearest_road_node = find_road_node_nearest_to_point(
+        let nearest_road_node = NearestRoadNode::find_from_point(
             &road_node_query,
             interaction_target.position,
             ROAD_NODE_SNAP_DISTANCE,
@@ -341,47 +236,10 @@ fn build_section_end(
     SectionEndBeingDrawn {
         position: interaction_target.position,
         direction,
-        nearest_road_node: find_road_node_nearest_to_point(
+        nearest_road_node: NearestRoadNode::find_from_point(
             road_node_query,
             interaction_target.position,
             ROAD_NODE_SNAP_DISTANCE,
         ),
     }
-}
-
-// Snapping utility
-
-// TODO: split to module
-#[derive(Clone, Copy, Debug)]
-pub struct NearestRoadNode {
-    position: Vec3,
-    entity: Entity,
-}
-
-impl NearestRoadNode {
-    fn to_requested_road_node(&self) -> RequestedRoadNode {
-        RequestedRoadNode::new(self.position, Some(self.entity))
-    }
-}
-
-fn find_road_node_nearest_to_point(
-    road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
-    point: Vec3,
-    max_distance: f32,
-) -> Option<NearestRoadNode> {
-    let (node_entity, node_transform, node_distance) = road_node_query
-        .iter()
-        .map(|(node_entity, node_transform)| {
-            (
-                node_entity,
-                node_transform,
-                node_transform.translation.distance(point),
-            )
-        })
-        .min_by(|(_, _, distance_a), (_, _, distance_b)| distance_a.total_cmp(&distance_b))?;
-
-    (node_distance < max_distance).then_some(NearestRoadNode {
-        position: node_transform.translation,
-        entity: node_entity,
-    })
 }

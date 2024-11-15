@@ -1,14 +1,14 @@
 mod bulldozer;
 mod gizmos;
+mod road_being_drawn;
 mod road_drawer_tool;
-mod section_being_drawn;
 pub mod selected_road;
 
 use bevy::prelude::*;
 use bulldozer::BulldozerPlugin;
 use gizmos::RoadDrawerGizmosPlugin;
+use road_being_drawn::{section_being_drawn::SectionBeingDrawn, RoadBeingDrawnPlugin};
 use road_drawer_tool::RoadDrawerToolPlugin;
-use section_being_drawn::{SectionBeingDrawn, SectionBeingDrawnPlugin};
 use selected_road::SelectedRoadPlugin;
 
 use crate::game_modes::GameMode;
@@ -20,7 +20,7 @@ impl Plugin for RoadDrawerPlugin {
         app.add_plugins((
             SelectedRoadPlugin,
             RoadDrawerGizmosPlugin,
-            SectionBeingDrawnPlugin,
+            RoadBeingDrawnPlugin,
             BulldozerPlugin,
             RoadDrawerToolPlugin,
         ))

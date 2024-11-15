@@ -11,7 +11,8 @@ use crate::{
 };
 
 use super::{
-    section_being_drawn::SectionBeingDrawnVariant, selected_road::SelectedRoad, RoadDrawer,
+    road_being_drawn::section_being_drawn::SectionBeingDrawnVariant, selected_road::SelectedRoad,
+    RoadDrawer,
 };
 
 const ROAD_NODE_GIZMO_COLOR: Srgba = EMERALD_300;
