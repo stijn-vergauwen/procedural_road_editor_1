@@ -57,6 +57,8 @@ impl RoadSection {
 pub struct RoadSectionEnd {
     /// The entity of the road node this end is connected to.
     pub road_node_entity: Entity,
+
+    // TODO: can't this direction just be calculated when needed? Removing this would remove a lot of code in the drawer that only exists to calculate the direction
     /// The outwards facing direction that this end looks towards.
     #[expect(unused)]
     pub direction: Dir3,
@@ -71,26 +73,10 @@ impl RoadSectionEnd {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum RoadSectionShape {
-    Straight,
-    Curved,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum RoadSectionVariant {
     Straight,
     Curved(CircularArc),
-}
-
-impl RoadSectionVariant {
-    #[expect(unused)]
-    pub fn as_section_shape(&self) -> RoadSectionShape {
-        match self {
-            RoadSectionVariant::Straight => RoadSectionShape::Straight,
-            RoadSectionVariant::Curved(_) => RoadSectionShape::Curved,
-        }
-    }
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -58,7 +58,7 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
-            - refactor todo's
+            - complete todo's in road_being_drawn module
             - support curved roads in mesh builder etc
 
         - align curved sections with connected sections (draw straight + curved segment at once to connect)

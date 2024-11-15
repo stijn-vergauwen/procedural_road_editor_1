@@ -2,9 +2,11 @@ mod nearest_road_node;
 pub mod section_being_drawn;
 mod section_end_being_drawn;
 
-use bevy::prelude::*;
+use bevy::{math::InvalidDirectionError, prelude::*};
 use nearest_road_node::NearestRoadNode;
-use section_being_drawn::{SectionBeingDrawn, SectionBeingDrawnVariant};
+use section_being_drawn::{
+    CurvedSectionBeingDrawn, SectionBeingDrawn, SectionBeingDrawnError, SectionBeingDrawnVariant,
+};
 use section_end_being_drawn::SectionEndBeingDrawn;
 
 use crate::{
@@ -12,7 +14,7 @@ use crate::{
     road::{road_node::RoadNode, road_section::road_section_builder::OnBuildRoadSectionRequested},
     utility::circular_arc::CircularArc,
     world::world_interaction::{
-        interaction_target::{InteractionTarget, OnWorldInteractionTargetUpdated},
+        interaction_target::OnWorldInteractionTargetUpdated,
         mouse_interaction_events::{InteractionPhase, OnMouseInteraction},
         WorldInteraction,
     },
@@ -24,6 +26,10 @@ use super::{road_drawer_tool::RoadDrawerTool, selected_road::SelectedRoad, RoadD
 const MOUSE_BUTTON_TO_DRAW: MouseButton = MouseButton::Left;
 const ROAD_NODE_SNAP_DISTANCE: f32 = 5.0;
 
+// TODO: Curved section being drawn should set it's start direction to mouse position until mouse is pressed (instead of only setting it on mouse press)
+//          - maybe add a boolean like "is_setting_start_direction" and update either start direction or curve arc in update system based on this bool
+// TODO: right-clicking a curve being drawn should allow you to set a new start direction (instead of cancelling the whole section)
+
 pub struct RoadBeingDrawnPlugin;
 
 impl Plugin for RoadBeingDrawnPlugin {
@@ -33,9 +39,9 @@ impl Plugin for RoadBeingDrawnPlugin {
             (
                 send_build_section_request_on_mouse_press.in_set(GameRunningSet::SendCommands),
                 (
-                    start_drawing_road_on_mouse_press,
                     update_road_being_drawn_on_target_update,
                     set_curved_section_direction_on_mouse_press,
+                    start_drawing_road_on_mouse_press,
                     cancel_road_on_right_click,
                 )
                     .chain()
@@ -59,10 +65,11 @@ fn start_drawing_road_on_mouse_press(
     road_node_query: Query<(Entity, &Transform), With<RoadNode>>,
     selected_road: Res<SelectedRoad>,
 ) {
-    for _ in on_interaction
-        .read()
-        .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
-    {
+    for _ in on_interaction.read().filter(|event| {
+        event.button == MOUSE_BUTTON_TO_DRAW
+            && event.phase == InteractionPhase::Started
+            && !event.is_on_ui
+    }) {
         if !selected_road.has_selected_road() || road_drawer.section_being_drawn.is_some() {
             continue;
         }
@@ -71,11 +78,18 @@ fn start_drawing_road_on_mouse_press(
             continue;
         };
 
-        let road_section_end = build_section_end(interaction_target, &road_node_query, None);
+        let target_position = interaction_target.position;
+        let nearest_road_node = NearestRoadNode::find_from_position(
+            &road_node_query,
+            target_position,
+            ROAD_NODE_SNAP_DISTANCE,
+        );
+
+        let road_section_end = SectionEndBeingDrawn::new(target_position, nearest_road_node);
 
         let section_being_drawn = SectionBeingDrawn {
             ends: [road_section_end; 2],
-            variant: SectionBeingDrawnVariant::Curved(None),
+            variant: SectionBeingDrawnVariant::Curved(CurvedSectionBeingDrawn::empty()),
         };
 
         road_drawer.section_being_drawn = Some(section_being_drawn);
@@ -95,52 +109,39 @@ fn update_road_being_drawn_on_target_update(
             continue;
         };
 
-        // TODO: make helper method to get "snapped position" like this from nearest node or interaction_target if none
-        let nearest_road_node = NearestRoadNode::find_from_point(
+        let nearest_road_node = NearestRoadNode::find_from_position(
             &road_node_query,
             interaction_target.position,
             ROAD_NODE_SNAP_DISTANCE,
         );
 
-        let target_position = match nearest_road_node {
-            Some(nearest_node) => nearest_node.position,
+        let snapped_target_position = match nearest_road_node {
+            Some(node) => node.position,
             None => interaction_target.position,
         };
 
-        match section_being_drawn.variant {
+        let snapped_start_position = section_being_drawn.start().snapped_position();
+
+        match &mut section_being_drawn.variant {
             SectionBeingDrawnVariant::Straight => {
-                let direction = straight_section_end_outwards_direction(
-                    section_being_drawn.end().snapped_position(),
-                    section_being_drawn.start().snapped_position(),
-                );
-
                 section_being_drawn.ends[1] =
-                    build_section_end(interaction_target, &road_node_query, direction);
-
-                section_being_drawn.ends[0].direction = section_being_drawn
-                    .end()
-                    .direction
-                    .map(|direction| -direction);
+                    SectionEndBeingDrawn::new(interaction_target.position, nearest_road_node);
             }
-            SectionBeingDrawnVariant::Curved(_) => {
-                let mut end_direction: Option<Dir3> = None;
+            SectionBeingDrawnVariant::Curved(curved_section) => {
+                if let Ok(start_direction) = curved_section.start_direction {
+                    let inwards_start_transform =
+                        Transform::from_translation(snapped_start_position)
+                            .looking_to(start_direction, Dir3::Y);
 
-                if let Some(inwards_start_transform) =
-                    section_being_drawn.start().inwards_transform()
-                {
-                    let Some(circular_arc) =
-                        CircularArc::from_start_transform(inwards_start_transform, target_position)
-                    else {
-                        continue;
-                    };
+                    curved_section.circular_arc = CircularArc::from_start_transform(
+                        inwards_start_transform,
+                        snapped_target_position,
+                    )
+                    .ok_or(SectionBeingDrawnError::InvalidCurve);
 
-                    end_direction = Some(circular_arc.outwards_end_transform().forward());
-                    section_being_drawn.variant =
-                        SectionBeingDrawnVariant::Curved(Some(circular_arc));
+                    section_being_drawn.ends[1] =
+                        SectionEndBeingDrawn::new(interaction_target.position, nearest_road_node);
                 }
-
-                section_being_drawn.ends[1] =
-                    build_section_end(interaction_target, &road_node_query, end_direction);
             }
         }
     }
@@ -151,10 +152,11 @@ fn set_curved_section_direction_on_mouse_press(
     mut road_drawer: ResMut<RoadDrawer>,
     world_interaction: Res<WorldInteraction>,
 ) {
-    for _ in on_interaction
-        .read()
-        .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
-    {
+    for _ in on_interaction.read().filter(|event| {
+        event.button == MOUSE_BUTTON_TO_DRAW
+            && event.phase == InteractionPhase::Started
+            && !event.is_on_ui
+    }) {
         let Some(section_being_drawn) = &mut road_drawer.section_being_drawn else {
             continue;
         };
@@ -163,15 +165,18 @@ fn set_curved_section_direction_on_mouse_press(
             continue;
         };
 
-        if section_being_drawn.variant == SectionBeingDrawnVariant::Curved(None)
-            && section_being_drawn.start().direction.is_none()
-        {
-            let direction = straight_section_end_outwards_direction(
-                section_being_drawn.start().position,
-                interaction_target.position,
-            );
+        let snapped_start_position = section_being_drawn.start().snapped_position();
 
-            section_being_drawn.ends[0].direction = direction;
+        if let SectionBeingDrawnVariant::Curved(curved_section) = &mut section_being_drawn.variant {
+            if curved_section.start_direction.is_ok() {
+                continue;
+            }
+
+            println!("Set start direction");
+
+            curved_section.start_direction =
+                get_direction_from_to(snapped_start_position, interaction_target.position)
+                    .map_err(|_| SectionBeingDrawnError::InvalidSectionLength)
         }
     }
 }
@@ -181,23 +186,20 @@ fn send_build_section_request_on_mouse_press(
     mut on_request_section: EventWriter<OnBuildRoadSectionRequested>,
     mut road_drawer: ResMut<RoadDrawer>,
 ) {
-    for _ in on_interaction
-        .read()
-        .filter(|event| filter_mouse_interaction(event, InteractionPhase::Started))
-    {
+    for _ in on_interaction.read().filter(|event| {
+        event.button == MOUSE_BUTTON_TO_DRAW
+            && event.phase == InteractionPhase::Started
+            && !event.is_on_ui
+    }) {
         let Some(section_being_drawn) = &road_drawer.section_being_drawn else {
             continue;
         };
 
-        if section_being_drawn.start().direction.is_none()
-            || section_being_drawn.end().direction.is_none()
-        {
+        let Ok(requested_section) = section_being_drawn.to_requested_road_section() else {
             continue;
-        }
+        };
 
-        on_request_section.send(OnBuildRoadSectionRequested::new(
-            section_being_drawn.to_requested_road_section(),
-        ));
+        on_request_section.send(OnBuildRoadSectionRequested::new(requested_section));
         road_drawer.section_being_drawn = None;
     }
 }
@@ -219,27 +221,6 @@ fn cancel_road_when_leaving_drawer_tool(mut road_drawer: ResMut<RoadDrawer>) {
 
 // Utility
 
-fn filter_mouse_interaction(event: &&OnMouseInteraction, phase: InteractionPhase) -> bool {
-    event.button == MOUSE_BUTTON_TO_DRAW && event.phase == phase && !event.is_on_ui
-}
-
-fn straight_section_end_outwards_direction(this_end: Vec3, other_end: Vec3) -> Option<Dir3> {
-    Dir3::new(this_end - other_end).ok()
-}
-
-// TODO: refactor out this fn, NearestRoadNode should be used instead of target position in systems that call this fn
-fn build_section_end(
-    interaction_target: InteractionTarget,
-    road_node_query: &Query<(Entity, &Transform), With<RoadNode>>,
-    direction: Option<Dir3>,
-) -> SectionEndBeingDrawn {
-    SectionEndBeingDrawn {
-        position: interaction_target.position,
-        direction,
-        nearest_road_node: NearestRoadNode::find_from_point(
-            road_node_query,
-            interaction_target.position,
-            ROAD_NODE_SNAP_DISTANCE,
-        ),
-    }
+fn get_direction_from_to(from: Vec3, to: Vec3) -> Result<Dir3, InvalidDirectionError> {
+    Dir3::new(to - from)
 }
