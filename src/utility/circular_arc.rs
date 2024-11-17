@@ -2,7 +2,7 @@ use std::f32::consts::TAU;
 
 use bevy::prelude::*;
 
-use super::line_intersection::calculate_line_line_intersection_3d;
+use super::{delta_rotation, line_intersection::calculate_line_line_intersection_3d};
 
 /// Describes a Circular arc, stores the position of the center of the circle and the shape of the arc.
 ///
@@ -97,8 +97,10 @@ impl CircularArc {
     }
 
     /// Returns the position on this arcs radius with the given angle.
+    /// 
+    /// - The position is local, relative to the circle center.
     pub fn position_along_radius(&self, angle: f32) -> Vec3 {
-        rotation_from_y_angle(angle) * (Vec3::NEG_Z * self.radius) + self.position
+        rotation_from_y_angle(angle) * (Vec3::NEG_Z * self.radius)
     }
 
     /// Returns a transform that sits this arcs radius with the given angle, pointing in the given direction relative to the center position.
@@ -262,10 +264,6 @@ fn wrap_angle_to_tau(mut angle: f32) -> f32 {
     }
 
     angle
-}
-
-fn delta_rotation(from: Quat, to: Quat) -> Quat {
-    to * from.inverse()
 }
 
 /// Returns the curve direction (when looking from above) for the given angle (in clockwise radians along Y axis).

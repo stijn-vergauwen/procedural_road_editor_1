@@ -52,6 +52,10 @@ pub fn despawn_component_recursive<T: Component>(
 
 // Utility functions
 
+pub fn delta_rotation(from: Quat, to: Quat) -> Quat {
+    to * from.inverse()
+}
+
 pub fn add_rotations_as_eulers(rotation_a: Quat, rotation_b: Quat, euler: EulerRot) -> Quat {
     let euler_a = rotation_a.to_euler(euler);
     let euler_b = rotation_b.to_euler(euler);

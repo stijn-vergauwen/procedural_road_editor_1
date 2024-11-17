@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_rapier3d::prelude::*;
 
 use crate::{
     game_modes::GameMode,
@@ -11,13 +10,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{
-    calculate_road_section_size, calculate_road_section_transform, RequestedRoadSection,
-    RoadSection, RoadSectionEnd,
-};
-
-// TODO: 
-// TODO: replace the cuboid collider with a mesh collider from the RoadBuilder
+use super::{calculate_road_section_transform, RequestedRoadSection, RoadSection, RoadSectionEnd};
 
 pub struct RoadSectionBuilderPlugin;
 
@@ -59,28 +52,24 @@ fn build_road_sections_on_request(
             .selected_road()
             .expect("Requests should only be possible to send when a road is selected");
 
-        let road_section = get_requested_road_section(
-            requested_section,
-            &mut commands,
-            selected_road_design.clone(),
-        );
-
-        let road_section_size = calculate_road_section_size(
-            selected_road_design,
-            requested_section.start().road_node.position,
-            requested_section.end().road_node.position,
-        );
+        let mut road_builder = RoadBuilder::new();
+        road_builder.build_from_requested_section(requested_section, selected_road_design);
 
         let pbr_bundle = build_road_section_pbr_bundle(
             &mut mesh_assets,
             &mut image_assets,
             &mut material_assets,
             requested_section,
-            selected_road_design,
-            road_section_size.z,
+            &road_builder,
         );
 
-        let collider = get_road_section_collider(road_section_size);
+        let road_section = get_requested_road_section(
+            requested_section,
+            &mut commands,
+            selected_road_design.clone(),
+        );
+
+        let collider = road_builder.get_collider();
 
         commands.spawn((road_section, pbr_bundle, collider));
     }
@@ -106,12 +95,8 @@ fn build_road_section_pbr_bundle(
     image_assets: &mut Assets<Image>,
     material_assets: &mut Assets<StandardMaterial>,
     requested_section: &RequestedRoadSection,
-    road_data: &RoadData,
-    road_length: f32,
+    road_builder: &RoadBuilder,
 ) -> PbrBundle {
-    let mut road_builder = RoadBuilder::new(road_length);
-    road_builder.build_from_road_data(road_data);
-
     let road_mesh_handle = mesh_assets.add(road_builder.get_mesh());
 
     let road_texture_image_handle = image_assets.add(road_builder.get_texture_image());
@@ -124,16 +109,11 @@ fn build_road_section_pbr_bundle(
     PbrBundle {
         mesh: road_mesh_handle,
         material: road_material_handle,
-        transform: calculate_road_section_transform(
-            requested_section.start().road_node.position,
-            requested_section.end().road_node.position,
-        ),
+        // TODO: add transform calculation back in. At the moment every road_section is placed at World origin to avoid needing to transform curved roads from "relative to circular arc" to "relative to road_section"
+        // transform: calculate_road_section_transform(
+        //     requested_section.start().road_node.position,
+        //     requested_section.end().road_node.position,
+        // ),
         ..default()
     }
-}
-
-fn get_road_section_collider(road_section_size: Vec3) -> Collider {
-    let half_size = road_section_size / 2.0;
-
-    Collider::cuboid(half_size.x, half_size.y, half_size.z)
 }

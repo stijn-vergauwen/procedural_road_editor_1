@@ -11,7 +11,7 @@ use super::{
     road_marking::RoadMarking,
 };
 
-/// Describes a road design, 
+/// Describes a road design,
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 #[serde(default)]
 pub struct RoadData {
@@ -70,6 +70,7 @@ impl RoadData {
         &mut self.markings
     }
 
+    #[expect(unused)]
     pub fn enumerate_markings(&self) -> Enumerate<Iter<RoadMarking>> {
         self.markings.iter().enumerate()
     }

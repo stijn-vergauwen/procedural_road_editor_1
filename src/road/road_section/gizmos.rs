@@ -7,9 +7,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{
-    calculate_road_section_size, calculate_road_section_transform, RoadSection, RoadSectionVariant,
-};
+use super::{calculate_road_section_transform, RoadSection, RoadSectionVariant};
 
 const ROAD_SECTION_GIZMO_COLOR: Srgba = SKY_500;
 const CURVED_SECTION_TRANSFORM_COUNT_MULTIPLIER: f32 = 0.5;
@@ -105,8 +103,10 @@ pub fn draw_curved_road_section_gizmo(
 
     let mut previous_transform: Option<Transform> = None;
 
-    for transform_along_arc in
-        circular_arc.calculate_transforms_along_arc(transform_count, transform_direction)
+    for transform_along_arc in circular_arc
+        .calculate_transforms_along_arc(transform_count, transform_direction)
+        .into_iter()
+        .map(|transform| transform.with_translation(transform.translation + circular_arc.position))
     {
         let offset_points = get_transform_offset_points(transform_along_arc, half_road_width);
 
@@ -139,8 +139,9 @@ fn calculate_road_section_gizmo_transform(
         calculate_road_section_transform(start_node_position, end_node_position);
 
     section_transform.translation.y += road_design.total_height() / 2.0;
-    section_transform.scale =
-        calculate_road_section_size(road_design, start_node_position, end_node_position);
+    section_transform.scale = road_design
+        .total_size()
+        .extend(start_node_position.distance(end_node_position));
 
     section_transform
 }

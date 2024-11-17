@@ -48,6 +48,10 @@ impl RoadComponent {
     pub fn half_width(&self) -> f32 {
         self.width() / 2.0
     }
+
+    pub fn height(&self) -> f32 {
+        self.size.y
+    }
 }
 
 impl Default for RoadComponent {

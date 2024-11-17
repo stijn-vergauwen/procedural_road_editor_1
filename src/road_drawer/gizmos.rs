@@ -102,7 +102,7 @@ fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<Ro
     );
 
     // Rays pointing to circle center
-    let position = circular_arc.start_position();
+    let position = circular_arc.start_position() + circular_arc.position;
     let direction_to_center = circular_arc.rotation_towards_start() * Vec3::Z;
 
     gizmos.ray(
@@ -111,7 +111,7 @@ fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<Ro
         ROAD_SECTION_DIRECTION_GIZMO_COLOR,
     );
 
-    let position = circular_arc.end_position();
+    let position = circular_arc.end_position() + circular_arc.position;
     let direction_to_center = circular_arc.rotation_towards_end() * Vec3::Z;
 
     gizmos.ray(
@@ -124,7 +124,7 @@ fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<Ro
     let start_transform = circular_arc.outwards_start_transform();
 
     gizmos.ray(
-        start_transform.translation,
+        start_transform.translation + circular_arc.position,
         start_transform.back() * 100.0,
         ROAD_SECTION_INWARDS_DIRECTION_GIZMO_COLOR,
     );
@@ -132,7 +132,7 @@ fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<Ro
     let end_transform = circular_arc.outwards_end_transform();
 
     gizmos.ray(
-        end_transform.translation,
+        end_transform.translation + circular_arc.position,
         end_transform.back() * 100.0,
         ROAD_SECTION_INWARDS_DIRECTION_GIZMO_COLOR,
     );
@@ -140,10 +140,10 @@ fn draw_curved_road_section_debug_things(mut gizmos: Gizmos, road_drawer: Res<Ro
     // Intersection
     if let Some(intersection) = calculate_line_line_intersection_3d(
         Ray3d::new(
-            start_transform.translation,
+            start_transform.translation + circular_arc.position,
             start_transform.back().as_vec3(),
         ),
-        Ray3d::new(end_transform.translation, end_transform.back().as_vec3()),
+        Ray3d::new(end_transform.translation + circular_arc.position, end_transform.back().as_vec3()),
     ) {
         gizmos.circle(
             intersection,

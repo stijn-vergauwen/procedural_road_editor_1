@@ -68,6 +68,7 @@ impl MeshBuilder {
     /// Builds a quad and adds it's vertices, normals, uvs, and triangles to the mesh
     ///
     /// Note: The uv parameter is used on every corner of the quad, color gradients are not possible with this function
+    #[allow(unused)]
     pub fn add_quad(&mut self, transform: Transform, uv: Vec2) {
         for corner_position in get_scaled_quad_corners(transform.scale).into_iter() {
             self.add_vertex(
@@ -112,7 +113,6 @@ impl MeshBuilder {
     }
 
     /// Generates a rapier `Collider` component from the current mesh data
-    #[expect(unused)]
     pub fn to_collider(&self) -> Collider {
         Collider::trimesh(
             self.vertices.clone(),
@@ -157,13 +157,7 @@ fn triangles_to_indices(triangles: &Vec<TriangleIndices>) -> Indices {
 }
 
 fn get_scaled_quad_corners(scale: Vec3) -> [Vec3; 4] {
-    QUAD_CORNERS.map(|corner| {
-        Vec3::new(
-            corner.x * scale.x / 2.0,
-            corner.y * scale.y / 2.0,
-            -scale.z / 2.0,
-        )
-    })
+    QUAD_CORNERS.map(|corner| Vec3::new(corner.x * scale.x / 2.0, corner.y * scale.y / 2.0, 0.0))
 }
 
 #[cfg(test)]

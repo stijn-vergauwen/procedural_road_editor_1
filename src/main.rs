@@ -58,12 +58,15 @@ use world::WorldPlugin;
 
     Backlog:
         - curved roads (circular arc)
+            - support curved roads in mesh builder
+                - complete todo's in road_builder
+                - rework and implement road_preview module
+                - build RoadSections with correct Transform. At the moment every road_section is placed at World origin to avoid needing to transform curved roads from "relative to circular arc" to "relative to road_section"
             - complete todo's in road_being_drawn module
-            - support curved roads in mesh builder etc
 
         - align curved sections with connected sections (draw straight + curved segment at once to connect)
             - there are 3 cases for start & end node of road being drawn:
-                - neither are snapped to existing nodes, in this case the anchor decides 
+                - neither are snapped to existing nodes, in this case the anchor decides
             - when the start or end of the road being drawn snaps to an existing section, the curve anchor should decide the direction of the side that's not snapped
             - when the start and end of the road being drawn are both snapped to an existing section, there should be no curve anchor
 
