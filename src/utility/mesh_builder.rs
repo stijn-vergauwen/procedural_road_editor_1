@@ -99,17 +99,18 @@ impl MeshBuilder {
     /// Generates a `MeshDebugData` object from the current mesh data
     ///
     /// * Uses `origin` to determine where in world space the mesh should be rendered
-    #[expect(unused)]
+    #[allow(unused)]
     pub fn to_debug_data(
         &self,
         origin: Vec3,
-        debug_vertices: bool,
+        debug_normals: bool,
         debug_triangles: bool,
     ) -> MeshDebugData {
-        let vertices = debug_vertices.then_some(self.vertices.clone());
+        let vertices = self.vertices.clone();
+        let normals = debug_normals.then_some(self.normals.clone());
         let triangles = debug_triangles.then_some(self.triangles.clone());
 
-        MeshDebugData::new(origin, vertices, triangles)
+        MeshDebugData::new(origin, vertices, normals, triangles)
     }
 
     /// Generates a rapier `Collider` component from the current mesh data

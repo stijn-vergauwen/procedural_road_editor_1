@@ -1,4 +1,4 @@
-use bevy::{color::palettes::tailwind::{BLUE_500, LIME_400}, prelude::*};
+use bevy::{color::palettes::tailwind::*, prelude::*};
 
 use super::TriangleIndices;
 
@@ -13,23 +13,27 @@ impl Plugin for MeshBuilderDebugPlugin {
 const VERTEX_COLOR: Srgba = LIME_400;
 const VERTEX_RADIUS: f32 = 0.15;
 const TRIANGLE_COLOR: Srgba = BLUE_500;
+const NORMAL_COLOR: Srgba = AMBER_400;
 
 #[derive(Component)]
 pub struct MeshDebugData {
     origin: Vec3,
-    vertices: Option<Vec<Vec3>>,
+    vertices: Vec<Vec3>,
+    normals: Option<Vec<Vec3>>,
     triangles: Option<Vec<TriangleIndices>>,
 }
 
 impl MeshDebugData {
     pub fn new(
         origin: Vec3,
-        vertices: Option<Vec<Vec3>>,
+        vertices: Vec<Vec3>,
+        normals: Option<Vec<Vec3>>,
         triangles: Option<Vec<TriangleIndices>>,
     ) -> Self {
         Self {
             origin,
             vertices,
+            normals,
             triangles,
         }
     }
@@ -42,20 +46,25 @@ fn draw_debug_meshes(mut gizmos: Gizmos, debug_meshes: Query<&MeshDebugData>) {
 }
 
 fn draw_mesh_data(gizmos: &mut Gizmos, data: &MeshDebugData) {
-    if let Some(vertices) = &data.vertices {
-        for &vertex in vertices.iter() {
-            draw_sphere(gizmos, data.origin + vertex);
-        }
+    for &vertex in data.vertices.iter() {
+        draw_sphere(gizmos, data.origin + vertex);
+    }
 
-        if let Some(triangles) = &data.triangles {
-            for &triangle in triangles.iter() {
-                draw_triangle(
-                    gizmos,
-                    data.origin + vertices[triangle.0 as usize],
-                    data.origin + vertices[triangle.1 as usize],
-                    data.origin + vertices[triangle.2 as usize],
-                );
-            }
+    if let Some(normals) = &data.normals {
+        for (index, normal) in normals.iter().enumerate() {
+            let position = data.vertices[index];
+            draw_ray(gizmos, position, *normal);
+        }
+    }
+
+    if let Some(triangles) = &data.triangles {
+        for &triangle in triangles.iter() {
+            draw_triangle(
+                gizmos,
+                data.origin + data.vertices[triangle.0 as usize],
+                data.origin + data.vertices[triangle.1 as usize],
+                data.origin + data.vertices[triangle.2 as usize],
+            );
         }
     }
 }
@@ -68,4 +77,8 @@ fn draw_triangle(gizmos: &mut Gizmos, a: Vec3, b: Vec3, c: Vec3) {
 
 fn draw_sphere(gizmos: &mut Gizmos, position: Vec3) {
     gizmos.sphere(position, Quat::IDENTITY, VERTEX_RADIUS, VERTEX_COLOR);
+}
+
+fn draw_ray(gizmos: &mut Gizmos, position: Vec3, direction: Vec3) {
+    gizmos.ray(position, direction, NORMAL_COLOR);
 }

@@ -1,23 +1,24 @@
 pub mod changed_value;
+pub mod circular_arc;
 pub mod distance;
+pub mod line_intersection;
 pub mod mesh_builder;
 pub mod mouse_on_ui;
 pub mod texture_builder;
-pub mod circular_arc;
-pub mod line_intersection;
 
 use bevy::{
     ecs::query::{QueryData, QueryFilter},
     prelude::*,
     window::{CursorGrabMode, PrimaryWindow},
 };
+use mesh_builder::MeshBuilderPlugin;
 use mouse_on_ui::MouseOnUiPlugin;
 
 pub struct UtilityPlugin;
 
 impl Plugin for UtilityPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(MouseOnUiPlugin)
+        app.add_plugins((MouseOnUiPlugin, MeshBuilderPlugin))
             .add_systems(Update, shutdown_on_control_q);
     }
 }

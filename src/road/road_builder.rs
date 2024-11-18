@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier3d::prelude::*;
 
 use crate::utility::{
-    mesh_builder::{triangle_indices::TriangleIndices, MeshBuilder},
+    mesh_builder::{debug::MeshDebugData, triangle_indices::TriangleIndices, MeshBuilder},
     texture_builder::TextureBuilder,
 };
 
@@ -10,9 +10,6 @@ use super::{
     road_data::RoadData,
     road_section::{RequestedRoadSection, RoadSectionVariant},
 };
-
-// TODO: make straight segments using new cross-section methods
-// TODO: make curved segments using cross-section methods
 
 /// Builds the 3D road mesh from the given road data.
 pub struct RoadBuilder {
@@ -59,6 +56,17 @@ impl RoadBuilder {
 
     pub fn get_collider(&self) -> Collider {
         self.mesh_builder.to_collider()
+    }
+
+    #[allow(unused)]
+    pub fn to_debug_data(
+        &self,
+        origin: Vec3,
+        debug_normals: bool,
+        debug_triangles: bool,
+    ) -> MeshDebugData {
+        self.mesh_builder
+            .to_debug_data(origin, debug_normals, debug_triangles)
     }
 
     fn build_road_texture(&mut self, road_design: &RoadData) {
@@ -262,13 +270,13 @@ pub fn calculate_road_design_slice(
         // Top side
         road_design_slice.push(
             Vec3::new(left_x_position, current_height, 0.0),
-            Vec3::NEG_X,
+            Vec3::Y,
             uv,
         );
 
         road_design_slice.push(
             Vec3::new(right_x_position, current_height, 0.0),
-            Vec3::NEG_X,
+            Vec3::Y,
             uv,
         );
 
@@ -276,13 +284,13 @@ pub fn calculate_road_design_slice(
         if let Some(side_to_draw) = right_side {
             road_design_slice.push(
                 Vec3::new(right_x_position, side_to_draw.upper_height, 0.0),
-                Vec3::NEG_X,
+                Vec3::X,
                 uv,
             );
 
             road_design_slice.push(
                 Vec3::new(right_x_position, side_to_draw.lower_height, 0.0),
-                Vec3::NEG_X,
+                Vec3::X,
                 uv,
             );
         }

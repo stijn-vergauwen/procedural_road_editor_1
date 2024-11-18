@@ -59,7 +59,6 @@ use world::WorldPlugin;
     Backlog:
         - curved roads (circular arc)
             - support curved roads in mesh builder
-                - complete todo's in road_builder
                 - rework and implement road_preview module
                 - build RoadSections with correct Transform. At the moment every road_section is placed at World origin to avoid needing to transform curved roads from "relative to circular arc" to "relative to road_section"
             - complete todo's in road_being_drawn module

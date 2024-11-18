@@ -10,7 +10,7 @@ use crate::{
     GameRunningSet,
 };
 
-use super::{calculate_road_section_transform, RequestedRoadSection, RoadSection, RoadSectionEnd};
+use super::{RequestedRoadSection, RoadSection, RoadSectionEnd};
 
 pub struct RoadSectionBuilderPlugin;
 
@@ -72,6 +72,8 @@ fn build_road_sections_on_request(
         let collider = road_builder.get_collider();
 
         commands.spawn((road_section, pbr_bundle, collider));
+
+        // commands.spawn(road_builder.to_debug_data(Vec3::ZERO, true, false));
     }
 }
 

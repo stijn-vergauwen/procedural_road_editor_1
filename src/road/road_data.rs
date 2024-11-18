@@ -136,6 +136,7 @@ impl Default for RoadData {
 
 #[derive(Debug, Clone)]
 pub struct RoadComponentUnderPoint {
+    #[expect(unused)]
     pub road_component: RoadComponent,
     pub road_component_index: usize,
     pub closest_position_field: RoadComponentPositionField,
